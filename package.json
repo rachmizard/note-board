@@ -10,7 +10,12 @@
     "env:pull": "vercel env pull",
     "env:add": "vercel env add",
     "env:ls": "vercel env ls",
-    "env:rm": "vercel env rm"
+    "env:rm": "vercel env rm",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:drop": "drizzle-kit drop",
+    "db:migrate": "node -r @swc-node/register src/lib/database/migrate.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.0",
@@ -37,6 +42,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@swc-node/register": "^1.10.10",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
