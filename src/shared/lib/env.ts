@@ -9,7 +9,14 @@ loadEnvConfig(projectDir);
  * Define schema for environment variables
  */
 export const envSchema = z.object({
-  DATABASE_URL: z.string().url("Invalid database URL"),
+  DATABASE_URL: z
+    .string()
+    .url("Invalid database URL")
+    .describe("Production database URL"),
+  DATABASE_URL_DEV: z
+    .string()
+    .url("Invalid database URL")
+    .describe("Development database URL"),
 });
 
 // Create a type from the schema
