@@ -354,7 +354,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
             {/* Desktop action buttons - visible on hover */}
             <div
               className={cn(
-                "hidden md:flex space-x-1 transition-opacity duration-200",
+                "hidden md:flex space-x-1 transition-opacity duration-200 px-4",
                 isInteracting
                   ? "opacity-100"
                   : "opacity-0 group-hover:opacity-100"
