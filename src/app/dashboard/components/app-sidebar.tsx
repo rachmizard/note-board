@@ -1,21 +1,14 @@
-import { VersionSwitcher } from "@/app/dashboard/components/version-switcher";
 import {
-  SidebarHeader,
-  SidebarContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarRail,
   Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail
 } from "@/shared/components/ui/sidebar";
+import { CheckSquare, LayoutDashboard, LogOut, Notebook, Timer } from "lucide-react";
 import * as React from "react";
-import {
-  LayoutDashboard,
-  CheckSquare,
-  Timer,
-  LogOut,
-  Notebook,
-} from "lucide-react";
 
 const data = {
   versions: ["1.0.1", "1.1.0-alpha", "2.0.0-beta1"],
@@ -23,19 +16,19 @@ const data = {
     {
       title: "Dashboard",
       url: "/dashboard",
-      icon: LayoutDashboard,
+      icon: LayoutDashboard
     },
     {
       title: "Todo List",
       url: "/todo",
-      icon: CheckSquare,
+      icon: CheckSquare
     },
     {
       title: "Pomodoro",
-      url: "/pomodoro",
-      icon: Timer,
-    },
-  ],
+      url: "/dashboard/pomodoro",
+      icon: Timer
+    }
+  ]
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -52,7 +45,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           {data.navMain.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild>
-                <a href={item.url} className="flex items-center gap-2">
+                <a
+                  href={item.url}
+                  className="flex items-center gap-2"
+                >
                   {item.icon && <item.icon size={20} />}
                   {item.title}
                 </a>

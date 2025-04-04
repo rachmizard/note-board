@@ -1,4 +1,3 @@
-import { FloatingNav } from "@/components/nav/FloatingNav";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -36,7 +35,6 @@ export default function RootLayout({
         <div className="fixed -top-20 -left-20 w-64 h-64 bg-rose-500/5 rounded-full blur-3xl"></div>
         <div className="fixed -bottom-20 -right-20 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
 
-        <FloatingNav />
         <Providers>
           <main className="h-full w-full">{children}</main>
         </Providers>
