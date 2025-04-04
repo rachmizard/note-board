@@ -27,35 +27,41 @@ export const TodoStats: React.FC<TodoStatsProps> = ({ todos }) => {
 
         <div className="mb-3">
           <div className="flex justify-between mb-1">
-            <span className="text-sm text-gray-600">Completion Rate</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              Completion Rate
+            </span>
             <span className="text-sm font-medium">
               {completionRate.toFixed(0)}%
             </span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
             <div
-              className="bg-blue-600 h-2.5 rounded-full"
+              className="bg-blue-600 dark:bg-blue-500 h-2.5 rounded-full"
               style={{ width: `${completionRate}%` }}
             ></div>
           </div>
         </div>
 
         <div className="grid grid-cols-4 gap-3 text-center">
-          <div className="bg-gray-50 p-3 rounded">
+          <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded">
             <p className="text-lg font-medium">{inProgressCount}</p>
-            <p className="text-xs text-gray-500">In Progress</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              In Progress
+            </p>
           </div>
-          <div className="bg-gray-50 p-3 rounded">
+          <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded">
             <p className="text-lg font-medium">{completedCount}</p>
-            <p className="text-xs text-gray-500">Completed</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Completed
+            </p>
           </div>
-          <div className="bg-gray-50 p-3 rounded">
+          <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded">
             <p className="text-lg font-medium">{backlogCount}</p>
-            <p className="text-xs text-gray-500">Backlog</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Backlog</p>
           </div>
-          <div className="bg-gray-50 p-3 rounded">
+          <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded">
             <p className="text-lg font-medium">{archivedCount}</p>
-            <p className="text-xs text-gray-500">Archived</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Archived</p>
           </div>
         </div>
       </Card>
