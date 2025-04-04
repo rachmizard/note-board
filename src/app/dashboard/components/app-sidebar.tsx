@@ -1,15 +1,13 @@
 "use client";
 
-import { VersionSwitcher } from "@/app/dashboard/components/version-switcher";
+import { Button } from "@/shared/components/ui/button";
 import {
-  SidebarHeader,
-  SidebarContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarRail,
   Sidebar,
-  SidebarTrigger,
+  SidebarContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   SidebarProvider,
   useSidebar,
 } from "@/shared/components/ui/sidebar";
@@ -19,16 +17,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
-import * as React from "react";
 import {
-  LayoutDashboard,
+  Calendar,
   CheckSquare,
-  Timer,
-  LogOut,
   ChevronLeft,
-  Calendar, // Add this import
+  LayoutDashboard,
+  LogOut,
+  RefreshCw,
+  Timer,
 } from "lucide-react";
-import { Button } from "@/shared/components/ui/button";
+import Image from "next/image";
 
 const data = {
   navMain: [
@@ -85,19 +83,41 @@ export function AppSidebar() {
           }`}
         >
           <CollapseButton />
-          <SidebarHeader className="flex w-full justify-start items-center  border-b">
-            <div className="flex gap-2 justify-start w-full">
-              <img src="./logo.png" className="w-6 h-6 shrink-0" />
-              {!isCollapsed && <p>Noteboard</p>}
+          <SidebarHeader className="flex w-full justify-start items-center border-b p-3">
+            <div className="flex gap-2 justify-start items-center w-full">
+              <Image
+                src="/logo.png"
+                width={24}
+                height={24}
+                className="w-6 h-6 shrink-0"
+                alt="Noteboard Logo"
+              />
+              {!isCollapsed && <p className="font-bold">Noteboard</p>}
+              <div className="ml-auto">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-1 h-auto"
+                  onClick={(e) => {
+                    e.currentTarget.classList.add("animate-pulse");
+                    setTimeout(() => {
+                      e.currentTarget.classList.remove("animate-pulse");
+                      window.location.reload();
+                    }, 100);
+                  }}
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </SidebarHeader>
 
-          <SidebarContent>
+          <SidebarContent className="p-3">
             <SidebarMenu>
               {data.navMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <Tooltip>
-                    <TooltipTrigger className="w-full">
+                    <TooltipTrigger asChild className="w-full">
                       <SidebarMenuButton asChild>
                         <a
                           href={item.url}
@@ -113,9 +133,11 @@ export function AppSidebar() {
                       </SidebarMenuButton>
                     </TooltipTrigger>
 
-                    <TooltipContent side="right">
-                      <span>{item.title}</span>
-                    </TooltipContent>
+                    {isCollapsed && (
+                      <TooltipContent side="right">
+                        <span>{item.title}</span>
+                      </TooltipContent>
+                    )}
                   </Tooltip>
                 </SidebarMenuItem>
               ))}
@@ -142,7 +164,7 @@ export function AppSidebar() {
                 )}
               </div>
               <Tooltip>
-                <TooltipTrigger>
+                <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
                     className="text-red-500 hover:text-red-600 transition-colors"
