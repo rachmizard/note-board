@@ -9,10 +9,25 @@ export function FloatingNav() {
   const pathname = usePathname();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Handle client-side animations after mount
+  // Handle client-side animations after mount and detect mobile
   useEffect(() => {
     setIsMounted(true);
+
+    // Check if mobile on initial load
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    // Set initial value
+    checkIfMobile();
+
+    // Add resize listener
+    window.addEventListener("resize", checkIfMobile);
+
+    // Cleanup
+    return () => window.removeEventListener("resize", checkIfMobile);
   }, []);
 
   const toggleExpand = () => {
@@ -126,6 +141,88 @@ export function FloatingNav() {
       }
     : {};
 
+  // For mobile bottom navigation
+  if (isMobile) {
+    return (
+      <div
+        className={cn(
+          "fixed bottom-0 left-0 right-0 flex items-center justify-center p-2 pb-2 pt-3 bg-zinc-900/95 backdrop-blur-xl border-t border-zinc-800/70 shadow-lg z-50 transition-all duration-300 ease-in-out",
+          // Only apply animations after mount to prevent hydration mismatch
+          isMounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8",
+          "w-full safe-area-bottom"
+        )}
+        style={
+          isMounted
+            ? {
+                ...clientSideStyles,
+                paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom, 0.5rem))",
+                animation: "slideUpIn 0.4s ease-out"
+              }
+            : {}
+        }
+      >
+        <div className="flex items-center justify-around w-full max-w-md px-2">
+          {navItems.map((item, index) => {
+            const isActive = pathname === item.path;
+
+            return (
+              <Link
+                key={item.path}
+                href={item.path}
+                className={cn(
+                  "relative flex flex-col items-center justify-center py-1 px-4 rounded-xl transition-all duration-200 group",
+                  isActive ? "text-rose-400" : "text-zinc-500 hover:text-zinc-300",
+                  isMounted && "active:scale-95"
+                )}
+                aria-label={item.name}
+                {...(isMounted && {
+                  style: {
+                    animation: `fadeIn 0.5s ease forwards ${index * 100 + 100}ms`
+                  }
+                })}
+              >
+                <div
+                  className={cn(
+                    "p-2.5 rounded-full mb-1.5 transition-colors",
+                    isActive
+                      ? "bg-rose-500/20 text-rose-300"
+                      : "text-zinc-400 group-hover:bg-zinc-800/50 group-hover:text-zinc-200"
+                  )}
+                >
+                  {item.icon}
+
+                  {isActive && isMounted && (
+                    <span className="absolute right-1 top-1 w-2 h-2 rounded-full bg-rose-500 shadow-md shadow-rose-500/30 animate-pulse"></span>
+                  )}
+                </div>
+
+                <span
+                  className={cn(
+                    "text-xs font-medium",
+                    isActive ? "text-rose-300" : "text-zinc-500 group-hover:text-zinc-300"
+                  )}
+                >
+                  {item.name}
+                </span>
+
+                {isMounted && (
+                  <span
+                    className={cn(
+                      "absolute -top-12 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md bg-zinc-800/90 backdrop-blur-sm text-xs font-medium text-zinc-200 opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap transition-opacity duration-200 z-[60] shadow-lg border border-zinc-700/50"
+                    )}
+                  >
+                    {item.name}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop side navigation
   return (
     <div
       className={cn(

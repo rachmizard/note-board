@@ -161,6 +161,35 @@
   }
 }
 
+@keyframes slideUpIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* For Mobile Navigation */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0.5rem);
+}
+
+@supports (padding: max(0px)) {
+  .safe-area-bottom {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Adjust the main content area for mobile so it doesn't get hidden by the bottom nav */
+@media (max-width: 768px) {
+  main {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0));
+  }
+}
+
 @keyframes pomodoroBlinking {
   0%,
   100% {
