@@ -1,41 +1,24 @@
 /* Apple Calendar inspired theme for react-big-calendar */
 
 .apple-calendar-theme {
-  --rbc-border-color: #e5e5e5;
-  --rbc-today-bg: rgba(0, 122, 255, 0.05);
-  --rbc-selected-bg: rgba(0, 122, 255, 0.1);
-  --rbc-header-color: #666;
-  --rbc-time-color: #666;
-  font-family:
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  --rbc-border-color: hsl(var(--border));
+  --rbc-header-color: hsl(var(--foreground));
+  --rbc-time-color: hsl(var(--muted-foreground));
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 /* Dark mode variables */
 :root.dark .apple-calendar-theme {
-  --rbc-border-color: #333;
-  --rbc-today-bg: rgba(0, 122, 255, 0.15);
-  --rbc-selected-bg: rgba(0, 122, 255, 0.2);
-  --rbc-header-color: #ccc;
-  --rbc-time-color: #ccc;
+  --rbc-border-color: hsl(var(--border));
 }
 
 .apple-calendar-theme .rbc-time-view,
 .apple-calendar-theme .rbc-month-view {
-  border: 0;
+  border: 1px solid var(--rbc-border-color);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   border-radius: 0.375rem;
   overflow: hidden;
-  background-color: white;
-}
-
-/* Dark mode for calendar views */
-:root.dark .apple-calendar-theme .rbc-time-view,
-:root.dark .apple-calendar-theme .rbc-month-view {
-  background-color: #1f2937;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  background-color: transparent;
 }
 
 .apple-calendar-theme .rbc-header {
@@ -44,14 +27,8 @@
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
   text-align: center;
-  border-bottom: 1px solid #e5e5e5;
-  color: #333;
-}
-
-/* Dark mode for header */
-:root.dark .apple-calendar-theme .rbc-header {
-  border-bottom: 1px solid #333;
-  color: #e5e5e5;
+  border-bottom: 1px solid var(--rbc-border-color);
+  color: hsl(var(--foreground));
 }
 
 .apple-calendar-theme .rbc-header span {
@@ -62,22 +39,40 @@
   border-left: 0;
 }
 
+/* Remove background from today and replace with red dot behind the date */
 .apple-calendar-theme .rbc-today {
-  background-color: #ebf5ff;
+  background-color: transparent;
 }
 
-/* Dark mode for today */
-:root.dark .apple-calendar-theme .rbc-today {
-  background-color: rgba(59, 130, 246, 0.15);
+.apple-calendar-theme .rbc-today .rbc-date-cell {
+  position: relative;
+  z-index: 1;
+}
+
+.apple-calendar-theme .rbc-today .rbc-date-cell::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  background-color: #ef4444;
+  border-radius: 50%;
+  z-index: -1;
+  opacity: 0.8;
 }
 
 .apple-calendar-theme .rbc-time-slot {
-  border-top: 1px solid #f3f4f6;
+  border-top: 1px solid hsl(var(--muted)/20%);
 }
 
-/* Dark mode for time slots */
-:root.dark .apple-calendar-theme .rbc-time-slot {
-  border-top: 1px solid #374151;
+/* Hover effect for timeslots */
+.rbc-time-slot:hover,
+.rbc-day-slot .rbc-time-slot:hover {
+  background-color: hsl(var(--muted)/30%);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
 }
 
 .apple-calendar-theme .rbc-event {
@@ -97,36 +92,35 @@
 }
 
 .apple-calendar-theme .rbc-time-content {
-  border-top: 1px solid #e5e5e5;
-}
-
-/* Dark mode for time content */
-:root.dark .apple-calendar-theme .rbc-time-content {
-  border-top: 1px solid #333;
+  border-top: 1px solid var(--rbc-border-color);
 }
 
 .apple-calendar-theme .rbc-time-gutter {
   font-size: 0.75rem;
-  color: #6b7280;
-}
-
-/* Dark mode for time gutter */
-:root.dark .apple-calendar-theme .rbc-time-gutter {
-  color: #9ca3af;
+  color: hsl(var(--muted-foreground));
 }
 
 .apple-calendar-theme .rbc-timeslot-group {
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid hsl(var(--muted)/20%);
 }
 
-/* Dark mode for timeslot group */
-:root.dark .apple-calendar-theme .rbc-timeslot-group {
-  border-bottom: 1px solid #374151;
-}
-
+/* Add circle to current time indicator */
 .apple-calendar-theme .rbc-current-time-indicator {
   background-color: #ef4444;
   height: 0.125rem;
+  position: relative;
+}
+
+.apple-calendar-theme .rbc-current-time-indicator::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  background-color: #ef4444;
+  border-radius: 50%;
 }
 
 /* DnD Styles */
@@ -136,16 +130,7 @@
   .rbc-addons-dnd-resize-ns-icon {
   width: 0.5rem;
   height: 0.25rem;
-  background-color: #9ca3af;
-}
-
-/* Dark mode for DnD */
-:root.dark
-  .apple-calendar-theme
-  .rbc-addons-dnd
-  .rbc-addons-dnd-resize-ns-anchor
-  .rbc-addons-dnd-resize-ns-icon {
-  background-color: #6b7280;
+  background-color: hsl(var(--muted-foreground));
 }
 
 .apple-calendar-theme .rbc-addons-dnd .rbc-addons-dnd-drag-preview {
@@ -153,13 +138,6 @@
   box-shadow:
     0 10px 15px -3px rgba(0, 0, 0, 0.1),
     0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
-
-/* Dark mode for drag preview */
-:root.dark .apple-calendar-theme .rbc-addons-dnd .rbc-addons-dnd-drag-preview {
-  box-shadow:
-    0 10px 15px -3px rgba(0, 0, 0, 0.3),
-    0 4px 6px -2px rgba(0, 0, 0, 0.2);
 }
 
 /* Add some animation for event creation */
@@ -178,73 +156,63 @@
   }
 }
 
-.rbc-event-content.new-event {
-  animation: pulse-fade-in 0.3s ease-out forwards;
+/* Fix "+n more" alignment and styling */
+.rbc-row-segment .rbc-show-more {
+  margin-top: 2px;
+  text-align: center;
+  padding: 0 2px;
+  background-color: transparent;
+  color: hsl(var(--muted-foreground));
 }
 
-/* Custom tooltip styling - will be picked up by radix-ui tooltip */
-.tooltip-content {
-  z-index: 50;
-  max-width: 20rem;
-  overflow: hidden;
-  border-radius: 0.375rem;
-  border: 1px solid #e5e5e5;
-  background-color: white;
-  padding: 0.75rem;
-  font-size: 0.875rem;
-  color: #1f2937;
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+/* Fix popup menu styling */
+.rbc-overlay {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  box-shadow: var(--shadow-md);
 }
 
-/* Dark mode for tooltips */
-:root.dark .tooltip-content {
-  border: 1px solid #333;
-  background-color: #1f2937;
-  color: #f3f4f6;
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.3),
-    0 2px 4px -1px rgba(0, 0, 0, 0.2);
+.rbc-overlay .rbc-event {
+  background-color: transparent;
 }
 
 /* Calendar background */
 .rbc-calendar {
-  background-color: white;
-}
-
-/* Dark mode for calendar background */
-:root.dark .rbc-calendar {
-  background-color: #111827;
+  background-color: transparent;
 }
 
 /* Date cell styles */
 .rbc-date-cell {
-  color: #333;
+  color: hsl(var(--foreground));
+  padding: 2px;
 }
 
-/* Dark mode for date cells */
-:root.dark .rbc-date-cell {
-  color: #e5e5e5;
-}
-
-/* Off-range date styles */
+/* Off-range date styles - lighter in light mode */
 .rbc-off-range {
-  color: #9ca3af;
-}
-
-/* Dark mode for off-range dates */
-:root.dark .rbc-off-range {
-  color: #6b7280;
+  color: hsl(var(--muted-foreground)/50%);
 }
 
 /* Day slot styles */
 .rbc-day-slot .rbc-time-slot {
-  border-top: 1px solid #f3f4f6;
+  border-top: 1px solid hsl(var(--muted)/20%);
 }
 
-/* Dark mode for day slots */
-:root.dark .rbc-day-slot .rbc-time-slot {
-  border-top: 1px solid #374151;
+/* Red circle for current date in header for week view */
+.apple-calendar-theme .rbc-header.rbc-today {
+  position: relative;
+  background-color: transparent;
 }
 
+.apple-calendar-theme .rbc-header.rbc-today::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  background-color: #ef4444;
+  border-radius: 50%;
+  z-index: -1;
+  opacity: 0.8;
+}

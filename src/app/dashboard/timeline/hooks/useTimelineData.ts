@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { BaseBlock } from "../types";
+import { BaseBlock, TodoBlock } from "../types";
 import { mockTodos, mockPomodoros } from "../data/mock";
 import { transformToEvents, filterBlocksByDateRange } from "../utils/transform";
 
@@ -47,23 +47,23 @@ export const useTimelineData = (
   }, [blocks, startDate, endDate]);
 
   // Function to create a new Todo block
-  const createTodo = async (title: string, dueDate: Date) => {
+  const createTodo = async (title: string, dueDate: Date, priority: string = "medium") => {
     try {
       setLoading(true);
 
       // In a real app, this would be an API call
       await new Promise((resolve) => setTimeout(resolve, 300));
 
-      const newTodo = {
+      const newTodo: TodoBlock = {
         id: `todo_${Date.now()}`,
-        type: "todo" as const,
+        type: "todo",
         title,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        status: "pending" as const,
+        status: "pending",
         properties: {
           due_date: dueDate.toISOString(),
-          priority: "medium" as const,
+          priority: priority as "low" | "medium" | "high",
         },
         metadata: { user_id: "clerk_user_123" },
       };
@@ -112,4 +112,3 @@ export const useTimelineData = (
     updateBlock,
   };
 };
-

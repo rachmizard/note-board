@@ -31,29 +31,29 @@ const EventComponent = ({ event }: { event: CalendarEvent }) => {
     if (resource?.type === "todo") {
       if (isDark) {
         return resource.status === "completed"
-          ? "bg-gray-700 border-gray-500"
-          : "bg-gray-800 border-gray-600";
+          ? "bg-gray-700/90 border-gray-600"
+          : "bg-gray-700/70 border-gray-600";
       } else {
         return resource.status === "completed"
-          ? "bg-gray-200 border-gray-400"
-          : "bg-gray-100 border-gray-300";
+          ? "bg-gray-300 border-gray-400"
+          : "bg-gray-300 border-gray-400";
       }
     }
 
     if (resource?.type === "pomodoro") {
       if (isDark) {
         return resource.status === "completed"
-          ? "bg-red-900 border-red-700"
-          : "bg-red-800 border-red-700";
+          ? "bg-sky-800/80 border-sky-700"
+          : "bg-sky-800/70 border-sky-700";
       } else {
         return resource.status === "completed"
-          ? "bg-red-200 border-red-400"
-          : "bg-red-100 border-red-300";
+          ? "bg-sky-200 border-sky-300"
+          : "bg-sky-100 border-sky-300";
       }
     }
 
     return isDark
-      ? "bg-blue-900 border-blue-700"
+      ? "bg-blue-800/70 border-blue-700"
       : "bg-blue-100 border-blue-300";
   };
 
@@ -98,8 +98,8 @@ export function TimelineCalendar() {
 
   // Handle creating a new todo
   const handleCreateTodo = useCallback(
-    async (title: string, dueDate: Date) => {
-      await createTodo(title, dueDate);
+    async (title: string, dueDate: Date, priority: string) => {
+      await createTodo(title, dueDate, priority);
     },
     [createTodo],
   );
@@ -172,9 +172,9 @@ export function TimelineCalendar() {
     <div className="h-full flex flex-col">
       {loading && (
         <div
-          className={`absolute inset-0 flex items-center justify-center ${isDark ? "bg-gray-900/80" : "bg-white/80"} z-10`}
+          className="absolute inset-0 flex items-center justify-center bg-background/80 z-10"
         >
-          <div className={`text-lg ${isDark ? "text-white" : "text-black"}`}>
+          <div className="text-lg text-foreground">
             Loading calendar...
           </div>
         </div>
@@ -215,4 +215,3 @@ export function TimelineCalendar() {
     </div>
   );
 }
-

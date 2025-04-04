@@ -11,9 +11,6 @@ export function CalendarToolbar<TEvent>({
   onView,
   view,
 }: ToolbarProps<TEvent>) {
-  const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
-
   // Format the date display based on the current view
   const formatDate = () => {
     const dateFormatter = new Intl.DateTimeFormat("en-US", {
@@ -27,7 +24,7 @@ export function CalendarToolbar<TEvent>({
 
   return (
     <div
-      className={`flex justify-between items-center mb-4 py-2 ${isDark ? "text-white" : ""}`}
+      className="flex justify-between items-center mb-4 py-2 text-foreground"
     >
       <div className="flex items-center gap-1">
         <Button
@@ -54,9 +51,7 @@ export function CalendarToolbar<TEvent>({
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
-        <span
-          className={`text-lg font-medium ml-2 ${isDark ? "text-white" : "text-gray-800"}`}
-        >
+        <span className="text-lg font-medium ml-2 text-foreground">
           {formatDate()}
         </span>
       </div>
@@ -90,4 +85,3 @@ export function CalendarToolbar<TEvent>({
     </div>
   );
 }
-
