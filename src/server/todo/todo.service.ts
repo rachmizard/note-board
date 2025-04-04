@@ -6,7 +6,9 @@ import type {
   CreateTodoRequest,
   DeleteTodoRequest,
   GetTodosRequest,
+  UpdateTodoRequest,
 } from "./todo.validator";
+import { TRPCError } from "@trpc/server";
 
 const qb = async (request: CreateTodoRequest, db: Database): Promise<Todo> => {
   const [todo] = await db.insert(todoSchema).values(request).returning();
@@ -65,4 +67,26 @@ const deleteTodo = async (
   await db.delete(todoSchema).where(eq(todoSchema.id, Number(request.id)));
 };
 
-export { createTodo, deleteTodo, getTodos, qb };
+const updateTodo = async (
+  request: UpdateTodoRequest,
+  db: Database
+): Promise<void> => {
+  const findTodo = await db
+    .select()
+    .from(todoSchema)
+    .where(eq(todoSchema.id, Number(request.id)));
+
+  if (!findTodo) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Todo not found",
+    });
+  }
+
+  await db
+    .update(todoSchema)
+    .set(request)
+    .where(eq(todoSchema.id, Number(request.id)));
+};
+
+export { createTodo, deleteTodo, getTodos, qb, updateTodo };

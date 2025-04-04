@@ -9,9 +9,13 @@ import { AddQuickTodoForm } from "./add-quick-todo-form";
 import { TodoItem } from "./todo-item";
 import { TodoStats } from "./todo-stats";
 import { useTodos } from "../_queries/use-todos";
-import { TodoStatusEnum } from "@/server/database/drizzle/todo.schema";
+import {
+  TodoStatusEnum,
+  TodoPriorityEnum,
+} from "@/server/database/drizzle/todo.schema";
 import { mapTodoStatusFromServer } from "../utils/todo.utils";
 import { useDeleteTodo } from "../_mutations/use-delete-todo";
+import { useUpdateTodo } from "../_mutations/use-update-todo";
 
 export const TodoList = () => {
   const [filter, setFilter] = useState<TodoStatus | "all">("all");
@@ -26,6 +30,7 @@ export const TodoList = () => {
   });
 
   const deleteTodo = useDeleteTodo();
+  const updateTodo = useUpdateTodo();
 
   // Convert server todos to frontend Todo format and merge with local todos
   useEffect(() => {
@@ -59,6 +64,43 @@ export const TodoList = () => {
     setLocalTodos((prevTodos) =>
       prevTodos.map((todo) => (todo.id === id ? { ...todo, ...updates } : todo))
     );
+
+    // Convert client types to server enum types before mutation
+    const serverUpdates: {
+      id: number;
+      title?: string;
+      dueDate?: Date;
+      priority?: TodoPriorityEnum;
+      status?: TodoStatusEnum;
+      description?: string;
+    } = { id: Number(id) };
+
+    if (updates.title) serverUpdates.title = updates.title;
+    if (updates.dueDate) serverUpdates.dueDate = updates.dueDate;
+
+    // Convert priority string to enum if present
+    if (updates.priority) {
+      if (updates.priority === "low")
+        serverUpdates.priority = TodoPriorityEnum.LOW;
+      else if (updates.priority === "medium")
+        serverUpdates.priority = TodoPriorityEnum.MEDIUM;
+      else if (updates.priority === "high")
+        serverUpdates.priority = TodoPriorityEnum.HIGH;
+    }
+
+    // Convert status string to enum if present
+    if (updates.status) {
+      if (updates.status === "in-progress")
+        serverUpdates.status = TodoStatusEnum.IN_PROGRESS;
+      else if (updates.status === "completed")
+        serverUpdates.status = TodoStatusEnum.COMPLETED;
+      else if (updates.status === "backlog")
+        serverUpdates.status = TodoStatusEnum.BACKLOG;
+      else if (updates.status === "archived")
+        serverUpdates.status = TodoStatusEnum.ARCHIVED;
+    }
+
+    updateTodo.mutate(serverUpdates);
   };
 
   const handleDeleteTodo = (id: string) => {

@@ -1,9 +1,10 @@
 import { publicProcedure, router } from "../trpc-init";
-import { createTodo, deleteTodo, getTodos } from "./todo.service";
+import { createTodo, deleteTodo, getTodos, updateTodo } from "./todo.service";
 import {
   createTodoValidator,
   deleteTodoValidator,
   getTodosValidator,
+  updateTodoValidator,
 } from "./todo.validator";
 
 export const todoRouter = router({
@@ -21,5 +22,10 @@ export const todoRouter = router({
     .input(deleteTodoValidator)
     .mutation(async ({ input, ctx }) => {
       return await deleteTodo(input, ctx.db);
+    }),
+  updateTodo: publicProcedure
+    .input(updateTodoValidator)
+    .mutation(async ({ input, ctx }) => {
+      return await updateTodo(input, ctx.db);
     }),
 });

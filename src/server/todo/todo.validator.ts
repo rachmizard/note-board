@@ -7,6 +7,7 @@ import { z } from "zod";
 export type CreateTodoRequest = z.infer<typeof createTodoValidator>;
 export type GetTodosRequest = z.infer<typeof getTodosValidator>;
 export type DeleteTodoRequest = z.infer<typeof deleteTodoValidator>;
+export type UpdateTodoRequest = z.infer<typeof updateTodoValidator>;
 
 export const createTodoValidator = z.object({
   title: z.string().min(1),
@@ -31,4 +32,13 @@ export const getTodosValidator = z.object({
 
 export const deleteTodoValidator = z.object({
   id: z.number(),
+});
+
+export const updateTodoValidator = z.object({
+  id: z.number(),
+  title: z.string().optional(),
+  description: z.string().optional(),
+  dueDate: z.date().optional(),
+  priority: z.nativeEnum(TodoPriorityEnum).optional(),
+  status: z.nativeEnum(TodoStatusEnum).optional(),
 });
