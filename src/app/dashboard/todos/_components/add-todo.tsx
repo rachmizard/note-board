@@ -4,6 +4,8 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Card } from "@/shared/components/ui/card";
 import { Plus } from "lucide-react";
+import { DatePicker } from "@/shared/components/ui/datepicker";
+import { Combobox, ComboboxOption } from "@/shared/components/ui/combobox";
 
 interface AddTodoProps {
   onAdd: (
@@ -13,9 +15,15 @@ interface AddTodoProps {
 
 export const AddTodo: React.FC<AddTodoProps> = ({ onAdd }) => {
   const [title, setTitle] = useState("");
-  const [dueDate, setDueDate] = useState("");
+  const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
   const [priority, setPriority] = useState<TodoPriority>("medium");
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const priorityOptions: ComboboxOption[] = [
+    { value: "low", label: "Low" },
+    { value: "medium", label: "Medium" },
+    { value: "high", label: "High" },
+  ];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,13 +31,13 @@ export const AddTodo: React.FC<AddTodoProps> = ({ onAdd }) => {
     if (title.trim()) {
       onAdd({
         title: title.trim(),
-        dueDate: dueDate ? new Date(dueDate) : undefined,
+        dueDate: dueDate,
         priority,
       });
 
       // Reset form
       setTitle("");
-      setDueDate("");
+      setDueDate(undefined);
       setPriority("medium");
       setIsExpanded(false);
     }
@@ -52,25 +60,22 @@ export const AddTodo: React.FC<AddTodoProps> = ({ onAdd }) => {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <p className="text-sm mb-1">Due Date (Optional):</p>
-              <Input
-                type="date"
+              <DatePicker
                 value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="w-full"
+                onChange={(date) => setDueDate(date)}
+                placeholder="Select a due date"
               />
             </div>
 
             <div>
               <p className="text-sm mb-1">Priority:</p>
-              <select
+              <Combobox
                 value={priority}
-                onChange={(e) => setPriority(e.target.value as TodoPriority)}
-                className="w-full p-2 border rounded"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
+                onChange={(value) => setPriority(value as TodoPriority)}
+                options={priorityOptions}
+                placeholder="Select priority"
+                emptyText="No priority options available"
+              />
             </div>
           </div>
 

@@ -14,6 +14,7 @@ import {
   Flag,
   FolderClosed,
   MessageSquare,
+  MoreHorizontal,
   Pencil,
   Tag as TagIcon,
   Trash,
@@ -28,6 +29,9 @@ import {
 import { CommentDialog } from "./dialogs/comment-dialog";
 import { TagDialog } from "./dialogs/tag-dialog";
 import { DeleteConfirmationDialog } from "./dialogs/delete-confirmation-dialog";
+import { cn } from "@/shared/lib/utils";
+import { DatePicker } from "@/shared/components/ui/datepicker";
+import { Combobox, ComboboxOption } from "@/shared/components/ui/combobox";
 
 interface TodoItemProps {
   todo: Todo;
@@ -42,8 +46,8 @@ export const TodoItem: React.FC<TodoItemProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(todo.title);
-  const [editedDueDate, setEditedDueDate] = useState(
-    todo.dueDate ? new Date(todo.dueDate).toISOString().split("T")[0] : ""
+  const [editedDueDate, setEditedDueDate] = useState<Date | undefined>(
+    todo.dueDate ? new Date(todo.dueDate) : undefined
   );
   const [editedPriority, setEditedPriority] = useState<TodoPriority>(
     todo.priority
@@ -60,6 +64,20 @@ export const TodoItem: React.FC<TodoItemProps> = ({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showTagDialog, setShowTagDialog] = useState(false);
 
+  // Add state to track priority dropdown open status
+  const [isPriorityDropdownOpen, setIsPriorityDropdownOpen] = useState(false);
+
+  // Add state to track mobile action menu
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Compute if any interaction is active
+  const isInteracting =
+    showCommentModal ||
+    showDeleteDialog ||
+    showTagDialog ||
+    isPriorityDropdownOpen ||
+    isMobileMenuOpen;
+
   // Effect to focus the input when inline editing starts
   useEffect(() => {
     if (isEditingTitle && titleInputRef.current) {
@@ -67,10 +85,17 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     }
   }, [isEditingTitle]);
 
+  // Define priority options for the combobox
+  const priorityOptions: ComboboxOption[] = [
+    { value: "low", label: "Low" },
+    { value: "medium", label: "Medium" },
+    { value: "high", label: "High" },
+  ];
+
   const handleSaveEdit = () => {
     onUpdate(todo.id, {
       title: editedTitle,
-      dueDate: editedDueDate ? new Date(editedDueDate) : undefined,
+      dueDate: editedDueDate,
       priority: editedPriority,
     });
     setIsEditing(false);
@@ -78,9 +103,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
 
   const handleCancelEdit = () => {
     setEditedTitle(todo.title);
-    setEditedDueDate(
-      todo.dueDate ? new Date(todo.dueDate).toISOString().split("T")[0] : ""
-    );
+    setEditedDueDate(todo.dueDate ? new Date(todo.dueDate) : undefined);
     setEditedPriority(todo.priority);
     setIsEditing(false);
   };
@@ -137,9 +160,10 @@ export const TodoItem: React.FC<TodoItemProps> = ({
 
   return (
     <div
-      className={`border-b py-3 group hover:bg-gray-50 transition-colors duration-200 ${
-        todo.status === "completed" ? "opacity-70" : ""
-      }`}
+      className={cn(
+        "border-b py-3 group hover:bg-gray-50 transition-colors duration-200",
+        todo.status === "completed" && "opacity-70"
+      )}
     >
       {isEditing ? (
         <div className="space-y-3 px-4">
@@ -153,27 +177,22 @@ export const TodoItem: React.FC<TodoItemProps> = ({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <p className="text-sm mb-1">Due Date:</p>
-              <Input
-                type="date"
+              <DatePicker
                 value={editedDueDate}
-                onChange={(e) => setEditedDueDate(e.target.value)}
-                className="w-full"
+                onChange={(date) => setEditedDueDate(date)}
+                placeholder="Select a due date"
               />
             </div>
 
             <div>
               <p className="text-sm mb-1">Priority:</p>
-              <select
+              <Combobox
                 value={editedPriority}
-                onChange={(e) =>
-                  setEditedPriority(e.target.value as TodoPriority)
-                }
-                className="w-full p-2 border rounded"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
+                onChange={(value) => setEditedPriority(value as TodoPriority)}
+                options={priorityOptions}
+                placeholder="Select priority"
+                emptyText="No priority options available"
+              />
             </div>
           </div>
 
@@ -189,15 +208,16 @@ export const TodoItem: React.FC<TodoItemProps> = ({
       ) : (
         <div>
           <div className="flex items-start justify-between">
-            <div className="flex items-start">
+            <div className="flex items-start flex-1">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
-                    className={`p-1 rounded-md mr-3 mt-1 flex items-center justify-center h-5 w-5 border ${
+                    className={cn(
+                      "p-1 rounded-md mr-3 mt-1 flex items-center justify-center h-5 w-5 border",
                       todo.status === "completed"
                         ? "bg-blue-500 border-blue-500 text-white"
                         : "border-gray-300"
-                    }`}
+                    )}
                   >
                     {todo.status === "completed" && (
                       <Check className="h-3 w-3" />
@@ -245,11 +265,11 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                     />
                   ) : (
                     <h3
-                      className={`font-medium ${
-                        todo.status === "completed"
-                          ? "line-through text-gray-500"
-                          : ""
-                      } cursor-pointer`}
+                      className={cn(
+                        "font-medium cursor-pointer",
+                        todo.status === "completed" &&
+                          "line-through text-gray-500"
+                      )}
                       onDoubleClick={() => setIsEditingTitle(true)}
                       onClick={() => setIsEditingTitle(true)}
                     >
@@ -303,90 +323,155 @@ export const TodoItem: React.FC<TodoItemProps> = ({
               </div>
             </div>
 
-            <div className="action-buttons opacity-0 transition-opacity duration-200 group-hover:opacity-100 min-w-[170px]">
-              <div className="flex space-x-1">
-                {/* Priority dropdown using shadcn DropdownMenu */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Flag
-                        className={`h-4 w-4 ${getPriorityColor(
-                          todo.priority
-                        ).replace("bg-", "text-")}`}
-                      />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => handlePriorityChange("low")}
-                    >
-                      <Flag className="h-4 w-4 mr-2 text-green-500" />
-                      <span>Low Priority</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => handlePriorityChange("medium")}
-                    >
-                      <Flag className="h-4 w-4 mr-2 text-yellow-500" />
-                      <span>Medium Priority</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => handlePriorityChange("high")}
-                    >
-                      <Flag className="h-4 w-4 mr-2 text-red-500" />
-                      <span>High Priority</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+            {/* Desktop action buttons - visible on hover */}
+            <div
+              className={cn(
+                "hidden md:flex space-x-1 transition-opacity duration-200",
+                isInteracting
+                  ? "opacity-100"
+                  : "opacity-0 group-hover:opacity-100"
+              )}
+            >
+              {/* Priority dropdown using shadcn DropdownMenu */}
+              <DropdownMenu onOpenChange={setIsPriorityDropdownOpen}>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Flag
+                      className={cn(
+                        "h-4 w-4",
+                        getPriorityColor(todo.priority).replace("bg-", "text-")
+                      )}
+                    />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handlePriorityChange("low")}>
+                    <Flag className="h-4 w-4 mr-2 text-green-500" />
+                    <span>Low Priority</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handlePriorityChange("medium")}
+                  >
+                    <Flag className="h-4 w-4 mr-2 text-yellow-500" />
+                    <span>Medium Priority</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handlePriorityChange("high")}
+                  >
+                    <Flag className="h-4 w-4 mr-2 text-red-500" />
+                    <span>High Priority</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-                {/* Comment button with modal */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setShowCommentModal(true)}
-                >
-                  <MessageSquare className="h-4 w-4" />
-                </Button>
+              {/* Other desktop action buttons */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setShowCommentModal(true)}
+              >
+                <MessageSquare className="h-4 w-4" />
+              </Button>
 
-                {/* Tag button with dialog */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setShowTagDialog(true)}
-                >
-                  <TagIcon className="h-4 w-4" />
-                </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setShowTagDialog(true)}
+              >
+                <TagIcon className="h-4 w-4" />
+              </Button>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => {
-                    /* Implement folder functionality */
-                  }}
-                >
-                  <FolderClosed className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setIsEditing(true)}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => {
+                  /* Implement folder functionality */
+                }}
+              >
+                <FolderClosed className="h-4 w-4" />
+              </Button>
 
-                {/* Delete button with confirmation */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-red-500"
-                  onClick={() => setShowDeleteDialog(true)}
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
-              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setIsEditing(true)}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-red-500"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Mobile action button - always visible */}
+            <div className="block md:hidden !opacity-100">
+              <DropdownMenu onOpenChange={setIsMobileMenuOpen}>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    <span>Edit</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setShowCommentModal(true)}>
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    <span>Add Comment</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setShowTagDialog(true)}>
+                    <TagIcon className="h-4 w-4 mr-2" />
+                    <span>Manage Tags</span>
+                  </DropdownMenuItem>
+
+                  {/* Priority submenu items */}
+                  <DropdownMenuItem onClick={() => handlePriorityChange("low")}>
+                    <Flag className="h-4 w-4 mr-2 text-green-500" />
+                    <span>Low Priority</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handlePriorityChange("medium")}
+                  >
+                    <Flag className="h-4 w-4 mr-2 text-yellow-500" />
+                    <span>Medium Priority</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handlePriorityChange("high")}
+                  >
+                    <Flag className="h-4 w-4 mr-2 text-red-500" />
+                    <span>High Priority</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={() => {
+                      /* Implement folder functionality */
+                    }}
+                  >
+                    <FolderClosed className="h-4 w-4 mr-2" />
+                    <span>Move to Folder</span>
+                  </DropdownMenuItem>
+
+                  {/* Delete with confirmation (will trigger dialog) */}
+                  <DropdownMenuItem
+                    onClick={() => setShowDeleteDialog(true)}
+                    className="text-red-500"
+                  >
+                    <Trash className="h-4 w-4 mr-2" />
+                    <span>Delete</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
@@ -400,16 +485,18 @@ export const TodoItem: React.FC<TodoItemProps> = ({
               </div>
               <div className="flex items-center text-sm text-gray-500">
                 <span
-                  className={`mr-2 inline-block px-2 py-0.5 rounded-full text-xs ${getPriorityColor(
-                    todo.priority
-                  )}`}
+                  className={cn(
+                    "mr-2 inline-block px-2 py-0.5 rounded-full text-xs",
+                    getPriorityColor(todo.priority)
+                  )}
                 >
                   {todo.priority}
                 </span>
                 <span
-                  className={`inline-block px-2 py-0.5 rounded-full text-xs ${getStatusColor(
-                    todo.status
-                  )}`}
+                  className={cn(
+                    "inline-block px-2 py-0.5 rounded-full text-xs",
+                    getStatusColor(todo.status)
+                  )}
                 >
                   {todo.status}
                 </span>
