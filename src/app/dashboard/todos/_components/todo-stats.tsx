@@ -12,8 +12,13 @@ export const TodoStats: React.FC<TodoStatsProps> = ({ todos }) => {
   const completedCount = todos.filter(
     (todo) => todo.status === "completed"
   ).length;
-  const activeCount = todos.filter((todo) => todo.status === "active").length;
-  const pausedCount = todos.filter((todo) => todo.status === "paused").length;
+  const inProgressCount = todos.filter(
+    (todo) => todo.status === "in-progress"
+  ).length;
+  const backlogCount = todos.filter((todo) => todo.status === "backlog").length;
+  const archivedCount = todos.filter(
+    (todo) => todo.status === "archived"
+  ).length;
 
   return (
     <div className="mb-6">
@@ -35,18 +40,22 @@ export const TodoStats: React.FC<TodoStatsProps> = ({ todos }) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 text-center">
+        <div className="grid grid-cols-4 gap-3 text-center">
           <div className="bg-gray-50 p-3 rounded">
-            <p className="text-lg font-medium">{activeCount}</p>
-            <p className="text-xs text-gray-500">Active</p>
+            <p className="text-lg font-medium">{inProgressCount}</p>
+            <p className="text-xs text-gray-500">In Progress</p>
           </div>
           <div className="bg-gray-50 p-3 rounded">
             <p className="text-lg font-medium">{completedCount}</p>
             <p className="text-xs text-gray-500">Completed</p>
           </div>
           <div className="bg-gray-50 p-3 rounded">
-            <p className="text-lg font-medium">{pausedCount}</p>
-            <p className="text-xs text-gray-500">Paused</p>
+            <p className="text-lg font-medium">{backlogCount}</p>
+            <p className="text-xs text-gray-500">Backlog</p>
+          </div>
+          <div className="bg-gray-50 p-3 rounded">
+            <p className="text-lg font-medium">{archivedCount}</p>
+            <p className="text-xs text-gray-500">Archived</p>
           </div>
         </div>
       </Card>

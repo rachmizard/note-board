@@ -1,5 +1,11 @@
 export type TodoPriority = "low" | "medium" | "high";
-export type TodoStatus = "active" | "completed" | "paused";
+export type TodoStatus = "in-progress" | "completed" | "backlog" | "archived";
+
+export interface TodoComment {
+  id: string;
+  text: string;
+  createdAt: Date;
+}
 
 export interface Todo {
   id: string;
@@ -9,4 +15,6 @@ export interface Todo {
   status: TodoStatus;
   createdAt: Date;
   completedAt?: Date;
+  comments?: TodoComment[];
+  tags?: string[];
 }

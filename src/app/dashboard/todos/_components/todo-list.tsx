@@ -37,7 +37,7 @@ export const TodoList = () => {
     const newTodo: Todo = {
       ...newTodoData,
       id: `todo-${Date.now()}`,
-      status: "active",
+      status: "backlog",
       createdAt: new Date(),
     };
 
@@ -151,12 +151,12 @@ export const TodoList = () => {
               All
             </Button>
             <Button
-              variant={filter === "active" ? "default" : "outline"}
+              variant={filter === "in-progress" ? "default" : "outline"}
               size="sm"
-              onClick={() => setFilter("active")}
+              onClick={() => setFilter("in-progress")}
               className="rounded-full text-xs sm:text-sm"
             >
-              Active
+              In Progress
             </Button>
             <Button
               variant={filter === "completed" ? "default" : "outline"}
@@ -167,12 +167,20 @@ export const TodoList = () => {
               Completed
             </Button>
             <Button
-              variant={filter === "paused" ? "default" : "outline"}
+              variant={filter === "backlog" ? "default" : "outline"}
               size="sm"
-              onClick={() => setFilter("paused")}
+              onClick={() => setFilter("backlog")}
               className="rounded-full text-xs sm:text-sm"
             >
-              Paused
+              Backlog
+            </Button>
+            <Button
+              variant={filter === "archived" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilter("archived")}
+              className="rounded-full text-xs sm:text-sm"
+            >
+              Archived
             </Button>
           </div>
 

@@ -1,24 +1,33 @@
-import React, { useState } from "react";
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
 import { Todo, TodoPriority, TodoStatus } from "@/types/todo";
 import {
   formatDate,
   getPriorityColor,
   getStatusColor,
 } from "@/utils/todo-utils";
-import { Button } from "@/shared/components/ui/button";
-import { Input } from "@/shared/components/ui/input";
 import {
   Check,
-  Clock,
-  Trash,
-  Pencil,
-  ChevronUp,
   ChevronDown,
+  ChevronUp,
+  Clock,
   Flag,
-  MessageSquare,
-  Tag,
   FolderClosed,
+  MessageSquare,
+  Pencil,
+  Tag as TagIcon,
+  Trash,
 } from "lucide-react";
+import React, { useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu";
+import { CommentDialog } from "./dialogs/comment-dialog";
+import { TagDialog } from "./dialogs/tag-dialog";
+import { DeleteConfirmationDialog } from "./dialogs/delete-confirmation-dialog";
 
 interface TodoItemProps {
   todo: Todo;
@@ -40,6 +49,11 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     todo.priority
   );
   const [isExpanded, setIsExpanded] = useState(false);
+
+  // Dialog state variables
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showTagDialog, setShowTagDialog] = useState(false);
 
   const handleSaveEdit = () => {
     onUpdate(todo.id, {
@@ -63,10 +77,15 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     const updates: Partial<Todo> = { status: newStatus };
     if (newStatus === "completed") {
       updates.completedAt = new Date();
-    } else if (newStatus === "active" && todo.status === "completed") {
+    } else if (newStatus === "in-progress" && todo.status === "completed") {
       updates.completedAt = undefined;
     }
     onUpdate(todo.id, updates);
+  };
+
+  // New handler for priority change
+  const handlePriorityChange = (priority: TodoPriority) => {
+    onUpdate(todo.id, { priority });
   };
 
   // Determine if the task is for today
@@ -138,20 +157,47 @@ export const TodoItem: React.FC<TodoItemProps> = ({
         <div>
           <div className="flex items-start justify-between">
             <div className="flex items-start">
-              <button
-                onClick={() =>
-                  handleStatusChange(
-                    todo.status === "completed" ? "active" : "completed"
-                  )
-                }
-                className={`p-1 rounded-md mr-3 mt-1 flex items-center justify-center h-5 w-5 border ${
-                  todo.status === "completed"
-                    ? "bg-blue-500 border-blue-500 text-white"
-                    : "border-gray-300"
-                }`}
-              >
-                {todo.status === "completed" && <Check className="h-3 w-3" />}
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className={`p-1 rounded-md mr-3 mt-1 flex items-center justify-center h-5 w-5 border ${
+                      todo.status === "completed"
+                        ? "bg-blue-500 border-blue-500 text-white"
+                        : "border-gray-300"
+                    }`}
+                  >
+                    {todo.status === "completed" && (
+                      <Check className="h-3 w-3" />
+                    )}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuItem
+                    onClick={() => handleStatusChange("in-progress")}
+                  >
+                    <Clock className="h-4 w-4 mr-2 text-green-500" />
+                    <span>In Progress</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleStatusChange("completed")}
+                  >
+                    <Check className="h-4 w-4 mr-2 text-blue-500" />
+                    <span>Completed</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleStatusChange("backlog")}
+                  >
+                    <FolderClosed className="h-4 w-4 mr-2 text-purple-500" />
+                    <span>Backlog</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleStatusChange("archived")}
+                  >
+                    <Trash className="h-4 w-4 mr-2 text-gray-500" />
+                    <span>Archived</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               <div className="flex-1">
                 <div className="flex items-start">
@@ -194,40 +240,75 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                     win
                   </div>
                 )}
+
+                {/* Display tags if available */}
+                {todo.tags && todo.tags.length > 0 && (
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {todo.tags.map((tag, index) => (
+                      <div
+                        key={index}
+                        className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium"
+                      >
+                        {tag}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="flex space-x-1">
+              {/* Priority dropdown using shadcn DropdownMenu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Flag
+                      className={`h-4 w-4 ${getPriorityColor(
+                        todo.priority
+                      ).replace("bg-", "text-")}`}
+                    />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handlePriorityChange("low")}>
+                    <Flag className="h-4 w-4 mr-2 text-green-500" />
+                    <span>Low Priority</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handlePriorityChange("medium")}
+                  >
+                    <Flag className="h-4 w-4 mr-2 text-yellow-500" />
+                    <span>Medium Priority</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handlePriorityChange("high")}
+                  >
+                    <Flag className="h-4 w-4 mr-2 text-red-500" />
+                    <span>High Priority</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Comment button with modal */}
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8"
-                onClick={() => {
-                  /* Implement document functionality */
-                }}
-              >
-                <Flag className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => {
-                  /* Implement comment functionality */
-                }}
+                onClick={() => setShowCommentModal(true)}
               >
                 <MessageSquare className="h-4 w-4" />
               </Button>
+
+              {/* Tag button with dialog */}
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8"
-                onClick={() => {
-                  /* Implement tag functionality */
-                }}
+                onClick={() => setShowTagDialog(true)}
               >
-                <Tag className="h-4 w-4" />
+                <TagIcon className="h-4 w-4" />
               </Button>
+
               <Button
                 variant="ghost"
                 size="icon"
@@ -246,11 +327,13 @@ export const TodoItem: React.FC<TodoItemProps> = ({
               >
                 <Pencil className="h-4 w-4" />
               </Button>
+
+              {/* Delete button with confirmation */}
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 text-red-500"
-                onClick={() => onDelete(todo.id)}
+                onClick={() => setShowDeleteDialog(true)}
               >
                 <Trash className="h-4 w-4" />
               </Button>
@@ -281,10 +364,70 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                   {todo.status}
                 </span>
               </div>
+
+              {/* Display comments if expanded and available */}
+              {todo.comments && todo.comments.length > 0 && (
+                <div className="mt-2 space-y-2">
+                  <h4 className="text-sm font-medium">Comments</h4>
+                  {todo.comments.map((comment) => (
+                    <div
+                      key={comment.id}
+                      className="bg-gray-50 p-2 rounded-md text-sm"
+                    >
+                      <div className="text-gray-500 text-xs">
+                        {new Date(comment.createdAt).toLocaleString()}
+                      </div>
+                      <div>{comment.text}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
       )}
+
+      {/* Separate Dialog Components */}
+      <CommentDialog
+        open={showCommentModal}
+        onOpenChange={setShowCommentModal}
+        todo={todo}
+        onAddComment={(comment) => {
+          const comments = todo.comments || [];
+          onUpdate(todo.id, {
+            comments: [
+              ...comments,
+              {
+                id: Date.now().toString(),
+                text: comment,
+                createdAt: new Date(),
+              },
+            ],
+          });
+        }}
+      />
+
+      <TagDialog
+        open={showTagDialog}
+        onOpenChange={setShowTagDialog}
+        todo={todo}
+        onAddTag={(tag) => {
+          const tags = todo.tags || [];
+          if (!tags.includes(tag)) {
+            onUpdate(todo.id, { tags: [...tags, tag] });
+          }
+        }}
+        onRemoveTag={(tag) => {
+          const updatedTags = [...(todo.tags || [])].filter((t) => t !== tag);
+          onUpdate(todo.id, { tags: updatedTags });
+        }}
+      />
+
+      <DeleteConfirmationDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={() => onDelete(todo.id)}
+      />
     </div>
   );
 };

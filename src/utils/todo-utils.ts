@@ -3,10 +3,14 @@ import { Todo, TodoPriority, TodoStatus } from "@/types/todo";
 export const calculateCompletionRate = (todos: Todo[]): number => {
   if (todos.length === 0) return 0;
 
-  const completedCount = todos.filter(
+  // Only count non-archived todos toward completion rate
+  const activeTodos = todos.filter((todo) => todo.status !== "archived");
+  if (activeTodos.length === 0) return 0;
+
+  const completedCount = activeTodos.filter(
     (todo) => todo.status === "completed"
   ).length;
-  return (completedCount / todos.length) * 100;
+  return (completedCount / activeTodos.length) * 100;
 };
 
 export const formatDate = (date?: Date): string => {
@@ -38,12 +42,14 @@ export const getPriorityColor = (priority: TodoPriority): string => {
 
 export const getStatusColor = (status: TodoStatus): string => {
   switch (status) {
-    case "active":
+    case "in-progress":
       return "bg-green-100 text-green-800";
     case "completed":
       return "bg-gray-100 text-gray-800";
-    case "paused":
+    case "backlog":
       return "bg-purple-100 text-purple-800";
+    case "archived":
+      return "bg-amber-100 text-amber-800";
     default:
       return "";
   }

@@ -2,7 +2,12 @@ import { Todo, TodoPriority, TodoStatus } from "@/types/todo";
 
 export const generateMockTodos = (count: number = 5): Todo[] => {
   const priorities: TodoPriority[] = ["low", "medium", "high"];
-  const statuses: TodoStatus[] = ["active", "completed", "paused"];
+  const statuses: TodoStatus[] = [
+    "in-progress",
+    "completed",
+    "backlog",
+    "archived",
+  ];
 
   return Array.from({ length: count }).map((_, index) => {
     const status = statuses[Math.floor(Math.random() * statuses.length)];
