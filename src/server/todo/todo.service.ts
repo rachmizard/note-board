@@ -5,6 +5,7 @@ import { desc, eq, sql } from "drizzle-orm";
 import type {
   CreateTodoRequest,
   DeleteTodoRequest,
+  GetTodoRequest,
   GetTodosRequest,
   UpdateTodoRequest,
 } from "./todo.validator";
@@ -89,4 +90,15 @@ const updateTodo = async (
     .where(eq(todoSchema.id, Number(request.id)));
 };
 
-export { createTodo, deleteTodo, getTodos, qb, updateTodo };
+const getTodo = async (
+  request: GetTodoRequest,
+  db: Database
+): Promise<Todo> => {
+  const [todo] = await db
+    .select()
+    .from(todoSchema)
+    .where(eq(todoSchema.id, Number(request.id)));
+  return todo;
+};
+
+export { createTodo, deleteTodo, getTodos, getTodo, qb, updateTodo };

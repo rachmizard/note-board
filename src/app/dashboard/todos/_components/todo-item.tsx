@@ -85,6 +85,13 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     }
   }, [isEditingTitle]);
 
+  useEffect(() => {
+    if (todo.title !== inlineEditedTitle) {
+      setInlineEditedTitle(todo.title);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [todo.title]);
+
   // Define priority options for the combobox
   const priorityOptions: ComboboxOption[] = [
     { value: "low", label: "Low" },
