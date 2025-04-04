@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ThemeProvider } from "next-themes";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
@@ -26,18 +27,19 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className="bg-gradient-to-b from-zinc-950 to-zinc-900"
+      suppressHydrationWarning
     >
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen w-full bg-gradient-to-b from-zinc-950 to-zinc-900 overflow-x-hidden`}
       >
-        {/* Decorative elements */}
-        <div className="fixed -top-20 -left-20 w-64 h-64 bg-rose-500/5 rounded-full blur-3xl"></div>
-        <div className="fixed -bottom-20 -right-20 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
-
-        <Providers>
-          <main className="h-full w-full">{children}</main>
-        </Providers>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Providers>{children}</Providers>
+        </ThemeProvider>
       </body>
     </html>
   );
