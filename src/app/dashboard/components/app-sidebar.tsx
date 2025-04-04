@@ -26,6 +26,7 @@ import {
   Timer,
 } from "lucide-react";
 import Image from "next/image";
+import { UserButton, useUser } from "@clerk/nextjs";
 
 const data = {
   navMain: [
@@ -54,6 +55,7 @@ const data = {
 
 export function AppSidebar() {
   const { state, toggleSidebar } = useSidebar();
+  const { user } = useUser();
   const isCollapsed = state === "collapsed";
 
   const CollapseButton = () => {
@@ -82,7 +84,7 @@ export function AppSidebar() {
           }`}
         >
           <CollapseButton />
-          <SidebarHeader className="flex w-full justify-start items-center  border-b">
+          <SidebarHeader className="flex w-full justify-start items-center border-b p-4">
             <div className="flex gap-2 justify-start w-full">
               <Image
                 src="/logo.png"
@@ -109,7 +111,7 @@ export function AppSidebar() {
                           href={item.url}
                           className={`flex items-center ${
                             isCollapsed ? "justify-center" : "justify-start"
-                          }  gap-2`}
+                          } gap-2`}
                         >
                           <item.icon className="w-5 h-5 shrink-0" />
                           <span className={isCollapsed ? "hidden" : "block"}>
@@ -118,7 +120,6 @@ export function AppSidebar() {
                         </a>
                       </SidebarMenuButton>
                     </TooltipTrigger>
-
                     <TooltipContent side="right">
                       <span>{item.title}</span>
                     </TooltipContent>
@@ -139,29 +140,23 @@ export function AppSidebar() {
                   isCollapsed ? "flex-col" : ""
                 } gap-2`}
               >
-                <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 shrink-0" />
-                {!isCollapsed && (
+                {!isCollapsed && user && (
                   <div className="flex flex-col">
-                    <p className="text-sm font-medium">John Doe</p>
-                    <p className="text-xs text-gray-500">john@example.com</p>
+                    <p className="text-sm font-medium">{user.fullName}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {user.primaryEmailAddress?.emailAddress}
+                    </p>
                   </div>
                 )}
               </div>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="text-red-500 hover:text-red-600 transition-colors"
-                  >
-                    <LogOut className="w-5 h-5 shrink-0" />
-                  </Button>
-                </TooltipTrigger>
-                {isCollapsed && (
-                  <TooltipContent side="right">
-                    <span>Logout</span>
-                  </TooltipContent>
-                )}
-              </Tooltip>
+              <UserButton
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: "w-8 h-8",
+                  },
+                }}
+              />
             </div>
           </div>
         </Sidebar>
