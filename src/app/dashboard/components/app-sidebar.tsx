@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/shared/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -17,16 +16,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
+import { UserButton, useUser } from "@clerk/nextjs";
 import {
   Calendar,
   CheckSquare,
   ChevronLeft,
   LayoutDashboard,
-  LogOut,
   Timer,
 } from "lucide-react";
-import Image from "next/image";
-import { UserButton, useUser } from "@clerk/nextjs";
 import Image from "next/image";
 
 const data = {
@@ -86,17 +83,21 @@ export function AppSidebar() {
         >
           <CollapseButton />
           <SidebarHeader className="flex w-full justify-start items-center border-b p-4">
-            <div className="flex gap-2 justify-start w-full">
-              <Image
-                src="/logo.png"
-                alt="Noteboard"
-                className="w-6 h-6 shrink-0"
-                width={24}
-                height={24}
-                priority
-                loading={undefined}
-                quality={100}
-              />
+            <div
+              className={`flex gap-2 ${
+                !isCollapsed ? "justify-start" : "justify-center"
+              } w-full`}
+            >
+              <div className="w-6 h-6 relative shrink-0">
+                <Image
+                  src="/logo.png"
+                  alt="Noteboard"
+                  fill
+                  priority
+                  loading={undefined}
+                  quality={100}
+                />
+              </div>
               {!isCollapsed && <p>Noteboard</p>}
             </div>
           </SidebarHeader>
@@ -106,7 +107,7 @@ export function AppSidebar() {
               {data.navMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <Tooltip>
-                    <TooltipTrigger className="w-full" asChild>
+                    <TooltipTrigger className="w-full">
                       <SidebarMenuButton asChild>
                         <a
                           href={item.url}
