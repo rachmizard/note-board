@@ -13,7 +13,7 @@ async function runMigrations() {
   // This will run all migrations in the migrationFolder
   console.log("Running migrations...");
   await migrate(db, {
-    migrationsFolder: "src/lib/database/drizzle/migrations",
+    migrationsFolder: "src/shared/lib/database/drizzle/migrations",
   });
   console.log("Migrations completed successfully");
 }

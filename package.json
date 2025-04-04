@@ -16,7 +16,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:drop": "drizzle-kit drop",
-    "db:migrate": "node -r @swc-node/register src/lib/database/migrate.ts"
+    "db:migrate": "node -r @swc-node/register src/shared/lib/database/migrate.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.0",
