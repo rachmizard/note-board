@@ -1,7 +1,16 @@
 "use client";
 
 import { Button } from "@/shared/components/ui/button";
-import { Sidebar, SidebarProvider, useSidebar } from "@/shared/components/ui/sidebar";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  useSidebar
+} from "@/shared/components/ui/sidebar";
 import {
   Tooltip,
   TooltipContent,
