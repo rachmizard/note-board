@@ -6,7 +6,11 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "env:pull": "vercel env pull",
+    "env:add": "vercel env add",
+    "env:ls": "vercel env ls",
+    "env:rm": "vercel env rm"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.0",
@@ -41,6 +45,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vercel": "^41.4.1"
   }
 }
