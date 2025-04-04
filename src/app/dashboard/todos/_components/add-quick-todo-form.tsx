@@ -6,10 +6,12 @@ import { cn } from "@/shared/lib/utils";
 import { Loader2Icon } from "lucide-react";
 import { KeyboardEventHandler, useRef } from "react";
 import { useCreateTodo } from "../_mutations/use-create-todo";
+import { useInvalidateTodos } from "../_queries/use-todos";
 
 export const AddQuickTodoForm = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const createTodo = useCreateTodo();
+  const invalidateTodos = useInvalidateTodos();
 
   const handleQuickAddTodo: KeyboardEventHandler<HTMLInputElement> = (e) => {
     if (e.key === "Enter" && inputRef.current?.value.trim()) {
@@ -25,6 +27,7 @@ export const AddQuickTodoForm = () => {
               inputRef.current.focus();
               inputRef.current.value = "";
             }
+            invalidateTodos();
           },
         }
       );

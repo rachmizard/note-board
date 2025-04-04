@@ -19,3 +19,12 @@ export const createTodoValidator = z.object({
     .optional()
     .default(TodoStatusEnum.BACKLOG),
 });
+
+export const getTodosValidator = z.object({
+  page: z.number().optional().default(1),
+  limit: z.number().optional().default(10),
+  sortBy: z.string().optional().default("createdAt"),
+  sortOrder: z.string().optional().default("desc"),
+});
+
+export type GetTodosRequest = z.infer<typeof getTodosValidator>;

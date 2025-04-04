@@ -3,40 +3,91 @@
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
 import { Todo, TodoStatus } from "@/types/todo";
-import { mockTodos } from "@/utils/mock-data";
 import { ListFilter } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AddQuickTodoForm } from "./add-quick-todo-form";
 import { TodoItem } from "./todo-item";
 import { TodoStats } from "./todo-stats";
+import { useTodos } from "../_queries/use-todos";
+import { TodoStatusEnum } from "@/server/database/drizzle/todo.schema";
+
+// Helper function to map server todo status to frontend todo status
+const mapStatusFromServer = (status: TodoStatusEnum): TodoStatus => {
+  switch (status) {
+    case TodoStatusEnum.IN_PROGRESS:
+      return "in-progress";
+    case TodoStatusEnum.COMPLETED:
+      return "completed";
+    case TodoStatusEnum.BACKLOG:
+      return "backlog";
+    case TodoStatusEnum.ARCHIVED:
+      return "archived";
+    default:
+      return "backlog";
+  }
+};
 
 export const TodoList = () => {
-  const [todos, setTodos] = useState<Todo[]>([]);
   const [filter, setFilter] = useState<TodoStatus | "all">("all");
-  const [loading, setLoading] = useState(true);
+  const [localTodos, setLocalTodos] = useState<Todo[]>([]);
 
-  // Initialize with mock data for development purposes
+  // Use the real data source with useTodos hook
+  const todos = useTodos({
+    page: 1,
+    limit: 100, // Fetch a reasonable number of todos
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
+
+  // Convert server todos to frontend Todo format and merge with local todos
   useEffect(() => {
-    setTodos(mockTodos);
-    setLoading(false);
-  }, []);
+    if (todos.data?.data) {
+      // Map server todo format to frontend Todo format
+      const convertedTodos = todos.data.data.map((serverTodo) => ({
+        id: String(serverTodo.id), // Convert number id to string
+        title: serverTodo.title,
+        dueDate: serverTodo.dueDate || undefined,
+        priority: serverTodo.priority.toLowerCase() as Todo["priority"],
+        status: mapStatusFromServer(serverTodo.status),
+        createdAt: serverTodo.createdAt,
+        // Server doesn't have completedAt, so we'll use updatedAt for completed items
+        completedAt:
+          serverTodo.status === TodoStatusEnum.COMPLETED
+            ? serverTodo.updatedAt
+            : undefined,
+        // Add missing fields with default values
+        comments: [],
+        tags: [],
+      }));
+
+      setLocalTodos(convertedTodos);
+    }
+  }, [todos.data]);
 
   const handleUpdateTodo = (id: string, updates: Partial<Todo>) => {
-    setTodos((prevTodos) =>
+    // Keep existing update functionality
+    // Note: In a real implementation, this might need to call a mutation
+    // but keeping it local as requested
+    setLocalTodos((prevTodos) =>
       prevTodos.map((todo) => (todo.id === id ? { ...todo, ...updates } : todo))
     );
   };
 
   const handleDeleteTodo = (id: string) => {
-    setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
+    // Keep existing delete functionality
+    // Note: In a real implementation, this might need to call a mutation
+    // but keeping it local as requested
+    setLocalTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
   };
 
-  const filteredTodos = todos.filter((todo) => {
+  // Keep existing filtering logic
+  const filteredTodos = localTodos.filter((todo) => {
     if (filter === "all") return true;
     return todo.status === filter;
   });
 
-  const completionHistory = todos
+  // Keep existing completion history logic
+  const completionHistory = localTodos
     .filter((todo) => todo.status === "completed" && todo.completedAt)
     .sort((a, b) => {
       const dateA = a.completedAt || new Date();
@@ -44,7 +95,7 @@ export const TodoList = () => {
       return dateB.getTime() - dateA.getTime();
     });
 
-  if (loading) {
+  if (todos.isLoading) {
     return <div>Loading todos...</div>;
   }
 
@@ -133,7 +184,7 @@ export const TodoList = () => {
         </div>
 
         <div className="w-full mt-6 lg:mt-0 lg:max-w-[40%]">
-          <TodoStats todos={todos} />
+          <TodoStats todos={localTodos} />
 
           {/* Completion History section can be moved to a separate tab or section if needed */}
           {completionHistory.length > 0 && (
