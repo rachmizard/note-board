@@ -36,6 +36,7 @@ export const todoSchema = pgCore.pgTable("todos", {
   description: pgCore.text("description"),
   priority: todoPriority("priority").default(TodoPriorityEnum.MEDIUM).notNull(),
   status: todoStatus("status").default(TodoStatusEnum.BACKLOG).notNull(),
+  completedAt: pgCore.timestamp("completed_at"),
   createdAt: pgCore.timestamp("created_at").defaultNow().notNull(),
   updatedAt: pgCore.timestamp("updated_at").defaultNow().notNull(),
 });

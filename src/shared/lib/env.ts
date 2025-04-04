@@ -8,6 +8,9 @@ export const appEnv = createEnv({
   },
   client: {},
   // If you're using Next.js < 13.4.4, you'll need to specify the runtimeEnv manually
-  runtimeEnv: process.env,
+  runtimeEnv: {
+    DATABASE_URL: process.env.DATABASE_URL,
+    DATABASE_URL_DEV: process.env.DATABASE_URL_DEV,
+  },
   clientPrefix: "NEXT_PUBLIC_",
 });
