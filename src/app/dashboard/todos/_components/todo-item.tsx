@@ -4,11 +4,21 @@ import {
   formatDate,
   getPriorityColor,
   getStatusColor,
-  isDueDateOverdue,
 } from "@/utils/todo-utils";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
-import { Check, Clock, Pause, Pencil, Play, Trash, X } from "lucide-react";
+import {
+  Check,
+  Clock,
+  Trash,
+  Pencil,
+  ChevronUp,
+  ChevronDown,
+  Flag,
+  MessageSquare,
+  Tag,
+  FolderClosed,
+} from "lucide-react";
 
 interface TodoItemProps {
   todo: Todo;
@@ -29,6 +39,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
   const [editedPriority, setEditedPriority] = useState<TodoPriority>(
     todo.priority
   );
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleSaveEdit = () => {
     onUpdate(todo.id, {
@@ -58,14 +69,28 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     onUpdate(todo.id, updates);
   };
 
+  // Determine if the task is for today
+  const isToday = todo.dueDate
+    ? new Date(todo.dueDate).toDateString() === new Date().toDateString()
+    : false;
+
+  // Format date as "Month Day, Year" for display
+  const formattedDate = todo.dueDate
+    ? new Date(todo.dueDate).toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "";
+
   return (
     <div
-      className={`p-4 border rounded-lg mb-2 ${
+      className={`border-b py-3 ${
         todo.status === "completed" ? "opacity-70" : ""
       }`}
     >
       {isEditing ? (
-        <div className="space-y-3">
+        <div className="space-y-3 px-4">
           <Input
             value={editedTitle}
             onChange={(e) => setEditedTitle(e.target.value)}
@@ -102,120 +127,162 @@ export const TodoItem: React.FC<TodoItemProps> = ({
 
           <div className="flex justify-end space-x-2 mt-3">
             <Button variant="outline" onClick={handleCancelEdit} size="sm">
-              <X className="h-4 w-4 mr-1" /> Cancel
+              Cancel
             </Button>
             <Button onClick={handleSaveEdit} size="sm">
-              <Check className="h-4 w-4 mr-1" /> Save
+              Save
             </Button>
           </div>
         </div>
       ) : (
         <div>
           <div className="flex items-start justify-between">
-            <div className="flex items-center">
+            <div className="flex items-start">
               <button
                 onClick={() =>
                   handleStatusChange(
                     todo.status === "completed" ? "active" : "completed"
                   )
                 }
-                className={`p-1 rounded-full mr-3 ${
+                className={`p-1 rounded-md mr-3 mt-1 flex items-center justify-center h-5 w-5 border ${
                   todo.status === "completed"
-                    ? "bg-green-500 text-white"
-                    : "border border-gray-300"
+                    ? "bg-blue-500 border-blue-500 text-white"
+                    : "border-gray-300"
                 }`}
               >
-                {todo.status === "completed" && <Check className="h-4 w-4" />}
+                {todo.status === "completed" && <Check className="h-3 w-3" />}
               </button>
 
-              <div>
-                <h3
-                  className={`font-medium ${
-                    todo.status === "completed"
-                      ? "line-through text-gray-500"
-                      : ""
-                  }`}
-                >
-                  {todo.title}
-                </h3>
+              <div className="flex-1">
+                <div className="flex items-start">
+                  <h3
+                    className={`font-medium ${
+                      todo.status === "completed"
+                        ? "line-through text-gray-500"
+                        : ""
+                    }`}
+                  >
+                    {todo.title}
+                  </h3>
+                  <button
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="ml-2 text-gray-400 hover:text-gray-600"
+                  >
+                    {isExpanded ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
 
-                {todo.dueDate && (
-                  <div className="flex items-center mt-1">
-                    <Clock className="h-3 w-3 mr-1" />
-                    <span
-                      className={`text-xs ${
-                        isDueDateOverdue(todo.dueDate) &&
-                        todo.status !== "completed"
-                          ? "text-red-600 font-semibold"
-                          : "text-gray-500"
-                      }`}
-                    >
-                      {formatDate(todo.dueDate)}
-                    </span>
+                {isToday && (
+                  <div className="mt-1 inline-block rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium">
+                    Today
+                  </div>
+                )}
+
+                {!isToday && todo.dueDate && (
+                  <div className="mt-1 inline-block rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium">
+                    {formattedDate}
+                  </div>
+                )}
+
+                {/* Optional: Additional tag example like "win" from the reference image */}
+                {todo.priority === "high" && (
+                  <div className="mt-1 ml-2 inline-block rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium">
+                    win
                   </div>
                 )}
               </div>
             </div>
 
             <div className="flex space-x-1">
-              <span
-                className={`text-xs px-2 py-1 rounded-full ${getPriorityColor(
-                  todo.priority
-                )}`}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => {
+                  /* Implement document functionality */
+                }}
               >
-                {todo.priority}
-              </span>
-
-              <span
-                className={`text-xs px-2 py-1 rounded-full ${getStatusColor(
-                  todo.status
-                )}`}
+                <Flag className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => {
+                  /* Implement comment functionality */
+                }}
               >
-                {todo.status}
-              </span>
+                <MessageSquare className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => {
+                  /* Implement tag functionality */
+                }}
+              >
+                <Tag className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => {
+                  /* Implement folder functionality */
+                }}
+              >
+                <FolderClosed className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setIsEditing(true)}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-red-500"
+                onClick={() => onDelete(todo.id)}
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
             </div>
           </div>
 
-          <div className="flex justify-end mt-2 space-x-1">
-            {todo.status !== "completed" && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditing(true)}
-              >
-                <Pencil className="h-3 w-3 mr-1" /> Edit
-              </Button>
-            )}
-
-            {todo.status === "active" && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleStatusChange("paused")}
-              >
-                <Pause className="h-3 w-3 mr-1" /> Pause
-              </Button>
-            )}
-
-            {todo.status === "paused" && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleStatusChange("active")}
-              >
-                <Play className="h-3 w-3 mr-1" /> Resume
-              </Button>
-            )}
-
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-red-500"
-              onClick={() => onDelete(todo.id)}
-            >
-              <Trash className="h-3 w-3 mr-1" /> Delete
-            </Button>
-          </div>
+          {isExpanded && (
+            <div className="mt-3 ml-9 space-y-2">
+              <div className="flex items-center text-sm text-gray-500">
+                <Clock className="h-3 w-3 mr-1" />
+                <span>
+                  Due: {todo.dueDate ? formatDate(todo.dueDate) : "No due date"}
+                </span>
+              </div>
+              <div className="flex items-center text-sm text-gray-500">
+                <span
+                  className={`mr-2 inline-block px-2 py-0.5 rounded-full text-xs ${getPriorityColor(
+                    todo.priority
+                  )}`}
+                >
+                  {todo.priority}
+                </span>
+                <span
+                  className={`inline-block px-2 py-0.5 rounded-full text-xs ${getStatusColor(
+                    todo.status
+                  )}`}
+                >
+                  {todo.status}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
