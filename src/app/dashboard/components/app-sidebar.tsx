@@ -25,6 +25,7 @@ import {
   LogOut,
   Timer,
 } from "lucide-react";
+import Image from "next/image";
 
 const data = {
   navMain: [
@@ -83,7 +84,13 @@ export function AppSidebar() {
           <CollapseButton />
           <SidebarHeader className="flex w-full justify-start items-center  border-b">
             <div className="flex gap-2 justify-start w-full">
-              <img src="./logo.png" className="w-6 h-6 shrink-0" />
+              <Image
+                src="/logo.png"
+                alt="Noteboard"
+                className="w-6 h-6 shrink-0"
+                width={24}
+                height={24}
+              />
               {!isCollapsed && <p>Noteboard</p>}
             </div>
           </SidebarHeader>
@@ -93,7 +100,7 @@ export function AppSidebar() {
               {data.navMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <Tooltip>
-                    <TooltipTrigger className="w-full">
+                    <TooltipTrigger className="w-full" asChild>
                       <SidebarMenuButton asChild>
                         <a
                           href={item.url}
@@ -138,7 +145,7 @@ export function AppSidebar() {
                 )}
               </div>
               <Tooltip>
-                <TooltipTrigger>
+                <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
                     className="text-red-500 hover:text-red-600 transition-colors"
