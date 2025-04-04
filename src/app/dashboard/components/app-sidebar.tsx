@@ -37,12 +37,12 @@ const data = {
     },
     {
       title: "Todo List",
-      url: "/todo",
+      url: "/dashboard/todos",
       icon: CheckSquare,
     },
     {
       title: "Pomodoro",
-      url: "/pomodoro",
+      url: "/dashboard/pomodoro",
       icon: Timer,
     },
     {
@@ -109,6 +109,19 @@ export function AppSidebar() {
                   <RefreshCw className="w-4 h-4" />
                 </Button>
               </div>
+          <SidebarHeader className="flex w-full justify-start items-center  border-b">
+            <div className="flex gap-2 justify-start w-full">
+              <Image
+                src="/logo.png"
+                alt="Noteboard"
+                className="w-6 h-6 shrink-0"
+                width={24}
+                height={24}
+                priority
+                loading={undefined}
+                quality={100}
+              />
+              {!isCollapsed && <p>Noteboard</p>}
             </div>
           </SidebarHeader>
 
