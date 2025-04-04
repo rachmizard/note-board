@@ -56,6 +56,37 @@ This project uses Drizzle ORM with NeonDB (serverless Postgres). For database mi
 npx drizzle-kit push
 ```
 
+### Migrating Database to Production
+
+When you're ready to deploy your database changes to production, follow these steps:
+
+1. **Create a Production Database Configuration**: 
+   - In your database configuration file, ensure you have separate connection settings for development and production environments.
+   - Use environment variables to manage your production database credentials securely.
+
+2. **Generate Migration SQL**:
+   ```bash
+   bun db:generate:prod
+   ```
+   This will generate SQL migration files based on your schema changes.
+
+3. **Review Migrations Before Applying**:
+   - Always review the generated SQL files in the `migrations` directory before applying them to production.
+   - Test migrations on a staging environment first if possible.
+
+4. **Apply Migrations to Production**:
+   ```bash
+   bun db:push:prod
+   ```
+   
+5. **Best Practices**:
+   - Always backup your production database before running migrations
+   - Schedule migrations during low-traffic periods
+   - Use transactions for complex migrations to ensure atomicity
+   - Add proper logging for migration processes
+
+For more information, check out the [Drizzle ORM migration documentation](https://orm.drizzle.team/docs/migrations).
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
