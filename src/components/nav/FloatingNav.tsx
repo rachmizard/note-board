@@ -240,10 +240,7 @@ export function FloatingNav() {
         aria-label={isExpanded ? "Collapse menu" : "Expand menu"}
       >
         {!isExpanded && isMounted && (
-          <span
-            className="absolute left-full ml-2 px-2 py-1 rounded-md bg-zinc-800/90 backdrop-blur-sm text-xs font-medium text-zinc-200 opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap transition-opacity duration-200 z-[60] shadow-lg border border-zinc-700/50"
-            style={{ animation: "tooltipFadeIn 0.2s ease forwards" }}
-          >
+          <span className="absolute left-full ml-2 px-2 py-1 rounded-md bg-zinc-800/90 backdrop-blur-sm text-xs font-medium text-zinc-200 opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap transition-opacity duration-200 z-[60] shadow-lg border border-zinc-700/50">
             {isExpanded ? "Collapse" : "Expand"} menu
           </span>
         )}
@@ -309,10 +306,7 @@ export function FloatingNav() {
                 </span>
               ) : (
                 isMounted && (
-                  <span
-                    className="absolute left-full ml-2 px-2 py-1 rounded-md bg-zinc-800/90 backdrop-blur-sm text-xs font-medium text-zinc-200 opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap transition-opacity duration-200 z-[60] shadow-lg border border-zinc-700/50"
-                    style={{ animation: "tooltipFadeIn 0.2s ease forwards" }}
-                  >
+                  <span className="absolute left-full ml-2 px-2 py-1 rounded-md bg-zinc-800/90 backdrop-blur-sm text-xs font-medium text-zinc-200 opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap transition-all duration-200 z-[60] shadow-lg border border-zinc-700/50 group-hover:transform group-hover:translate-x-0 translate-x-[-8px]">
                     {item.name}
                   </span>
                 )
