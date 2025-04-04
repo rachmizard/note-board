@@ -1,4 +1,4 @@
-import { Env } from "@/lib/env";
+import { Env } from "@/shared/lib/env";
 
 declare global {
   namespace NodeJS {

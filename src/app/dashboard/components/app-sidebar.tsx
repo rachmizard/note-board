@@ -35,12 +35,12 @@ const data = {
     },
     {
       title: "Todo List",
-      url: "/todo",
+      url: "/dashboard/todos",
       icon: CheckSquare,
     },
     {
       title: "Pomodoro",
-      url: "/pomodoro",
+      url: "/dashboard/pomodoro",
       icon: Timer,
     },
     {
