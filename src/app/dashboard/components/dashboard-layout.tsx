@@ -1,3 +1,4 @@
+import React from "react";
 import { ModeToggle } from "@/shared/components/mode-toggle";
 import {
   Breadcrumb,
@@ -26,20 +27,25 @@ export default function DashboardLayout({
       <header className="flex justify-between items-center p-4 h-14 border-b">
         <Breadcrumb>
           <BreadcrumbList>
-            {breadcrumbs.map((item, index) => (
-              <BreadcrumbItem key={index}>
-                {item.isCurrent ? (
-                  <BreadcrumbPage>{item.label}</BreadcrumbPage>
-                ) : (
-                  <>
-                    <BreadcrumbLink href={item.href}>
-                      {item.label}
-                    </BreadcrumbLink>
-                    {index < breadcrumbs.length - 1 && <BreadcrumbSeparator />}
-                  </>
-                )}
-              </BreadcrumbItem>
-            ))}
+            {breadcrumbs.map((item, index) => {
+              const isLast = index === breadcrumbs.length - 1;
+
+              return (
+                <React.Fragment key={index}>
+                  <BreadcrumbItem>
+                    {item.isCurrent ? (
+                      <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                    ) : (
+                      <BreadcrumbLink href={item.href}>
+                        {item.label}
+                      </BreadcrumbLink>
+                    )}
+                  </BreadcrumbItem>
+
+                  {!isLast && <BreadcrumbSeparator />}
+                </React.Fragment>
+              );
+            })}
           </BreadcrumbList>
         </Breadcrumb>
         <ModeToggle />
