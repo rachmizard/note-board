@@ -120,3 +120,55 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes pomodoroBlinking {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.1);
+  }
+}
+
+.animate-pomodoro-blink {
+  animation: pomodoroBlinking 1s ease-in-out infinite;
+}
+
+/* Staggered animations for dots */
+.animate-pomodoro-blink-1 {
+  animation: pomodoroBlinking 1s ease-in-out infinite;
+  animation-delay: 0.1s;
+}
+
+.animate-pomodoro-blink-2 {
+  animation: pomodoroBlinking 1s ease-in-out infinite;
+  animation-delay: 0.2s;
+}
+
+.animate-pomodoro-blink-3 {
+  animation: pomodoroBlinking 1s ease-in-out infinite;
+  animation-delay: 0.3s;
+}
+
+.animate-pomodoro-blink-4 {
+  animation: pomodoroBlinking 1s ease-in-out infinite;
+  animation-delay: 0.4s;
+}
+
+.animate-pomodoro-blink-5 {
+  animation: pomodoroBlinking 1s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+
+.animate-pomodoro-blink-6 {
+  animation: pomodoroBlinking 1s ease-in-out infinite;
+  animation-delay: 0.6s;
+}
+
+.animate-pomodoro-blink-7 {
+  animation: pomodoroBlinking 1s ease-in-out infinite;
+  animation-delay: 0.7s;
+}

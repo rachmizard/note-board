@@ -1,5 +1,18 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Features
+
+### Pomodoro Timer
+
+The app includes a Pomodoro Timer feature that helps you improve productivity using the Pomodoro Technique:
+
+- **25-minute work intervals** followed by 5-minute breaks
+- **Longer breaks** (15 minutes) after 4 cycles
+- **Track Pomodoro sessions** tied to specific todos, habits, or workouts
+- Simple and intuitive interface for timing work sessions
+
+To use the Pomodoro Timer, navigate to `/pomodoro` in the application.
+
 ## Getting Started
 
 First, run the development server:
