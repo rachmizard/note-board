@@ -3,14 +3,23 @@ import { z } from "zod";
 
 export const appEnv = createEnv({
   server: {
-    DATABASE_URL: z.string().url(),
-    DATABASE_URL_DEV: z.string().url(),
+    DATABASE_URL: z
+      .string()
+      .url()
+      .describe("The URL of the database for production"),
+    DATABASE_URL_DEV: z
+      .string()
+      .url()
+      .describe("The URL of the database for development"),
   },
-  client: {},
+  client: {
+    NEXT_PUBLIC_APP_URL: z
+      .string()
+      .url()
+      .optional()
+      .describe("The URL of the app"),
+  },
   // If you're using Next.js < 13.4.4, you'll need to specify the runtimeEnv manually
-  runtimeEnv: {
-    DATABASE_URL: process.env.DATABASE_URL,
-    DATABASE_URL_DEV: process.env.DATABASE_URL_DEV,
-  },
+  runtimeEnv: process.env,
   clientPrefix: "NEXT_PUBLIC_",
 });
