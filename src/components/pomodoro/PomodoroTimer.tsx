@@ -2,7 +2,7 @@
 
 import { useConfetti, useHapticFeedback, useSoundEffects } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePomodoroContext } from "./PomodoroContext";
 
 export function PomodoroTimer() {
@@ -17,6 +17,42 @@ export function PomodoroTimer() {
   const haptic = useHapticFeedback();
   const confetti = useConfetti();
   const sound = useSoundEffects();
+
+  // Create refs for the buttons to apply ripple effect
+  const startButtonRef = useRef<HTMLButtonElement>(null);
+  const resetButtonRef = useRef<HTMLButtonElement>(null);
+  const skipButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Function to create ripple effect
+  const createRipple = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const button = event.currentTarget;
+
+    // Remove any existing ripples
+    const existingRipple = button.querySelector(".ripple");
+    if (existingRipple) {
+      existingRipple.remove();
+    }
+
+    // Create new ripple element
+    const circle = document.createElement("span");
+    const diameter = Math.max(button.clientWidth, button.clientHeight);
+    const radius = diameter / 2;
+
+    // Calculate position
+    const rect = button.getBoundingClientRect();
+    const offsetX = event.clientX - rect.left;
+    const offsetY = event.clientY - rect.top;
+
+    // Set ripple style
+    circle.style.width = circle.style.height = `${diameter}px`;
+    circle.style.left = `${offsetX - radius}px`;
+    circle.style.top = `${offsetY - radius}px`;
+    circle.classList.add("ripple");
+
+    // Add ripple to button and auto-remove after animation
+    button.appendChild(circle);
+    setTimeout(() => circle.remove(), 700);
+  };
 
   // Calculate progress percentage for the current session
   useEffect(() => {
@@ -34,6 +70,7 @@ export function PomodoroTimer() {
     if (prevTime === 1 && state.time === 0) {
       sound.playCompleteSound();
       haptic.trigger(100); // Longer vibration for session completion
+      setNaturalEnd(true); // Mark as natural completion when timer reaches 0
     }
 
     setPrevTime(state.time);
@@ -48,16 +85,26 @@ export function PomodoroTimer() {
     }
   }, [state.isActive]);
 
-  // Detect cycle completion for confetti
+  // Track if session ended naturally vs. manually skipped
+  const [naturalEnd, setNaturalEnd] = useState(true);
+
+  // Update naturalEnd state based on button clicks
   useEffect(() => {
-    // If we completed a work session
-    if (prevMode === "work" && state.mode !== "work") {
+    // If skip is clicked, mark as not natural end
+    if (!naturalEnd && state.time === 0) {
+      setNaturalEnd(true); // Reset for next cycle
+    }
+  }, [state.time, naturalEnd]);
+
+  // Modify cycle completion detection to only show confetti for natural endings
+  useEffect(() => {
+    // If we completed a work session naturally (timer reached 0)
+    if (prevMode === "work" && state.mode !== "work" && naturalEnd && prevTime === 0) {
       confetti.trigger();
-      // Sound is triggered by time change (above)
     }
 
-    // If we completed a full cycle (4 pomodoros)
-    if (state.cycles !== prevCycles && state.cycles % 4 === 0 && state.cycles > 0) {
+    // If we completed a full cycle (4 pomodoros) naturally
+    if (state.cycles !== prevCycles && state.cycles % 4 === 0 && state.cycles > 0 && naturalEnd) {
       // Big celebration for completing a cycle
       confetti.celebration();
       sound.playCompleteSound(); // Additional sound for cycle completion
@@ -66,7 +113,17 @@ export function PomodoroTimer() {
 
     setPrevCycles(state.cycles);
     setPrevMode(state.mode);
-  }, [state.cycles, state.mode, prevCycles, prevMode, confetti, sound, haptic]);
+  }, [
+    state.cycles,
+    state.mode,
+    prevCycles,
+    prevMode,
+    confetti,
+    sound,
+    haptic,
+    naturalEnd,
+    prevTime
+  ]);
 
   // Format time in minutes and seconds
   const formatTime = (time: number) => {
@@ -75,10 +132,11 @@ export function PomodoroTimer() {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  // Enhanced button click handlers with haptic feedback and sound
-  const handleStartPause = () => {
+  // Enhanced button click handlers with haptic feedback, sound and ripple
+  const handleStartPause = (event: React.MouseEvent<HTMLButtonElement>) => {
     haptic.trigger();
     sound.playClickSound();
+    createRipple(event);
     if (state.isActive) {
       pauseTimer();
     } else {
@@ -86,15 +144,17 @@ export function PomodoroTimer() {
     }
   };
 
-  const handleReset = () => {
+  const handleReset = (event: React.MouseEvent<HTMLButtonElement>) => {
     haptic.trigger();
     sound.playClickSound();
+    createRipple(event);
     resetTimer();
   };
 
-  const handleSkip = () => {
+  const handleSkip = (event: React.MouseEvent<HTMLButtonElement>) => {
     haptic.trigger();
     sound.playClickSound();
+    createRipple(event);
     skipToNext();
   };
 
@@ -264,12 +324,16 @@ export function PomodoroTimer() {
       {/* Session Indicators with Blinking Dots */}
       <div className="flex justify-center gap-3 mt-8 mb-6">{renderSessionDots()}</div>
 
-      {/* Controls */}
+      {/* Controls with haptic animation */}
       <div className="mt-8 pt-6 border-t border-zinc-800 grid grid-cols-3 gap-4">
         <button
-          onClick={handleStartPause}
+          ref={startButtonRef}
+          onClick={(e) => {
+            setNaturalEnd(false); // Mark that user manually interacted
+            handleStartPause(e);
+          }}
           className={cn(
-            "col-span-1 flex justify-center items-center rounded-full font-medium py-3 transition-all duration-300",
+            "col-span-1 flex justify-center items-center rounded-full font-medium py-3 transition-all duration-300 active:scale-95 active:translate-y-0.5 ripple-container",
             state.isActive
               ? "bg-zinc-800 text-white hover:bg-zinc-700"
               : "bg-rose-500 text-white hover:bg-rose-600"
@@ -279,15 +343,23 @@ export function PomodoroTimer() {
         </button>
 
         <button
-          onClick={handleReset}
-          className="col-span-1 bg-zinc-800 text-white rounded-full font-medium py-3 hover:bg-zinc-700 transition-all duration-300"
+          ref={resetButtonRef}
+          onClick={(e) => {
+            setNaturalEnd(false); // Mark that user manually interacted
+            handleReset(e);
+          }}
+          className="col-span-1 bg-zinc-800 text-white rounded-full font-medium py-3 hover:bg-zinc-700 transition-all duration-300 active:scale-95 active:translate-y-0.5 ripple-container"
         >
           Reset
         </button>
 
         <button
-          onClick={handleSkip}
-          className="col-span-1 bg-zinc-800 text-white rounded-full font-medium py-3 hover:bg-zinc-700 transition-all duration-300"
+          ref={skipButtonRef}
+          onClick={(e) => {
+            setNaturalEnd(false); // Mark that user manually interacted
+            handleSkip(e);
+          }}
+          className="col-span-1 bg-zinc-800 text-white rounded-full font-medium py-3 hover:bg-zinc-700 transition-all duration-300 active:scale-95 active:translate-y-0.5 ripple-container"
         >
           Skip
         </button>
