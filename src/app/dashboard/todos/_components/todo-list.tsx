@@ -1,24 +1,30 @@
 "use client";
 
+import { parseAsString, useQueryState } from "nuqs";
+
+import {
+  TodoPriorityEnum,
+  TodoStatusEnum,
+} from "@/server/database/drizzle/todo.schema";
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
-import { Todo, TodoStatus } from "@/types/todo";
+import { Todo } from "@/types/todo";
 import { ListFilter } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useDeleteTodo } from "../_mutations/use-delete-todo";
+import { useUpdateTodo } from "../_mutations/use-update-todo";
+import { useTodos } from "../_queries/use-todos";
+import { mapTodoStatusFromServer } from "../utils/todo.utils";
 import { AddQuickTodoForm } from "./add-quick-todo-form";
 import { TodoItem } from "./todo-item";
 import { TodoStats } from "./todo-stats";
-import { useTodos } from "../_queries/use-todos";
-import {
-  TodoStatusEnum,
-  TodoPriorityEnum,
-} from "@/server/database/drizzle/todo.schema";
-import { mapTodoStatusFromServer } from "../utils/todo.utils";
-import { useDeleteTodo } from "../_mutations/use-delete-todo";
-import { useUpdateTodo } from "../_mutations/use-update-todo";
+
+const useFilterQueryState = () => {
+  return useQueryState("status", parseAsString.withDefault("all"));
+};
 
 export const TodoList = () => {
-  const [filter, setFilter] = useState<TodoStatus | "all">("all");
+  const [filter, setFilter] = useFilterQueryState();
   const [localTodos, setLocalTodos] = useState<Todo[]>([]);
 
   // Use the real data source with useTodos hook
