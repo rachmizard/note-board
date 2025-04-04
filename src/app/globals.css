@@ -115,9 +115,49 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
   }
+
+  html,
   body {
-    @apply bg-background text-foreground;
+    @apply bg-gradient-to-b from-zinc-950 to-zinc-900 text-zinc-50;
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  #__next,
+  #root {
+    height: 100%;
+    width: 100%;
+  }
+
+  main {
+    @apply px-4 sm:px-6 md:px-20 max-w-7xl mx-auto w-full;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 

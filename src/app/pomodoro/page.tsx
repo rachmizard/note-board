@@ -3,7 +3,7 @@ import { PomodoroTimer } from "@/components/pomodoro/PomodoroTimer";
 
 export default function PomodoroPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-950 to-zinc-900 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <div className="container max-w-3xl mx-auto">
         <h1 className="text-4xl font-bold mb-10 text-center tracking-tight flex items-center justify-center gap-2">
           <span className="text-white">Focus</span>
