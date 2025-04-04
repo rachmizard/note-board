@@ -26,4 +26,4 @@ export const generateMockTodos = (count: number = 5): Todo[] => {
   });
 };
 
-export const mockTodos = generateMockTodos(10);
+export const mockTodos = generateMockTodos(1);

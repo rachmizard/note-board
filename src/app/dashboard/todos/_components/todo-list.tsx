@@ -1,29 +1,20 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, KeyboardEvent } from "react";
 import { Todo, TodoStatus } from "@/types/todo";
 import { TodoItem } from "./todo-item";
-import { AddTodo } from "./add-todo";
 import { mockTodos } from "@/utils/mock-data";
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
-import {
-  ListFilter,
-  Plus,
-  Rocket,
-  Calendar,
-  Flag,
-  FileText,
-  FolderClosed,
-  Tag,
-} from "lucide-react";
+import { ListFilter } from "lucide-react";
 import { TodoStats } from "./todo-stats";
+import { Input } from "@/shared/components/ui/input";
 
 export const TodoList = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [filter, setFilter] = useState<TodoStatus | "all">("all");
   const [loading, setLoading] = useState(true);
-  const [showAddTask, setShowAddTask] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
 
   // Initialize with mock data for development purposes
   useEffect(() => {
@@ -42,7 +33,16 @@ export const TodoList = () => {
     };
 
     setTodos((prevTodos) => [newTodo, ...prevTodos]);
-    setShowAddTask(false);
+  };
+
+  const handleQuickAddTodo = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && newTaskTitle.trim()) {
+      handleAddTodo({
+        title: newTaskTitle.trim(),
+        priority: "medium", // Default priority
+      });
+      setNewTaskTitle("");
+    }
   };
 
   const handleUpdateTodo = (id: string, updates: Partial<Todo>) => {
@@ -77,68 +77,15 @@ export const TodoList = () => {
       <div className="flex flex-col lg:flex-row lg:justify-between w-full gap-4 lg:gap-8">
         <div className="w-full lg:max-w-[60%]">
           {/* Task Input Area */}
-          <div className="mb-4 sm:mb-6 flex flex-wrap items-center border-b pb-4">
-            <Button
-              variant="ghost"
-              className="text-gray-500"
-              onClick={() => setShowAddTask(!showAddTask)}
-            >
-              <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-              Add a new task
-            </Button>
-
-            <div className="ml-auto flex flex-wrap space-x-1 sm:space-x-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 sm:h-8 sm:w-8"
-              >
-                <Rocket className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 sm:h-8 sm:w-8"
-              >
-                <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 sm:h-8 sm:w-8"
-              >
-                <Flag className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 sm:h-8 sm:w-8"
-              >
-                <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 sm:h-8 sm:w-8"
-              >
-                <FolderClosed className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 sm:h-8 sm:w-8"
-              >
-                <Tag className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Button>
-            </div>
+          <div className="mb-4 sm:mb-6 border-b pb-4">
+            <Input
+              value={newTaskTitle}
+              onChange={(e) => setNewTaskTitle(e.target.value)}
+              onKeyDown={handleQuickAddTodo}
+              placeholder="Type a new task and press Enter to add"
+              className="w-full"
+            />
           </div>
-
-          {/* Add Task Form */}
-          {showAddTask && (
-            <div className="mb-4 sm:mb-6">
-              <AddTodo onAdd={handleAddTodo} />
-            </div>
-          )}
 
           {/* Filter Buttons */}
           <div className="flex flex-wrap gap-2 sm:gap-0 sm:space-x-4 mb-4 sm:mb-6">
