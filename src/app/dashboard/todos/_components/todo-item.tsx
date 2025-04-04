@@ -18,7 +18,7 @@ import {
   Tag as TagIcon,
   Trash,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,10 +50,22 @@ export const TodoItem: React.FC<TodoItemProps> = ({
   );
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // New state for inline title editing
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [inlineEditedTitle, setInlineEditedTitle] = useState(todo.title);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
   // Dialog state variables
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showTagDialog, setShowTagDialog] = useState(false);
+
+  // Effect to focus the input when inline editing starts
+  useEffect(() => {
+    if (isEditingTitle && titleInputRef.current) {
+      titleInputRef.current.focus();
+    }
+  }, [isEditingTitle]);
 
   const handleSaveEdit = () => {
     onUpdate(todo.id, {
@@ -71,6 +83,27 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     );
     setEditedPriority(todo.priority);
     setIsEditing(false);
+  };
+
+  // New handler for saving inline title edits
+  const handleSaveInlineTitleEdit = () => {
+    if (inlineEditedTitle.trim() !== "") {
+      onUpdate(todo.id, { title: inlineEditedTitle });
+      setEditedTitle(inlineEditedTitle); // Keep the main edit state in sync
+    } else {
+      setInlineEditedTitle(todo.title); // Reset if empty
+    }
+    setIsEditingTitle(false);
+  };
+
+  // Handler for keyboard events on the inline title input
+  const handleTitleInputKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSaveInlineTitleEdit();
+    } else if (e.key === "Escape") {
+      setInlineEditedTitle(todo.title);
+      setIsEditingTitle(false);
+    }
   };
 
   const handleStatusChange = (newStatus: TodoStatus) => {
@@ -104,7 +137,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
 
   return (
     <div
-      className={`border-b py-3 ${
+      className={`border-b py-3 group hover:bg-gray-50 transition-colors duration-200 ${
         todo.status === "completed" ? "opacity-70" : ""
       }`}
     >
@@ -201,15 +234,28 @@ export const TodoItem: React.FC<TodoItemProps> = ({
 
               <div className="flex-1">
                 <div className="flex items-start">
-                  <h3
-                    className={`font-medium ${
-                      todo.status === "completed"
-                        ? "line-through text-gray-500"
-                        : ""
-                    }`}
-                  >
-                    {todo.title}
-                  </h3>
+                  {isEditingTitle ? (
+                    <Input
+                      ref={titleInputRef}
+                      value={inlineEditedTitle}
+                      onChange={(e) => setInlineEditedTitle(e.target.value)}
+                      onBlur={handleSaveInlineTitleEdit}
+                      onKeyDown={handleTitleInputKeyDown}
+                      className="min-w-[200px] h-7 py-1 px-2"
+                    />
+                  ) : (
+                    <h3
+                      className={`font-medium ${
+                        todo.status === "completed"
+                          ? "line-through text-gray-500"
+                          : ""
+                      } cursor-pointer`}
+                      onDoubleClick={() => setIsEditingTitle(true)}
+                      onClick={() => setIsEditingTitle(true)}
+                    >
+                      {todo.title}
+                    </h3>
+                  )}
                   <button
                     onClick={() => setIsExpanded(!isExpanded)}
                     className="ml-2 text-gray-400 hover:text-gray-600"
@@ -257,86 +303,90 @@ export const TodoItem: React.FC<TodoItemProps> = ({
               </div>
             </div>
 
-            <div className="flex space-x-1">
-              {/* Priority dropdown using shadcn DropdownMenu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Flag
-                      className={`h-4 w-4 ${getPriorityColor(
-                        todo.priority
-                      ).replace("bg-", "text-")}`}
-                    />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handlePriorityChange("low")}>
-                    <Flag className="h-4 w-4 mr-2 text-green-500" />
-                    <span>Low Priority</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => handlePriorityChange("medium")}
-                  >
-                    <Flag className="h-4 w-4 mr-2 text-yellow-500" />
-                    <span>Medium Priority</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => handlePriorityChange("high")}
-                  >
-                    <Flag className="h-4 w-4 mr-2 text-red-500" />
-                    <span>High Priority</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <div className="action-buttons opacity-0 transition-opacity duration-200 group-hover:opacity-100 min-w-[170px]">
+              <div className="flex space-x-1">
+                {/* Priority dropdown using shadcn DropdownMenu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Flag
+                        className={`h-4 w-4 ${getPriorityColor(
+                          todo.priority
+                        ).replace("bg-", "text-")}`}
+                      />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() => handlePriorityChange("low")}
+                    >
+                      <Flag className="h-4 w-4 mr-2 text-green-500" />
+                      <span>Low Priority</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handlePriorityChange("medium")}
+                    >
+                      <Flag className="h-4 w-4 mr-2 text-yellow-500" />
+                      <span>Medium Priority</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handlePriorityChange("high")}
+                    >
+                      <Flag className="h-4 w-4 mr-2 text-red-500" />
+                      <span>High Priority</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
-              {/* Comment button with modal */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setShowCommentModal(true)}
-              >
-                <MessageSquare className="h-4 w-4" />
-              </Button>
+                {/* Comment button with modal */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setShowCommentModal(true)}
+                >
+                  <MessageSquare className="h-4 w-4" />
+                </Button>
 
-              {/* Tag button with dialog */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setShowTagDialog(true)}
-              >
-                <TagIcon className="h-4 w-4" />
-              </Button>
+                {/* Tag button with dialog */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setShowTagDialog(true)}
+                >
+                  <TagIcon className="h-4 w-4" />
+                </Button>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => {
-                  /* Implement folder functionality */
-                }}
-              >
-                <FolderClosed className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setIsEditing(true)}
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => {
+                    /* Implement folder functionality */
+                  }}
+                >
+                  <FolderClosed className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setIsEditing(true)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
 
-              {/* Delete button with confirmation */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-red-500"
-                onClick={() => setShowDeleteDialog(true)}
-              >
-                <Trash className="h-4 w-4" />
-              </Button>
+                {/* Delete button with confirmation */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-red-500"
+                  onClick={() => setShowDeleteDialog(true)}
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
 
