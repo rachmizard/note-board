@@ -11,6 +11,7 @@ import { TodoStats } from "./todo-stats";
 import { useTodos } from "../_queries/use-todos";
 import { TodoStatusEnum } from "@/server/database/drizzle/todo.schema";
 import { mapTodoStatusFromServer } from "../utils/todo.utils";
+import { useDeleteTodo } from "../_mutations/use-delete-todo";
 
 export const TodoList = () => {
   const [filter, setFilter] = useState<TodoStatus | "all">("all");
@@ -23,6 +24,8 @@ export const TodoList = () => {
     sortBy: "createdAt",
     sortOrder: "desc",
   });
+
+  const deleteTodo = useDeleteTodo();
 
   // Convert server todos to frontend Todo format and merge with local todos
   useEffect(() => {
@@ -63,6 +66,7 @@ export const TodoList = () => {
     // Note: In a real implementation, this might need to call a mutation
     // but keeping it local as requested
     setLocalTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
+    deleteTodo.mutate({ id: Number(id) });
   };
 
   // Keep existing filtering logic

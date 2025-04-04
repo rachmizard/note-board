@@ -1,18 +1,19 @@
-import { Database } from "@/server/database";
-import { Todo, todoSchema } from "@/server/database/drizzle/todo.schema";
-import { PaginationResponse } from "@/server/types/response";
-import { desc, sql } from "drizzle-orm";
-import type { CreateTodoRequest, GetTodosRequest } from "./todo.validator";
+import type { Database } from "@/server/database";
+import { type Todo, todoSchema } from "@/server/database/drizzle/todo.schema";
+import type { PaginationResponse } from "@/server/types/response";
+import { desc, eq, sql } from "drizzle-orm";
+import type {
+  CreateTodoRequest,
+  DeleteTodoRequest,
+  GetTodosRequest,
+} from "./todo.validator";
 
-export const createTodo = async (
-  request: CreateTodoRequest,
-  db: Database
-): Promise<Todo> => {
+const qb = async (request: CreateTodoRequest, db: Database): Promise<Todo> => {
   const [todo] = await db.insert(todoSchema).values(request).returning();
   return todo;
 };
 
-export const qb = async (
+const createTodo = async (
   request: CreateTodoRequest,
   db: Database
 ): Promise<Todo> => {
@@ -27,7 +28,7 @@ export const qb = async (
  * @param options Pagination options
  * @returns Paginated todos
  */
-export const getTodos = async (
+const getTodos = async (
   request: GetTodosRequest,
   db: Database
 ): Promise<PaginationResponse<Todo>> => {
@@ -56,3 +57,12 @@ export const getTodos = async (
     limit,
   };
 };
+
+const deleteTodo = async (
+  request: DeleteTodoRequest,
+  db: Database
+): Promise<void> => {
+  await db.delete(todoSchema).where(eq(todoSchema.id, Number(request.id)));
+};
+
+export { createTodo, deleteTodo, getTodos, qb };

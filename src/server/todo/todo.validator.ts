@@ -5,6 +5,8 @@ import {
 import { z } from "zod";
 
 export type CreateTodoRequest = z.infer<typeof createTodoValidator>;
+export type GetTodosRequest = z.infer<typeof getTodosValidator>;
+export type DeleteTodoRequest = z.infer<typeof deleteTodoValidator>;
 
 export const createTodoValidator = z.object({
   title: z.string().min(1),
@@ -27,4 +29,6 @@ export const getTodosValidator = z.object({
   sortOrder: z.string().optional().default("desc"),
 });
 
-export type GetTodosRequest = z.infer<typeof getTodosValidator>;
+export const deleteTodoValidator = z.object({
+  id: z.number(),
+});
