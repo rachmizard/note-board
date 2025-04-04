@@ -144,6 +144,23 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     onUpdate(todo.id, { priority });
   };
 
+  // New handler to toggle expansion when clicking on the todo item
+  const handleTodoItemClick = (e: React.MouseEvent) => {
+    // Don't toggle expansion when clicking on interactive elements
+    if (
+      e.target instanceof HTMLElement &&
+      (e.target.closest("button") ||
+        e.target.closest("input") ||
+        e.target.closest("h3") ||
+        e.target.closest('[role="menuitem"]') ||
+        isEditingTitle)
+    ) {
+      return;
+    }
+
+    setIsExpanded(!isExpanded);
+  };
+
   // Determine if the task is for today
   const isToday = todo.dueDate
     ? new Date(todo.dueDate).toDateString() === new Date().toDateString()
@@ -162,8 +179,10 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     <div
       className={cn(
         "border-b py-3 group hover:bg-gray-50 transition-colors duration-200",
-        todo.status === "completed" && "opacity-70"
+        todo.status === "completed" && "opacity-70",
+        !isEditing && "cursor-pointer" // Add cursor-pointer when not in edit mode
       )}
+      onClick={!isEditing ? handleTodoItemClick : undefined} // Only enable click handler when not editing
     >
       {isEditing ? (
         <div className="space-y-3 px-4">
@@ -270,14 +289,23 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                         todo.status === "completed" &&
                           "line-through text-gray-500"
                       )}
-                      onDoubleClick={() => setIsEditingTitle(true)}
-                      onClick={() => setIsEditingTitle(true)}
+                      onDoubleClick={(e) => {
+                        e.stopPropagation(); // Prevent triggering the container click
+                        setIsEditingTitle(true);
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent triggering the container click
+                        setIsEditingTitle(true);
+                      }}
                     >
                       {todo.title}
                     </h3>
                   )}
                   <button
-                    onClick={() => setIsExpanded(!isExpanded)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering the container click
+                      setIsExpanded(!isExpanded);
+                    }}
                     className="ml-2 text-gray-400 hover:text-gray-600"
                   >
                     {isExpanded ? (
@@ -331,6 +359,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                   ? "opacity-100"
                   : "opacity-0 group-hover:opacity-100"
               )}
+              onClick={(e) => e.stopPropagation()} // Prevent triggering container click
             >
               {/* Priority dropdown using shadcn DropdownMenu */}
               <DropdownMenu onOpenChange={setIsPriorityDropdownOpen}>
@@ -369,7 +398,10 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8"
-                onClick={() => setShowCommentModal(true)}
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent triggering the container click
+                  setShowCommentModal(true);
+                }}
               >
                 <MessageSquare className="h-4 w-4" />
               </Button>
@@ -378,7 +410,10 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8"
-                onClick={() => setShowTagDialog(true)}
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent triggering the container click
+                  setShowTagDialog(true);
+                }}
               >
                 <TagIcon className="h-4 w-4" />
               </Button>
@@ -387,7 +422,8 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8"
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent triggering the container click
                   /* Implement folder functionality */
                 }}
               >
@@ -398,7 +434,10 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8"
-                onClick={() => setIsEditing(true)}
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent triggering the container click
+                  setIsEditing(true);
+                }}
               >
                 <Pencil className="h-4 w-4" />
               </Button>
@@ -407,14 +446,20 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 text-red-500"
-                onClick={() => setShowDeleteDialog(true)}
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent triggering the container click
+                  setShowDeleteDialog(true);
+                }}
               >
                 <Trash className="h-4 w-4" />
               </Button>
             </div>
 
             {/* Mobile action button - always visible */}
-            <div className="block md:hidden !opacity-100">
+            <div
+              className="block md:hidden !opacity-100"
+              onClick={(e) => e.stopPropagation()} // Prevent triggering container click
+            >
               <DropdownMenu onOpenChange={setIsMobileMenuOpen}>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-8 w-8">
