@@ -47,7 +47,7 @@ const data = {
     },
     {
       title: "Timeline",
-      url: "/timeline",
+      url: "/dashboard/timeline",
       icon: Calendar,
     },
   ],
