@@ -96,15 +96,15 @@ export function PomodoroTimer() {
     }
   }, [state.time, naturalEnd]);
 
-  // Modify cycle completion detection to only show confetti for natural endings
+  // Modify cycle completion detection to show confetti for all 4-cycle completions
   useEffect(() => {
     // If we completed a work session naturally (timer reached 0)
     if (prevMode === "work" && state.mode !== "work" && naturalEnd && prevTime === 0) {
       confetti.trigger();
     }
 
-    // If we completed a full cycle (4 pomodoros) naturally
-    if (state.cycles !== prevCycles && state.cycles % 4 === 0 && state.cycles > 0 && naturalEnd) {
+    // If we completed a full cycle (4 pomodoros) - show confetti regardless of natural/skipped
+    if (state.cycles !== prevCycles && state.cycles % 4 === 0 && state.cycles > 0) {
       // Big celebration for completing a cycle
       confetti.celebration();
       sound.playCompleteSound(); // Additional sound for cycle completion
