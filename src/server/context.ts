@@ -1,11 +1,12 @@
-import { db } from "@/shared/lib/database";
-import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
+import { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
+import { db } from "./database";
 /**
  * Defines your inner context shape.
  * Add fields here that the inner context brings.
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface CreateInnerContextOptions extends Partial<CreateNextContextOptions> {}
+interface CreateInnerContextOptions
+  extends Partial<FetchCreateContextFnOptions> {}
 /**
  * Inner context. Will always be available in your procedures, in contrast to the outer context.
  *
@@ -26,12 +27,11 @@ export async function createContextInner(opts?: CreateInnerContextOptions) {
  *
  * @see https://trpc.io/docs/v11/context#inner-and-outer-context
  */
-export async function createContext(opts: CreateNextContextOptions) {
+export async function createContext(opts: FetchCreateContextFnOptions) {
   const contextInner = await createContextInner({ ...opts });
   return {
     ...contextInner,
-    req: opts.req,
-    res: opts.res,
+    ...opts,
   };
 }
 export type Context = Awaited<ReturnType<typeof createContextInner>>;

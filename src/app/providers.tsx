@@ -3,7 +3,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
 import React, { useState } from "react";
-import { trpc } from "@/utils/trpc";
+import { trpc } from "@/server/trpc";
+import superjson from "superjson";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -12,6 +13,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       links: [
         httpBatchLink({
           url: "/api/trpc",
+          transformer: superjson,
           // Optional: You can pass any HTTP headers you wish here
           // async headers() {
           //   return {
