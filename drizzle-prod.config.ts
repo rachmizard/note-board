@@ -8,6 +8,11 @@ export default defineConfig({
   dbCredentials: {
     url: env.DATABASE_URL,
   },
+  migrations: {
+    schema: "public",
+    table: "migrations",
+    prefix: "none",
+  },
   // Customize your migration settings as needed
   verbose: true,
   strict: true,

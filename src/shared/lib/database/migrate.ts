@@ -7,7 +7,13 @@ import { env } from "../env";
 // e.g., in deployment scripts or initialization logic
 
 async function runMigrations() {
-  const sql = neon(env.DATABASE_URL);
+  let url = env.DATABASE_URL;
+
+  if (process.env.NODE_ENV === "development") {
+    url = env.DATABASE_URL_DEV;
+  }
+
+  const sql = neon(url);
   const db = drizzle(sql);
 
   // This will run all migrations in the migrationFolder
