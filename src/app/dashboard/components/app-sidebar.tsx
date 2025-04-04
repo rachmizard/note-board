@@ -84,44 +84,35 @@ export function AppSidebar() {
         >
           <CollapseButton />
           <SidebarHeader className="flex w-full justify-start items-center border-b p-3">
-            <div className="flex gap-2 justify-start items-center w-full">
-              <Image
-                src="/logo.png"
-                width={24}
-                height={24}
-                className="w-6 h-6 shrink-0"
-                alt="Noteboard Logo"
-              />
-              {!isCollapsed && <p className="font-bold">Noteboard</p>}
-              <div className="ml-auto">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="p-1 h-auto"
-                  onClick={(e) => {
-                    e.currentTarget.classList.add("animate-pulse");
-                    setTimeout(() => {
-                      e.currentTarget.classList.remove("animate-pulse");
-                      window.location.reload();
-                    }, 100);
-                  }}
-                >
-                  <RefreshCw className="w-4 h-4" />
-                </Button>
-              </div>
-          <SidebarHeader className="flex w-full justify-start items-center  border-b">
             <div className="flex gap-2 justify-start w-full">
               <Image
                 src="/logo.png"
-                alt="Noteboard"
                 className="w-6 h-6 shrink-0"
+                alt="Noteboard"
                 width={24}
                 height={24}
                 priority
                 loading={undefined}
                 quality={100}
               />
-              {!isCollapsed && <p>Noteboard</p>}
+              {!isCollapsed && (
+                <>
+                  <p className="font-bold">Noteboard</p>
+                  <div className="ml-auto">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="p-1 h-auto"
+                      onClick={() => {
+                        //reload page
+                        //animate the button?
+                      }}
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           </SidebarHeader>
 
