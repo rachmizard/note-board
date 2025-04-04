@@ -10,22 +10,7 @@ import { TodoItem } from "./todo-item";
 import { TodoStats } from "./todo-stats";
 import { useTodos } from "../_queries/use-todos";
 import { TodoStatusEnum } from "@/server/database/drizzle/todo.schema";
-
-// Helper function to map server todo status to frontend todo status
-const mapStatusFromServer = (status: TodoStatusEnum): TodoStatus => {
-  switch (status) {
-    case TodoStatusEnum.IN_PROGRESS:
-      return "in-progress";
-    case TodoStatusEnum.COMPLETED:
-      return "completed";
-    case TodoStatusEnum.BACKLOG:
-      return "backlog";
-    case TodoStatusEnum.ARCHIVED:
-      return "archived";
-    default:
-      return "backlog";
-  }
-};
+import { mapTodoStatusFromServer } from "../utils/todo.utils";
 
 export const TodoList = () => {
   const [filter, setFilter] = useState<TodoStatus | "all">("all");
@@ -48,7 +33,7 @@ export const TodoList = () => {
         title: serverTodo.title,
         dueDate: serverTodo.dueDate || undefined,
         priority: serverTodo.priority.toLowerCase() as Todo["priority"],
-        status: mapStatusFromServer(serverTodo.status),
+        status: mapTodoStatusFromServer(serverTodo.status),
         createdAt: serverTodo.createdAt,
         // Server doesn't have completedAt, so we'll use updatedAt for completed items
         completedAt:
