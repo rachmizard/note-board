@@ -90,6 +90,9 @@ export function AppSidebar() {
                 className="w-6 h-6 shrink-0"
                 width={24}
                 height={24}
+                priority
+                loading={undefined}
+                quality={100}
               />
               {!isCollapsed && <p>Noteboard</p>}
             </div>
