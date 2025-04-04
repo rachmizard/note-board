@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { UserButton, useUser } from "@clerk/nextjs";
+import Image from "next/image";
 
 const data = {
   navMain: [
