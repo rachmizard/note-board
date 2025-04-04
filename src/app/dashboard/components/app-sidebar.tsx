@@ -1,15 +1,13 @@
 "use client";
 
-import { VersionSwitcher } from "@/app/dashboard/components/version-switcher";
+import { Button } from "@/shared/components/ui/button";
 import {
-  SidebarHeader,
-  SidebarContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarRail,
   Sidebar,
-  SidebarTrigger,
+  SidebarContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   SidebarProvider,
   useSidebar,
 } from "@/shared/components/ui/sidebar";
@@ -19,16 +17,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
-import * as React from "react";
 import {
-  LayoutDashboard,
+  Calendar,
   CheckSquare,
-  Timer,
-  LogOut,
   ChevronLeft,
-  Calendar, // Add this import
+  LayoutDashboard,
+  LogOut,
+  Timer,
 } from "lucide-react";
-import { Button } from "@/shared/components/ui/button";
 
 const data = {
   navMain: [
