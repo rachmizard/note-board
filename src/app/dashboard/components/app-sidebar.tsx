@@ -25,13 +25,12 @@ import {
   CheckSquare,
   Timer,
   LogOut,
-  Notebook,
   ChevronLeft,
+  Calendar, // Add this import
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 
 const data = {
-  versions: ["1.0.1", "1.1.0-alpha", "2.0.0-beta1"],
   navMain: [
     {
       title: "Dashboard",
@@ -47,6 +46,11 @@ const data = {
       title: "Pomodoro",
       url: "/pomodoro",
       icon: Timer,
+    },
+    {
+      title: "Timeline",
+      url: "/timeline",
+      icon: Calendar,
     },
   ],
 };
