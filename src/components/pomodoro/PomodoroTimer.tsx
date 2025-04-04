@@ -87,6 +87,7 @@ export function PomodoroTimer() {
 
   // Track if session ended naturally vs. manually skipped
   const [naturalEnd, setNaturalEnd] = useState(true);
+  const [showCompletionConfetti, setShowCompletionConfetti] = useState(false);
 
   // Update naturalEnd state based on button clicks
   useEffect(() => {
@@ -96,19 +97,24 @@ export function PomodoroTimer() {
     }
   }, [state.time, naturalEnd]);
 
-  // Modify cycle completion detection to show confetti for all 4-cycle completions
+  // Modify cycle completion detection for confetti
   useEffect(() => {
-    // If we completed a work session naturally (timer reached 0)
+    // For individual work session completion (natural only)
     if (prevMode === "work" && state.mode !== "work" && naturalEnd && prevTime === 0) {
       confetti.trigger();
     }
 
-    // If we completed a full cycle (4 pomodoros) - show confetti regardless of natural/skipped
-    if (state.cycles !== prevCycles && state.cycles % 4 === 0 && state.cycles > 0) {
-      // Big celebration for completing a cycle
-      confetti.celebration();
-      sound.playCompleteSound(); // Additional sound for cycle completion
-      haptic.trigger(200); // Longer vibration for cycle completion
+    // Check for cycle completion (4 pomodoros)
+    // This handles both natural completion and skips
+    if (state.cycles !== prevCycles) {
+      // If cycles changed and new cycle is 0 (which means we completed a full 4-cycle)
+      // or if we have showCompletionConfetti flag set
+      if (state.cycles === 0 || showCompletionConfetti) {
+        confetti.celebration();
+        sound.playCompleteSound();
+        haptic.trigger(200);
+        setShowCompletionConfetti(false);
+      }
     }
 
     setPrevCycles(state.cycles);
@@ -122,7 +128,8 @@ export function PomodoroTimer() {
     sound,
     haptic,
     naturalEnd,
-    prevTime
+    prevTime,
+    showCompletionConfetti
   ]);
 
   // Format time in minutes and seconds
@@ -155,6 +162,14 @@ export function PomodoroTimer() {
     haptic.trigger();
     sound.playClickSound();
     createRipple(event);
+
+    // Check if this skip will complete a cycle
+    // A cycle is complete when going from work mode to break with cycles at 3
+    // Since after completion, cycles will be reset to 0
+    if (state.mode === "work" && state.cycles === 3) {
+      setShowCompletionConfetti(true);
+    }
+
     skipToNext();
   };
 
