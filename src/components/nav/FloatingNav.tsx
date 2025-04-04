@@ -205,15 +205,7 @@ export function FloatingNav() {
                   {item.name}
                 </span>
 
-                {isMounted && (
-                  <span
-                    className={cn(
-                      "absolute -top-12 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md bg-zinc-800/90 backdrop-blur-sm text-xs font-medium text-zinc-200 opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap transition-opacity duration-200 z-[60] shadow-lg border border-zinc-700/50"
-                    )}
-                  >
-                    {item.name}
-                  </span>
-                )}
+                {/* Tooltips removed on mobile since they're redundant with labels and can cause issues */}
               </Link>
             );
           })}
