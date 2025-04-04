@@ -1,5 +1,6 @@
 "use client";
 
+import { useConfetti, useHapticFeedback, useSoundEffects } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { usePomodoroContext } from "./PomodoroContext";
@@ -8,6 +9,14 @@ export function PomodoroTimer() {
   const { state, startTimer, pauseTimer, resetTimer, skipToNext } = usePomodoroContext();
   const [progress, setProgress] = useState(0);
   const [animate, setAnimate] = useState(false);
+  const [prevCycles, setPrevCycles] = useState(state.cycles);
+  const [prevMode, setPrevMode] = useState(state.mode);
+  const [prevTime, setPrevTime] = useState(state.time);
+
+  // Use our custom hooks
+  const haptic = useHapticFeedback();
+  const confetti = useConfetti();
+  const sound = useSoundEffects();
 
   // Calculate progress percentage for the current session
   useEffect(() => {
@@ -20,7 +29,15 @@ export function PomodoroTimer() {
     };
 
     setProgress(calculateProgress());
-  }, [state.time, state.mode]);
+
+    // Play completion sound when timer reaches 0
+    if (prevTime === 1 && state.time === 0) {
+      sound.playCompleteSound();
+      haptic.trigger(100); // Longer vibration for session completion
+    }
+
+    setPrevTime(state.time);
+  }, [state.time, state.mode, haptic, sound, prevTime]);
 
   // Add animation effect when timer is active
   useEffect(() => {
@@ -31,11 +48,54 @@ export function PomodoroTimer() {
     }
   }, [state.isActive]);
 
+  // Detect cycle completion for confetti
+  useEffect(() => {
+    // If we completed a work session
+    if (prevMode === "work" && state.mode !== "work") {
+      confetti.trigger();
+      // Sound is triggered by time change (above)
+    }
+
+    // If we completed a full cycle (4 pomodoros)
+    if (state.cycles !== prevCycles && state.cycles % 4 === 0 && state.cycles > 0) {
+      // Big celebration for completing a cycle
+      confetti.celebration();
+      sound.playCompleteSound(); // Additional sound for cycle completion
+      haptic.trigger(200); // Longer vibration for cycle completion
+    }
+
+    setPrevCycles(state.cycles);
+    setPrevMode(state.mode);
+  }, [state.cycles, state.mode, prevCycles, prevMode, confetti, sound, haptic]);
+
   // Format time in minutes and seconds
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = time % 60;
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
+
+  // Enhanced button click handlers with haptic feedback and sound
+  const handleStartPause = () => {
+    haptic.trigger();
+    sound.playClickSound();
+    if (state.isActive) {
+      pauseTimer();
+    } else {
+      startTimer();
+    }
+  };
+
+  const handleReset = () => {
+    haptic.trigger();
+    sound.playClickSound();
+    resetTimer();
+  };
+
+  const handleSkip = () => {
+    haptic.trigger();
+    sound.playClickSound();
+    skipToNext();
   };
 
   // Generate circle stroke dash array for progress indicator
@@ -207,7 +267,7 @@ export function PomodoroTimer() {
       {/* Controls */}
       <div className="mt-8 pt-6 border-t border-zinc-800 grid grid-cols-3 gap-4">
         <button
-          onClick={state.isActive ? pauseTimer : startTimer}
+          onClick={handleStartPause}
           className={cn(
             "col-span-1 flex justify-center items-center rounded-full font-medium py-3 transition-all duration-300",
             state.isActive
@@ -219,14 +279,14 @@ export function PomodoroTimer() {
         </button>
 
         <button
-          onClick={resetTimer}
+          onClick={handleReset}
           className="col-span-1 bg-zinc-800 text-white rounded-full font-medium py-3 hover:bg-zinc-700 transition-all duration-300"
         >
           Reset
         </button>
 
         <button
-          onClick={skipToNext}
+          onClick={handleSkip}
           className="col-span-1 bg-zinc-800 text-white rounded-full font-medium py-3 hover:bg-zinc-700 transition-all duration-300"
         >
           Skip
