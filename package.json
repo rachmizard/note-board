@@ -16,9 +16,10 @@
     "db:push": "drizzle-kit push --config=drizzle-dev.config.ts",
     "db:studio": "drizzle-kit studio --config=drizzle-dev.config.ts",
     "db:drop": "drizzle-kit drop --config=drizzle-dev.config.ts",
-    "db:migrate": "node -r @swc-node/register src/shared/lib/database/migrate.ts",
+    "db:migrate": "drizzle-kit migrate --config=drizzle-dev.config.ts",
     "db:generate:prod": "drizzle-kit generate --config=drizzle-prod.config.ts",
     "db:push:prod": "drizzle-kit push --config=drizzle-prod.config.ts",
+    "db:migrate:prod": "drizzle-kit migrate --config=drizzle-prod.config.ts",
     "db:studio:prod": "drizzle-kit studio --config=drizzle-prod.config.ts",
     "db:drop:prod": "drizzle-kit drop --config=drizzle-prod.config.ts"
   },
