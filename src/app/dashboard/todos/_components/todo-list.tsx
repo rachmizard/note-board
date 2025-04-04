@@ -9,6 +9,7 @@ import { Card } from "@/shared/components/ui/card";
 import { ListFilter } from "lucide-react";
 import { TodoStats } from "./todo-stats";
 import { Input } from "@/shared/components/ui/input";
+import { TodoListSkeleton } from "./todo-list-skeleton";
 
 export const TodoList = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -69,11 +70,11 @@ export const TodoList = () => {
     });
 
   if (loading) {
-    return <div>Loading todos...</div>;
+    return <TodoListSkeleton />;
   }
 
   return (
-    <div className="w-full mx-auto px-4 sm:px-6 lg:max-w-6xl">
+    <div className="w-full mx-auto px-4 sm:px-6 lg:max-w-8xl">
       <div className="flex flex-col lg:flex-row lg:justify-between w-full gap-4 lg:gap-8">
         <div className="w-full lg:max-w-[60%]">
           {/* Task Input Area */}
@@ -144,9 +145,9 @@ export const TodoList = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-6 sm:py-8 border rounded-lg">
-              <ListFilter className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-gray-400 mb-2" />
-              <p className="text-sm sm:text-base text-gray-500">
+            <div className="text-center py-6 sm:py-8 border rounded-lg dark:border-gray-700">
+              <ListFilter className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-gray-400 dark:text-gray-500 mb-2" />
+              <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
                 No todos found for the selected filter
               </p>
               {filter !== "all" && (
@@ -175,10 +176,10 @@ export const TodoList = () => {
                 {completionHistory.map((todo) => (
                   <div
                     key={`history-${todo.id}`}
-                    className="text-xs sm:text-sm border-b pb-2"
+                    className="text-xs sm:text-sm border-b pb-2 dark:border-gray-700"
                   >
                     <p className="font-medium">{todo.title}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       Completed:{" "}
                       {todo.completedAt?.toLocaleDateString("en-US", {
                         year: "numeric",
