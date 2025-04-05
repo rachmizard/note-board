@@ -62,9 +62,14 @@ export const todoComments = pgCore.pgTable("todo_comments", {
   todoId: pgCore.integer("todo_id").references(() => todoSchema.id, {
     onDelete: "cascade",
   }),
+  userId: pgCore
+    .text("user_id")
+    .references(() => users.id, {
+      onDelete: "cascade",
+    })
+    .$default(() => ""),
   createdAt: pgCore.timestamp("created_at").defaultNow().notNull(),
   updatedAt: pgCore.timestamp("updated_at").defaultNow().notNull(),
-  // TODO: add user id
 });
 
 export type Todo = typeof todoSchema.$inferSelect;

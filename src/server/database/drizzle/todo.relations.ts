@@ -23,4 +23,8 @@ export const todoCommentRelations = relations(todoComments, ({ one }) => ({
     fields: [todoComments.todoId],
     references: [todoSchema.id],
   }),
+  user: one(users, {
+    fields: [todoComments.userId],
+    references: [users.id],
+  }),
 }));
