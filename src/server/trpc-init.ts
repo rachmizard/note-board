@@ -9,4 +9,6 @@ const t = initTRPC.context<Context>().create({
 
 // Export commonly used tRPC utilities
 export const router = t.router;
+export const createCallerFactory = t.createCallerFactory;
+
 export const publicProcedure = t.procedure;
