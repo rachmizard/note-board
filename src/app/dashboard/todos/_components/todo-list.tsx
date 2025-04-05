@@ -57,6 +57,7 @@ export const TodoList = () => {
       completedAt: serverTodo.completedAt,
       tags: serverTodo.tags || [],
       comments: serverTodo.comments || [],
+      userId: serverTodo.userId,
     }));
   }, [todos.data]);
 
