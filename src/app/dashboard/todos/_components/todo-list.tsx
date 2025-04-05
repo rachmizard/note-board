@@ -18,6 +18,7 @@ import { mapTodoStatusFromServer } from "../utils/todo.utils";
 import { AddQuickTodoForm } from "./add-quick-todo-form";
 import { TodoItem } from "./todo-item";
 import { TodoStats } from "./todo-stats";
+import { AnimatedList } from "@/components/magicui/animated-list";
 
 const useFilterQueryState = () => {
   return useQueryState("status", parseAsString.withDefault("all"));
@@ -176,7 +177,7 @@ export const TodoList = () => {
 
           {/* Todo List */}
           {filteredTodos.length > 0 ? (
-            <div>
+            <AnimatedList delay={100}>
               {filteredTodos.map((todo) => (
                 <TodoItem
                   key={todo.id}
@@ -185,7 +186,7 @@ export const TodoList = () => {
                   onDelete={handleDeleteTodo}
                 />
               ))}
-            </div>
+            </AnimatedList>
           ) : (
             <div className="text-center py-6 sm:py-8 border rounded-lg dark:border-gray-700">
               <ListFilter className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-gray-400 dark:text-gray-500 mb-2" />
