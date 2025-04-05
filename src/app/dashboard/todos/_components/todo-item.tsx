@@ -1,5 +1,13 @@
+import { TodoPriorityEnum } from "@/server/database";
 import { Button } from "@/shared/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu";
 import { Input } from "@/shared/components/ui/input";
+import { cn } from "@/shared/lib/utils";
 import { Todo, TodoPriority, TodoStatus } from "@/types/todo";
 import {
   formatDate,
@@ -19,19 +27,12 @@ import {
   Tag as TagIcon,
   Trash,
 } from "lucide-react";
-import React, { useState, useRef, useEffect } from "react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/shared/components/ui/dropdown-menu";
+import React, { useEffect, useRef, useState } from "react";
+import { TodoFormValues } from "../_validators/todo-form.validator";
 import { CommentDialog } from "./dialogs/comment-dialog";
-import { TagDialog } from "./dialogs/tag-dialog";
 import { DeleteConfirmationDialog } from "./dialogs/delete-confirmation-dialog";
-import { cn } from "@/shared/lib/utils";
-import { DatePicker } from "@/shared/components/ui/datepicker";
-import { Combobox, ComboboxOption } from "@/shared/components/ui/combobox";
+import { TagDialog } from "./dialogs/tag-dialog";
+import { TodoForm } from "./todo-form";
 
 interface TodoItemProps {
   todo: Todo;
@@ -45,13 +46,6 @@ export const TodoItem: React.FC<TodoItemProps> = ({
   onDelete,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedTitle, setEditedTitle] = useState(todo.title);
-  const [editedDueDate, setEditedDueDate] = useState<Date | undefined>(
-    todo.dueDate ? new Date(todo.dueDate) : undefined
-  );
-  const [editedPriority, setEditedPriority] = useState<TodoPriority>(
-    todo.priority
-  );
   const [isExpanded, setIsExpanded] = useState(false);
 
   // New state for inline title editing
@@ -92,26 +86,12 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [todo.title]);
 
-  // Define priority options for the combobox
-  const priorityOptions: ComboboxOption[] = [
-    { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" },
-  ];
-
-  const handleSaveEdit = () => {
+  const handleSaveEdit = (values: TodoFormValues) => {
     onUpdate(todo.id, {
-      title: editedTitle,
-      dueDate: editedDueDate,
-      priority: editedPriority,
+      title: values.title,
+      dueDate: values.dueDate,
+      priority: values.priority as TodoPriority,
     });
-    setIsEditing(false);
-  };
-
-  const handleCancelEdit = () => {
-    setEditedTitle(todo.title);
-    setEditedDueDate(todo.dueDate ? new Date(todo.dueDate) : undefined);
-    setEditedPriority(todo.priority);
     setIsEditing(false);
   };
 
@@ -119,9 +99,6 @@ export const TodoItem: React.FC<TodoItemProps> = ({
   const handleSaveInlineTitleEdit = () => {
     if (inlineEditedTitle.trim() !== "") {
       onUpdate(todo.id, { title: inlineEditedTitle });
-      setEditedTitle(inlineEditedTitle); // Keep the main edit state in sync
-    } else {
-      setInlineEditedTitle(todo.title); // Reset if empty
     }
     setIsEditingTitle(false);
   };
@@ -192,45 +169,15 @@ export const TodoItem: React.FC<TodoItemProps> = ({
       onClick={!isEditing ? handleTodoItemClick : undefined} // Only enable click handler when not editing
     >
       {isEditing ? (
-        <div className="space-y-3 px-4">
-          <Input
-            value={editedTitle}
-            onChange={(e) => setEditedTitle(e.target.value)}
-            className="w-full"
-            placeholder="Todo title"
-          />
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <p className="text-sm mb-1">Due Date:</p>
-              <DatePicker
-                value={editedDueDate}
-                onChange={(date) => setEditedDueDate(date)}
-                placeholder="Select a due date"
-              />
-            </div>
-
-            <div>
-              <p className="text-sm mb-1">Priority:</p>
-              <Combobox
-                value={editedPriority}
-                onChange={(value) => setEditedPriority(value as TodoPriority)}
-                options={priorityOptions}
-                placeholder="Select priority"
-                emptyText="No priority options available"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end space-x-2 mt-3">
-            <Button variant="outline" onClick={handleCancelEdit} size="sm">
-              Cancel
-            </Button>
-            <Button onClick={handleSaveEdit} size="sm">
-              Save
-            </Button>
-          </div>
-        </div>
+        <TodoForm
+          onSubmit={handleSaveEdit}
+          defaultValues={{
+            title: todo.title,
+            dueDate: todo.dueDate ? new Date(todo.dueDate) : undefined,
+            priority: todo.priority as TodoPriorityEnum,
+          }}
+          onCancelEditing={() => setIsEditing(false)}
+        />
       ) : (
         <div>
           <div className="flex items-start justify-between">

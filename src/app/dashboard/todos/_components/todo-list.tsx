@@ -86,24 +86,12 @@ export const TodoList = () => {
 
     // Convert priority string to enum if present
     if (updates.priority) {
-      if (updates.priority === "low")
-        serverUpdates.priority = TodoPriorityEnum.LOW;
-      else if (updates.priority === "medium")
-        serverUpdates.priority = TodoPriorityEnum.MEDIUM;
-      else if (updates.priority === "high")
-        serverUpdates.priority = TodoPriorityEnum.HIGH;
+      serverUpdates.priority = updates.priority as TodoPriorityEnum; // Will refactor soon with actual enum
     }
 
     // Convert status string to enum if present
     if (updates.status) {
-      if (updates.status === "in-progress")
-        serverUpdates.status = TodoStatusEnum.IN_PROGRESS;
-      else if (updates.status === "completed")
-        serverUpdates.status = TodoStatusEnum.COMPLETED;
-      else if (updates.status === "backlog")
-        serverUpdates.status = TodoStatusEnum.BACKLOG;
-      else if (updates.status === "archived")
-        serverUpdates.status = TodoStatusEnum.ARCHIVED;
+      serverUpdates.status = updates.status as TodoStatusEnum; // Will refactor soon with actual enum
     }
 
     updateTodo.mutate(serverUpdates);
