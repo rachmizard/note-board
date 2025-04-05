@@ -23,6 +23,7 @@ export const AddQuickTodoForm = () => {
           onSuccess: () => {
             if (inputRef.current) {
               inputRef.current.focus();
+              inputRef.current.select();
               inputRef.current.value = "";
             }
           },
@@ -39,7 +40,6 @@ export const AddQuickTodoForm = () => {
           onKeyDown={handleQuickAddTodo}
           placeholder="Type a new task and press Enter to add"
           className="w-full"
-          disabled={createTodo.isPending}
         />
         {createTodo.isPending && (
           <Loader2Icon className="w-4 h-4 animate-spin text-muted-foreground" />

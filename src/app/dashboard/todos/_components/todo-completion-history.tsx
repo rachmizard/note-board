@@ -1,9 +1,15 @@
-import { Card } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Todo } from "@/types/todo";
 import { useTodos } from "../_queries/use-todos";
 import { useMemo } from "react";
 import { TodoStatusEnum } from "@/server/database/drizzle/todo.schema";
 import { mapTodoStatusFromServer } from "../utils/todo.utils";
+import { ScrollArea } from "@/shared/components/ui/scroll-area";
 
 export const TodoCompletionHistory = () => {
   // Use the same hook as in TodoList
@@ -48,30 +54,34 @@ export const TodoCompletionHistory = () => {
   if (completionHistory.length === 0) return null;
 
   return (
-    <Card className="p-3 sm:p-4 mt-4 sm:mt-6">
-      <h3 className="text-base sm:text-lg font-medium mb-2 sm:mb-3">
-        Completion History
-      </h3>
-      <div className="space-y-2 max-h-48 sm:max-h-60 overflow-y-auto">
-        {completionHistory.map((todo) => (
-          <div
-            key={`history-${todo.id}`}
-            className="text-xs sm:text-sm border-b pb-2 dark:border-gray-700"
-          >
-            <p className="font-medium">{todo.title}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Completed:{" "}
-              {todo.completedAt?.toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </p>
-          </div>
-        ))}
-      </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base sm:text-lg font-medium ">
+          Completion History
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ScrollArea className="h-[200px]">
+          {completionHistory.map((todo) => (
+            <div
+              key={`history-${todo.id}`}
+              className="text-xs sm:text-sm border-b pb-2 dark:border-gray-700"
+            >
+              <p className="font-medium">{todo.title}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Completed:{" "}
+                {todo.completedAt?.toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+            </div>
+          ))}
+        </ScrollArea>
+      </CardContent>
     </Card>
   );
 };

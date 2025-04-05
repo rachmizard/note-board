@@ -30,11 +30,24 @@ export const isDueDateOverdue = (dueDate?: Date): boolean => {
 export const getPriorityColor = (priority: TodoPriority): string => {
   switch (priority) {
     case "low":
-      return "bg-blue-100 text-blue-800";
+      return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100";
     case "medium":
-      return "bg-yellow-100 text-yellow-800";
+      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100";
     case "high":
-      return "bg-red-100 text-red-800";
+      return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100";
+    default:
+      return "";
+  }
+};
+
+export const getPriorityIconColor = (priority: TodoPriority): string => {
+  switch (priority) {
+    case "low":
+      return "text-green-500";
+    case "medium":
+      return "text-yellow-500";
+    case "high":
+      return "text-red-500";
     default:
       return "";
   }
@@ -43,11 +56,11 @@ export const getPriorityColor = (priority: TodoPriority): string => {
 export const getStatusColor = (status: TodoStatus): string => {
   switch (status) {
     case "inprogress":
-      return "bg-green-100 text-green-800";
+      return "bg-blue-100 text-blue-800";
     case "completed":
-      return "bg-gray-100 text-gray-800";
+      return "bg-green-100 text-green-800";
     case "backlog":
-      return "bg-purple-100 text-purple-800";
+      return "bg-gray-100 text-gray-800";
     case "archived":
       return "bg-amber-100 text-amber-800";
     default:

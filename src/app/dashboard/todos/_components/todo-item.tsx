@@ -12,6 +12,7 @@ import { Todo, TodoPriority, TodoStatus } from "@/types/todo";
 import {
   formatDate,
   getPriorityColor,
+  getPriorityIconColor,
   getStatusColor,
 } from "@/utils/todo-utils";
 import {
@@ -20,6 +21,7 @@ import {
   ChevronUp,
   Clock,
   Flag,
+  FlagIcon,
   FolderClosed,
   MessageSquare,
   MoreHorizontal,
@@ -164,7 +166,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     <Fragment>
       <div
         className={cn(
-          "border-b py-3 group hover:bg-gray-50 transition-colors duration-200",
+          "border-b-1 dark:shadow-neutral-800 shadow-sm border-neutral-200 dark:border-neutral-800 px-2 py-3 rounded-xl group hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors duration-200",
           todo.status === "completed" && "opacity-70",
           !isEditing && "cursor-pointer" // Add cursor-pointer when not in edit mode
         )}
@@ -182,8 +184,8 @@ export const TodoItem: React.FC<TodoItemProps> = ({
           />
         ) : (
           <div>
-            <div className="flex items-start justify-between">
-              <div className="flex items-start flex-1">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center flex-1">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button
@@ -221,7 +223,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                     <DropdownMenuItem
                       onClick={() => handleStatusChange("archived")}
                     >
-                      <Trash className="h-4 w-4 mr-2 text-gray-500" />
+                      <Trash className="h-4 w-4 mr-2 text-neutral-500" />
                       <span>Archived</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -242,8 +244,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                       <h3
                         className={cn(
                           "font-medium cursor-pointer",
-                          todo.status === "completed" &&
-                            "line-through text-gray-500"
+                          todo.status === "completed" && "line-through"
                         )}
                         onDoubleClick={(e) => {
                           e.stopPropagation(); // Prevent triggering the container click
@@ -262,7 +263,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                         e.stopPropagation(); // Prevent triggering the container click
                         setIsExpanded(!isExpanded);
                       }}
-                      className="ml-2 text-gray-400 hover:text-gray-600"
+                      className="ml-2 text-neutral-400 hover:text-neutral-600"
                     >
                       {isExpanded ? (
                         <ChevronUp className="h-4 w-4" />
@@ -273,20 +274,20 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                   </div>
 
                   {isToday && (
-                    <div className="mt-1 inline-block rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium">
+                    <div className="mt-1 inline-block rounded-full bg-yellow-100 dark:bg-yellow-900 px-2 py-0.5 text-xs font-medium">
                       Today
                     </div>
                   )}
 
                   {!isToday && todo.dueDate && (
-                    <div className="mt-1 inline-block rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium">
+                    <div className="mt-1 inline-block rounded-full bg-red-100 dark:bg-red-900 px-2 py-0.5 text-xs font-medium">
                       {formattedDate}
                     </div>
                   )}
 
                   {/* Optional: Additional tag example like "win" from the reference image */}
                   {todo.priority === "high" && (
-                    <div className="mt-1 ml-2 inline-block rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium">
+                    <div className="mt-1 ml-2 inline-block rounded-full bg-blue-100 dark:bg-blue-900 px-2 py-0.5 text-xs font-medium">
                       win
                     </div>
                   )}
@@ -299,13 +300,13 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                         .map((tag, index) => (
                           <div
                             key={index}
-                            className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium"
+                            className="inline-block rounded-full bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 text-xs font-medium"
                           >
                             {tag.name}
                           </div>
                         ))}
                       {todo.tags.length > 3 && (
-                        <div className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium">
+                        <div className="inline-block rounded-full bg-neutral-100 dark:bg-neutral-900 px-2 py-0.5 text-xs font-medium">
                           +{todo.tags.length - 2} More
                         </div>
                       )}
@@ -328,13 +329,10 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                 <DropdownMenu onOpenChange={setIsPriorityDropdownOpen}>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Flag
+                      <FlagIcon
                         className={cn(
                           "h-4 w-4",
-                          getPriorityColor(todo.priority).replace(
-                            "bg-",
-                            "text-"
-                          )
+                          getPriorityIconColor(todo.priority)
                         )}
                       />
                     </Button>
@@ -492,14 +490,14 @@ export const TodoItem: React.FC<TodoItemProps> = ({
 
             {isExpanded && (
               <div className="mt-1 ml-9 space-y-2">
-                <div className="flex items-center text-sm text-gray-500">
+                <div className="flex items-center text-sm">
                   <Clock className="h-3 w-3 mr-1" />
                   <span>
                     Due:{" "}
                     {todo.dueDate ? formatDate(todo.dueDate) : "No due date"}
                   </span>
                 </div>
-                <div className="flex items-center text-sm text-gray-500">
+                <div className="flex items-center text-sm">
                   <span
                     className={cn(
                       "mr-2 inline-block px-2 py-0.5 rounded-full text-xs",
@@ -525,9 +523,9 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                     {todo.comments.map((comment) => (
                       <div
                         key={comment.id}
-                        className="bg-gray-50 p-2 rounded-md text-sm"
+                        className="bg-neutral-50 p-2 rounded-md text-sm"
                       >
-                        <div className="text-gray-500 text-xs">
+                        <div className="text-neutral-500 text-xs">
                           {new Date(comment.createdAt).toLocaleString()}
                         </div>
                         <div>{comment.text}</div>
