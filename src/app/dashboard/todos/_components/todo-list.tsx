@@ -83,18 +83,12 @@ export const TodoList = () => {
 
     // Convert priority string to enum if present
     if (updates.priority) {
-      serverUpdates.priority =
-        updates.priority.toUpperCase() as TodoPriorityEnum; // Will refactor soon with actual enum
+      serverUpdates.priority = updates.priority as TodoPriorityEnum; // Will refactor soon with actual enum
     }
 
     // Convert status string to enum if present
     if (updates.status) {
-      // Convert kebab-case status to enum
-      if (updates.status === "in-progress") {
-        serverUpdates.status = TodoStatusEnum.IN_PROGRESS;
-      } else {
-        serverUpdates.status = updates.status.toUpperCase() as TodoStatusEnum;
-      }
+      serverUpdates.status = updates.status as TodoStatusEnum;
     }
 
     updateTodo.mutate(serverUpdates);
