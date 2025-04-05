@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/shared/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -17,12 +16,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
+import { UserButton, useUser } from "@clerk/nextjs";
 import {
   Calendar,
   CheckSquare,
   ChevronLeft,
   LayoutDashboard,
-  LogOut,
   Timer,
 } from "lucide-react";
 import Image from "next/image";
@@ -54,6 +53,7 @@ const data = {
 
 export function AppSidebar() {
   const { state, toggleSidebar } = useSidebar();
+  const { user } = useUser();
   const isCollapsed = state === "collapsed";
 
   const CollapseButton = () => {
@@ -82,18 +82,22 @@ export function AppSidebar() {
           }`}
         >
           <CollapseButton />
-          <SidebarHeader className="flex w-full justify-start items-center  border-b">
-            <div className="flex gap-2 justify-start w-full">
-              <Image
-                src="/logo.png"
-                alt="Noteboard"
-                className="w-6 h-6 shrink-0"
-                width={24}
-                height={24}
-                priority
-                loading={undefined}
-                quality={100}
-              />
+          <SidebarHeader className="flex w-full justify-start items-center border-b p-4">
+            <div
+              className={`flex gap-2 ${
+                !isCollapsed ? "justify-start" : "justify-center"
+              } w-full`}
+            >
+              <div className="w-6 h-6 relative shrink-0">
+                <Image
+                  src="/logo.png"
+                  alt="Noteboard"
+                  fill
+                  priority
+                  loading={undefined}
+                  quality={100}
+                />
+              </div>
               {!isCollapsed && <p>Noteboard</p>}
             </div>
           </SidebarHeader>
@@ -103,13 +107,13 @@ export function AppSidebar() {
               {data.navMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <Tooltip>
-                    <TooltipTrigger className="w-full" asChild>
+                    <TooltipTrigger className="w-full">
                       <SidebarMenuButton asChild>
                         <a
                           href={item.url}
                           className={`flex items-center ${
                             isCollapsed ? "justify-center" : "justify-start"
-                          }  gap-2`}
+                          } gap-2`}
                         >
                           <item.icon className="w-5 h-5 shrink-0" />
                           <span className={isCollapsed ? "hidden" : "block"}>
@@ -118,7 +122,6 @@ export function AppSidebar() {
                         </a>
                       </SidebarMenuButton>
                     </TooltipTrigger>
-
                     <TooltipContent side="right">
                       <span>{item.title}</span>
                     </TooltipContent>
@@ -139,29 +142,23 @@ export function AppSidebar() {
                   isCollapsed ? "flex-col" : ""
                 } gap-2`}
               >
-                <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 shrink-0" />
-                {!isCollapsed && (
+                {!isCollapsed && user && (
                   <div className="flex flex-col">
-                    <p className="text-sm font-medium">John Doe</p>
-                    <p className="text-xs text-gray-500">john@example.com</p>
+                    <p className="text-sm font-medium">{user.fullName}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {user.primaryEmailAddress?.emailAddress}
+                    </p>
                   </div>
                 )}
               </div>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="text-red-500 hover:text-red-600 transition-colors"
-                  >
-                    <LogOut className="w-5 h-5 shrink-0" />
-                  </Button>
-                </TooltipTrigger>
-                {isCollapsed && (
-                  <TooltipContent side="right">
-                    <span>Logout</span>
-                  </TooltipContent>
-                )}
-              </Tooltip>
+              <UserButton
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: "w-8 h-8",
+                  },
+                }}
+              />
             </div>
           </div>
         </Sidebar>
