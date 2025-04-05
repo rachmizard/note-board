@@ -1,17 +1,6 @@
 import React, { useState } from "react";
-import { Todo, TodoTag } from "@/server/database/drizzle/todo.schema";
 
-interface TodoComment {
-  id: string;
-  text: string;
-  createdAt: Date;
-}
-
-interface TodoWithRelations extends Todo {
-  comments?: TodoComment[];
-  tags?: TodoTag[];
-}
-
+import { Button } from "@/shared/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -19,28 +8,46 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
-import { Button } from "@/shared/components/ui/button";
+import { TodoWithRelations } from "@/server/database/drizzle/todo.schema";
+import { useAddTodoComment } from "../../_mutations/use-add-todo-comment";
+import { useRemoveTodoComment } from "../../_mutations/use-remove-todo-comment";
+import { ScrollArea } from "@/shared/components/ui/scroll-area";
+import {
+  AnimatedList,
+  AnimatedListItem,
+} from "@/components/magicui/animated-list";
+import { Trash } from "lucide-react";
 
 interface CommentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   todo: TodoWithRelations;
-  onAddComment: (comment: string) => void;
 }
 
 export const CommentDialog: React.FC<CommentDialogProps> = ({
   open,
   onOpenChange,
   todo,
-  onAddComment,
 }) => {
   const [newComment, setNewComment] = useState("");
 
+  const addTodoComment = useAddTodoComment();
+  const removeTodoComment = useRemoveTodoComment();
+
   const handleAddComment = () => {
     if (!newComment.trim()) return;
-    onAddComment(newComment);
     setNewComment("");
-    onOpenChange(false);
+    addTodoComment.mutate({
+      todoId: todo.id,
+      comment: newComment,
+    });
+  };
+
+  const handleDeleteComment = (commentId: number) => {
+    removeTodoComment.mutate({
+      todoId: todo.id,
+      commentId,
+    });
   };
 
   return (
@@ -68,21 +75,35 @@ export const CommentDialog: React.FC<CommentDialogProps> = ({
               <h4 className="text-sm font-medium mb-2 dark:text-gray-300">
                 Previous Comments
               </h4>
-              <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                {todo.comments.map((comment) => (
-                  <div
-                    key={comment.id}
-                    className="bg-gray-50 dark:bg-gray-800 p-2 rounded-md"
-                  >
-                    <div className="text-gray-500 dark:text-gray-400 text-xs">
-                      {new Date(comment.createdAt).toLocaleString()}
-                    </div>
-                    <div className="text-sm dark:text-gray-300">
-                      {comment.text}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <ScrollArea className="h-[400px]">
+                <AnimatedList delay={100} className="space-y-2">
+                  {todo.comments.map((comment) => (
+                    <AnimatedListItem key={comment.id}>
+                      <div className="group relative bg-gray-50 dark:bg-gray-800 p-2 rounded-md">
+                        <div className="text-gray-500 dark:text-gray-400 text-xs">
+                          {new Date(comment.createdAt).toLocaleString()}
+                        </div>
+                        <div className="text-sm dark:text-gray-300">
+                          {comment.comment}
+                        </div>
+
+                        {/* Delete button that appears on hover */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-red-500"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteComment(comment.id);
+                          }}
+                        >
+                          <Trash className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </AnimatedListItem>
+                  ))}
+                </AnimatedList>
+              </ScrollArea>
             </div>
           )}
         </div>
@@ -97,9 +118,9 @@ export const CommentDialog: React.FC<CommentDialogProps> = ({
           <Button
             onClick={handleAddComment}
             size="sm"
-            disabled={!newComment.trim()}
+            disabled={!newComment.trim() || addTodoComment.isPending}
           >
-            Add Comment
+            {addTodoComment.isPending ? "Adding..." : "Add Comment"}
           </Button>
         </DialogFooter>
       </DialogContent>

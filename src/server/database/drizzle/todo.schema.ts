@@ -55,13 +55,18 @@ export const todoComments = pgCore.pgTable("todo_comments", {
   todoId: pgCore.integer("todo_id").references(() => todoSchema.id, {
     onDelete: "cascade",
   }),
+  createdAt: pgCore.timestamp("created_at").defaultNow().notNull(),
+  updatedAt: pgCore.timestamp("updated_at").defaultNow().notNull(),
   // TODO: add user id
 });
 
 export type Todo = typeof todoSchema.$inferSelect;
-export type TodoWithTags = Todo & { tags: TodoTag[] | null };
+export type TodoWithRelations = Todo & {
+  tags: TodoTag[] | null;
+  comments: TodoComment[] | null;
+};
 export type TodoTag = typeof todoTags.$inferSelect;
-export type TodoComments = typeof todoComments.$inferSelect;
+export type TodoComment = typeof todoComments.$inferSelect;
 
 export type NewTodo = typeof todoSchema.$inferInsert;
 export type NewTodoTags = typeof todoTags.$inferInsert;

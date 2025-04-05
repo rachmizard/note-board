@@ -1,8 +1,7 @@
 import {
-  Todo,
   TodoPriorityEnum,
   TodoStatusEnum,
-  TodoTag,
+  TodoWithRelations,
 } from "@/server/database/drizzle/todo.schema";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -13,12 +12,6 @@ import {
 } from "@/shared/components/ui/dropdown-menu";
 import { Input } from "@/shared/components/ui/input";
 import { cn } from "@/shared/lib/utils";
-import {
-  formatDate,
-  getPriorityColor,
-  getPriorityIconColor,
-  getStatusColor,
-} from "../_utils/todo.utils";
 import {
   Check,
   ChevronDown,
@@ -35,22 +28,17 @@ import {
   Trash,
 } from "lucide-react";
 import React, { Fragment, useEffect, useRef, useState } from "react";
+import {
+  formatDate,
+  getPriorityColor,
+  getPriorityIconColor,
+  getStatusColor,
+} from "../_utils/todo.utils";
 import { TodoFormValues } from "../_validators/todo-form.validator";
 import { CommentDialog } from "./dialogs/comment-dialog";
 import { DeleteConfirmationDialog } from "./dialogs/delete-confirmation-dialog";
 import { TagDialog } from "./dialogs/tag-dialog";
 import { TodoForm } from "./todo-form";
-
-interface TodoComment {
-  id: string;
-  text: string;
-  createdAt: Date;
-}
-
-interface TodoWithRelations extends Todo {
-  comments?: TodoComment[];
-  tags?: TodoTag[];
-}
 
 interface TodoItemProps {
   todo: TodoWithRelations;
@@ -562,7 +550,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                         <div className="text-neutral-500 text-xs">
                           {new Date(comment.createdAt).toLocaleString()}
                         </div>
-                        <div>{comment.text}</div>
+                        <div>{comment.comment}</div>
                       </div>
                     ))}
                   </div>
@@ -578,19 +566,6 @@ export const TodoItem: React.FC<TodoItemProps> = ({
         open={showCommentModal}
         onOpenChange={setShowCommentModal}
         todo={todo}
-        onAddComment={(comment) => {
-          const comments = todo.comments || [];
-          onUpdate(todo.id, {
-            comments: [
-              ...comments,
-              {
-                id: Date.now().toString(),
-                text: comment,
-                createdAt: new Date(),
-              },
-            ],
-          });
-        }}
       />
 
       <TagDialog

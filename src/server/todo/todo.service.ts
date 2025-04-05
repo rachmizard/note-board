@@ -1,21 +1,29 @@
-import type { Database, TodoWithTags } from "@/server/database";
+import type {
+  Database,
+  TodoComment,
+  TodoWithRelations,
+} from "@/server/database";
 import {
   type Todo,
+  todoComments,
   todoSchema,
   todoTags,
 } from "@/server/database/drizzle/todo.schema";
 import type { PaginationResponse } from "@/server/types/response";
+import { TRPCError } from "@trpc/server";
 import { and, desc, eq, SQL, sql } from "drizzle-orm";
 import type {
+  AddTodoCommentRequest,
   AddTodoTagRequest,
   CreateTodoRequest,
   DeleteTodoRequest,
+  GetTodoCommentsRequest,
   GetTodoRequest,
   GetTodosRequest,
+  RemoveTodoCommentRequest,
   RemoveTodoTagRequest,
   UpdateTodoRequest,
 } from "./todo.validator";
-import { TRPCError } from "@trpc/server";
 
 const qb = async (request: CreateTodoRequest, db: Database): Promise<Todo> => {
   const [todo] = await db.insert(todoSchema).values(request).returning();
@@ -40,7 +48,7 @@ const createTodo = async (
 const getTodos = async (
   request: GetTodosRequest,
   db: Database
-): Promise<PaginationResponse<TodoWithTags>> => {
+): Promise<PaginationResponse<TodoWithRelations>> => {
   const { page = 1, limit = 10 } = request;
   const offset = (page - 1) * limit;
 
@@ -55,6 +63,7 @@ const getTodos = async (
     where: whereClauses.length > 0 ? and(...whereClauses) : undefined,
     with: {
       tags: true,
+      comments: true,
     },
     orderBy: [desc(todoSchema.createdAt)],
     offset,
@@ -129,13 +138,42 @@ const removeTodoTag = async (
 ): Promise<void> => {
   await db.delete(todoTags).where(eq(todoTags.id, Number(request.tagId)));
 };
+
+const addTodoComment = async (
+  request: AddTodoCommentRequest,
+  db: Database
+): Promise<void> => {
+  await db.insert(todoComments).values(request);
+};
+
+const removeTodoComment = async (
+  request: RemoveTodoCommentRequest,
+  db: Database
+): Promise<void> => {
+  await db
+    .delete(todoComments)
+    .where(eq(todoComments.id, Number(request.commentId)));
+};
+
+const getTodoComments = async (
+  request: GetTodoCommentsRequest,
+  db: Database
+): Promise<TodoComment[]> => {
+  return await db.query.todoComments.findMany({
+    where: eq(todoComments.todoId, Number(request.todoId)),
+  });
+};
+
 export {
+  addTodoComment,
+  addTodoTag,
   createTodo,
   deleteTodo,
-  getTodos,
   getTodo,
+  getTodoComments,
+  getTodos,
   qb,
-  updateTodo,
-  addTodoTag,
+  removeTodoComment,
   removeTodoTag,
+  updateTodo,
 };

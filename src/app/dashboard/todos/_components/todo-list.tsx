@@ -4,10 +4,9 @@ import { parseAsString, useQueryState } from "nuqs";
 
 import { AnimatedList } from "@/components/magicui/animated-list";
 import {
-  Todo,
   TodoPriorityEnum,
   TodoStatusEnum,
-  TodoTag,
+  TodoWithRelations,
 } from "@/server/database/drizzle/todo.schema";
 import { Button } from "@/shared/components/ui/button";
 import { ListFilter } from "lucide-react";
@@ -19,19 +18,8 @@ import { mapTodoStatusFromServer } from "../_utils/todo.utils";
 import { AddQuickTodoForm } from "./add-quick-todo-form";
 import { TodoCompletionHistory } from "./todo-completion-history";
 import { TodoItem } from "./todo-item";
-import { TodoStats } from "./todo-stats";
 import { TodoItemSkeleton } from "./todo-item-skeleton";
-
-interface TodoComment {
-  id: string;
-  text: string;
-  createdAt: Date;
-}
-
-interface TodoWithRelations extends Todo {
-  comments?: TodoComment[];
-  tags?: TodoTag[];
-}
+import { TodoStats } from "./todo-stats";
 
 const useFilterQueryState = () => {
   return useQueryState("status", parseAsString.withDefault("all"));
@@ -68,6 +56,7 @@ export const TodoList = () => {
       updatedAt: serverTodo.updatedAt,
       completedAt: serverTodo.completedAt,
       tags: serverTodo.tags || [],
+      comments: serverTodo.comments || [],
     }));
   }, [todos.data]);
 

@@ -1,19 +1,25 @@
 import { publicProcedure, router } from "../trpc-init";
 import {
+  addTodoComment,
   addTodoTag,
   createTodo,
   deleteTodo,
   getTodo,
+  getTodoComments,
   getTodos,
+  removeTodoComment,
   removeTodoTag,
   updateTodo,
 } from "./todo.service";
 import {
+  addTodoCommentValidator,
   addTodoTagValidator,
   createTodoValidator,
   deleteTodoValidator,
+  getTodoCommentsValidator,
   getTodosValidator,
   getTodoValidator,
+  removeTodoCommentValidator,
   removeTodoTagValidator,
   updateTodoValidator,
 } from "./todo.validator";
@@ -53,5 +59,20 @@ export const todoRouter = router({
     .input(removeTodoTagValidator)
     .mutation(async ({ input, ctx }) => {
       return await removeTodoTag(input, ctx.db);
+    }),
+  addTodoComment: publicProcedure
+    .input(addTodoCommentValidator)
+    .mutation(async ({ input, ctx }) => {
+      return await addTodoComment(input, ctx.db);
+    }),
+  removeTodoComment: publicProcedure
+    .input(removeTodoCommentValidator)
+    .mutation(async ({ input, ctx }) => {
+      return await removeTodoComment(input, ctx.db);
+    }),
+  getTodoComments: publicProcedure
+    .input(getTodoCommentsValidator)
+    .query(async ({ input, ctx }) => {
+      return await getTodoComments(input, ctx.db);
     }),
 });

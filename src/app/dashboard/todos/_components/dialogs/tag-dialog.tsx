@@ -1,3 +1,5 @@
+import { TodoWithRelations } from "@/server/database/drizzle/todo.schema";
+import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
   Dialog,
@@ -7,24 +9,11 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { Input } from "@/shared/components/ui/input";
-import { Todo, TodoTag } from "@/server/database/drizzle/todo.schema";
+import { Label } from "@/shared/components/ui/label";
 import { X } from "lucide-react";
 import React, { useRef } from "react";
 import { useAddTodoTag } from "../../_mutations/use-add-todo-tag";
-import { Label } from "@/shared/components/ui/label";
 import { useRemoveTodoTag } from "../../_mutations/use-remove-todo-tag";
-import { Badge } from "@/shared/components/ui/badge";
-
-interface TodoComment {
-  id: string;
-  text: string;
-  createdAt: Date;
-}
-
-interface TodoWithRelations extends Todo {
-  comments?: TodoComment[];
-  tags?: TodoTag[];
-}
 
 interface TagDialogProps {
   open: boolean;
