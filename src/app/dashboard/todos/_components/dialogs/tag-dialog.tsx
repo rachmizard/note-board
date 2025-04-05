@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { Input } from "@/shared/components/ui/input";
-import { Todo } from "@/types/todo";
+import { Todo, TodoTag } from "@/server/database/drizzle/todo.schema";
 import { X } from "lucide-react";
 import React, { useRef } from "react";
 import { useAddTodoTag } from "../../_mutations/use-add-todo-tag";
@@ -15,10 +15,21 @@ import { Label } from "@/shared/components/ui/label";
 import { useRemoveTodoTag } from "../../_mutations/use-remove-todo-tag";
 import { Badge } from "@/shared/components/ui/badge";
 
+interface TodoComment {
+  id: string;
+  text: string;
+  createdAt: Date;
+}
+
+interface TodoWithRelations extends Todo {
+  comments?: TodoComment[];
+  tags?: TodoTag[];
+}
+
 interface TagDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  todo: Todo;
+  todo: TodoWithRelations;
 }
 
 export const TagDialog: React.FC<TagDialogProps> = ({
@@ -42,14 +53,14 @@ export const TagDialog: React.FC<TagDialogProps> = ({
     inputTagRef.current.value = "";
 
     addTodoTag.mutate({
-      todoId: Number(todo.id),
+      todoId: todo.id,
       name: newTag,
     });
   };
 
   const handleRemoveTag = (tagId: number) => {
     removeTodoTag.mutate({
-      todoId: Number(todo.id),
+      todoId: todo.id,
       tagId,
     });
   };

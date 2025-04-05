@@ -1,14 +1,20 @@
-import { Todo, TodoPriority, TodoStatus } from "@/types/todo";
+import {
+  Todo,
+  TodoPriorityEnum,
+  TodoStatusEnum,
+} from "@/server/database/drizzle/todo.schema";
 
 export const calculateCompletionRate = (todos: Todo[]): number => {
   if (todos.length === 0) return 0;
 
   // Only count non-archived todos toward completion rate
-  const activeTodos = todos.filter((todo) => todo.status !== "archived");
+  const activeTodos = todos.filter(
+    (todo) => todo.status !== TodoStatusEnum.ARCHIVED
+  );
   if (activeTodos.length === 0) return 0;
 
   const completedCount = activeTodos.filter(
-    (todo) => todo.status === "completed"
+    (todo) => todo.status === TodoStatusEnum.COMPLETED
   ).length;
   return (completedCount / activeTodos.length) * 100;
 };
@@ -27,41 +33,41 @@ export const isDueDateOverdue = (dueDate?: Date): boolean => {
   return new Date(dueDate) < new Date();
 };
 
-export const getPriorityColor = (priority: TodoPriority): string => {
+export const getPriorityColor = (priority: TodoPriorityEnum): string => {
   switch (priority) {
-    case "low":
+    case TodoPriorityEnum.LOW:
       return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100";
-    case "medium":
+    case TodoPriorityEnum.MEDIUM:
       return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100";
-    case "high":
+    case TodoPriorityEnum.HIGH:
       return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100";
     default:
       return "";
   }
 };
 
-export const getPriorityIconColor = (priority: TodoPriority): string => {
+export const getPriorityIconColor = (priority: TodoPriorityEnum): string => {
   switch (priority) {
-    case "low":
+    case TodoPriorityEnum.LOW:
       return "text-green-500";
-    case "medium":
+    case TodoPriorityEnum.MEDIUM:
       return "text-yellow-500";
-    case "high":
+    case TodoPriorityEnum.HIGH:
       return "text-red-500";
     default:
       return "";
   }
 };
 
-export const getStatusColor = (status: TodoStatus): string => {
+export const getStatusColor = (status: TodoStatusEnum): string => {
   switch (status) {
-    case "inprogress":
+    case TodoStatusEnum.IN_PROGRESS:
       return "bg-blue-100 text-blue-800";
-    case "completed":
+    case TodoStatusEnum.COMPLETED:
       return "bg-green-100 text-green-800";
-    case "backlog":
+    case TodoStatusEnum.BACKLOG:
       return "bg-gray-100 text-gray-800";
-    case "archived":
+    case TodoStatusEnum.ARCHIVED:
       return "bg-amber-100 text-amber-800";
     default:
       return "";

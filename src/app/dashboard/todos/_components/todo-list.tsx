@@ -4,11 +4,12 @@ import { parseAsString, useQueryState } from "nuqs";
 
 import { AnimatedList } from "@/components/magicui/animated-list";
 import {
+  Todo,
   TodoPriorityEnum,
   TodoStatusEnum,
+  TodoTag,
 } from "@/server/database/drizzle/todo.schema";
 import { Button } from "@/shared/components/ui/button";
-import { Todo } from "@/types/todo";
 import { ListFilter } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { useDeleteTodo } from "../_mutations/use-delete-todo";
@@ -19,6 +20,17 @@ import { AddQuickTodoForm } from "./add-quick-todo-form";
 import { TodoCompletionHistory } from "./todo-completion-history";
 import { TodoItem } from "./todo-item";
 import { TodoStats } from "./todo-stats";
+
+interface TodoComment {
+  id: string;
+  text: string;
+  createdAt: Date;
+}
+
+interface TodoWithRelations extends Todo {
+  comments?: TodoComment[];
+  tags?: TodoTag[];
+}
 
 const useFilterQueryState = () => {
   return useQueryState("status", parseAsString.withDefault("all"));
@@ -45,22 +57,21 @@ export const TodoList = () => {
 
     // Map server todo format to frontend Todo format
     return todos.data.data.map((serverTodo) => ({
-      id: String(serverTodo.id), // Convert to string to match Todo type
+      id: serverTodo.id,
       title: serverTodo.title,
-      dueDate: serverTodo.dueDate || undefined,
-      priority: serverTodo.priority.toLowerCase() as Todo["priority"],
-      status: mapTodoStatusFromServer(serverTodo.status),
+      dueDate: serverTodo.dueDate,
+      description: serverTodo.description,
+      priority: serverTodo.priority,
+      status: serverTodo.status,
       createdAt: serverTodo.createdAt,
-      completedAt:
-        serverTodo.status === TodoStatusEnum.COMPLETED
-          ? serverTodo.updatedAt
-          : undefined,
-      tags: serverTodo.tags || undefined, // Convert null to undefined
+      updatedAt: serverTodo.updatedAt,
+      completedAt: serverTodo.completedAt,
+      tags: serverTodo.tags || [],
     }));
   }, [todos.data]);
 
   const handleUpdateTodo = useCallback(
-    (id: string, updates: Partial<Todo>) => {
+    (id: number, updates: Partial<TodoWithRelations>) => {
       // Convert client types to server enum types before mutation
       const serverUpdates: {
         id: number;
@@ -69,20 +80,12 @@ export const TodoList = () => {
         priority?: TodoPriorityEnum;
         status?: TodoStatusEnum;
         description?: string;
-      } = { id: Number(id) };
+      } = { id: id };
 
       if (updates.title) serverUpdates.title = updates.title;
       if (updates.dueDate) serverUpdates.dueDate = updates.dueDate;
-
-      // Convert priority string to enum if present
-      if (updates.priority) {
-        serverUpdates.priority = updates.priority as TodoPriorityEnum; // Will refactor soon with actual enum
-      }
-
-      // Convert status string to enum if present
-      if (updates.status) {
-        serverUpdates.status = updates.status as TodoStatusEnum;
-      }
+      if (updates.priority) serverUpdates.priority = updates.priority;
+      if (updates.status) serverUpdates.status = updates.status;
 
       updateTodo.mutate(serverUpdates);
     },
@@ -90,8 +93,8 @@ export const TodoList = () => {
   );
 
   const handleDeleteTodo = useCallback(
-    (id: string) => {
-      deleteTodo.mutate({ id: Number(id) });
+    (id: number) => {
+      deleteTodo.mutate({ id });
     },
     [deleteTodo]
   );
@@ -100,7 +103,7 @@ export const TodoList = () => {
   const filteredTodos = useMemo(() => {
     return convertedTodos.filter((todo) => {
       if (filter === "all") return true;
-      return todo.status === filter;
+      return mapTodoStatusFromServer(todo.status) === filter;
     });
   }, [convertedTodos, filter]);
 

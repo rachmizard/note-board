@@ -1,8 +1,7 @@
 import { TodoStatusEnum } from "@/server/database/drizzle/todo.schema";
-import { TodoStatus } from "@/types/todo";
 
 // Helper function to map server todo status to frontend todo status
-export const mapTodoStatusFromServer = (status: TodoStatusEnum): TodoStatus => {
+export const mapTodoStatusFromServer = (status: TodoStatusEnum): string => {
   switch (status) {
     case TodoStatusEnum.IN_PROGRESS:
       return "inprogress";

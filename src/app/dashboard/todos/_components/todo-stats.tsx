@@ -1,11 +1,9 @@
 import React, { useEffect, useRef, useMemo } from "react";
-import { Todo } from "@/types/todo";
+import { TodoStatusEnum } from "@/server/database/drizzle/todo.schema";
 import { calculateCompletionRate } from "@/utils/todo-utils";
 import { Card } from "@/shared/components/ui/card";
 import confetti from "canvas-confetti";
 import { useTodos } from "../_queries/use-todos";
-import { mapTodoStatusFromServer } from "../utils/todo.utils";
-import { TodoStatusEnum } from "@/server/database/drizzle/todo.schema";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { Progress } from "@/shared/components/ui/progress";
 
@@ -24,33 +22,23 @@ export const TodoStats: React.FC = () => {
     if (!todosQuery.data?.data) return [];
 
     // Map server todo format to frontend Todo format
-    return todosQuery.data.data.map((serverTodo) => ({
-      id: String(serverTodo.id),
-      title: serverTodo.title,
-      dueDate: serverTodo.dueDate || undefined,
-      priority: serverTodo.priority.toLowerCase() as Todo["priority"],
-      status: mapTodoStatusFromServer(serverTodo.status),
-      createdAt: serverTodo.createdAt,
-      completedAt:
-        serverTodo.status === TodoStatusEnum.COMPLETED
-          ? serverTodo.updatedAt
-          : undefined,
-      tags: serverTodo.tags || undefined,
-    }));
+    return todosQuery.data.data;
   }, [todosQuery.data]);
 
   const completionRate = calculateCompletionRate(todos);
   const progressRef = useRef<HTMLDivElement>(null);
   const prevCompletedCountRef = useRef<number>(0);
   const completedCount = todos.filter(
-    (todo) => todo.status === "completed"
+    (todo) => todo.status === TodoStatusEnum.COMPLETED
   ).length;
   const inProgressCount = todos.filter(
-    (todo) => todo.status === "inprogress"
+    (todo) => todo.status === TodoStatusEnum.IN_PROGRESS
   ).length;
-  const backlogCount = todos.filter((todo) => todo.status === "backlog").length;
+  const backlogCount = todos.filter(
+    (todo) => todo.status === TodoStatusEnum.BACKLOG
+  ).length;
   const archivedCount = todos.filter(
-    (todo) => todo.status === "archived"
+    (todo) => todo.status === TodoStatusEnum.ARCHIVED
   ).length;
 
   const handleProgressConfetti = async () => {

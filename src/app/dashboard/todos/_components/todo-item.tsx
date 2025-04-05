@@ -1,4 +1,9 @@
-import { TodoPriorityEnum } from "@/server/database";
+import {
+  Todo,
+  TodoPriorityEnum,
+  TodoStatusEnum,
+  TodoTag,
+} from "@/server/database/drizzle/todo.schema";
 import { Button } from "@/shared/components/ui/button";
 import {
   DropdownMenu,
@@ -8,7 +13,6 @@ import {
 } from "@/shared/components/ui/dropdown-menu";
 import { Input } from "@/shared/components/ui/input";
 import { cn } from "@/shared/lib/utils";
-import { Todo, TodoPriority, TodoStatus } from "@/types/todo";
 import {
   formatDate,
   getPriorityColor,
@@ -36,10 +40,21 @@ import { DeleteConfirmationDialog } from "./dialogs/delete-confirmation-dialog";
 import { TagDialog } from "./dialogs/tag-dialog";
 import { TodoForm } from "./todo-form";
 
+interface TodoComment {
+  id: string;
+  text: string;
+  createdAt: Date;
+}
+
+interface TodoWithRelations extends Todo {
+  comments?: TodoComment[];
+  tags?: TodoTag[];
+}
+
 interface TodoItemProps {
-  todo: Todo;
-  onUpdate: (id: string, updates: Partial<Todo>) => void;
-  onDelete: (id: string) => void;
+  todo: TodoWithRelations;
+  onUpdate: (id: number, updates: Partial<TodoWithRelations>) => void;
+  onDelete: (id: number) => void;
 }
 
 export const TodoItem: React.FC<TodoItemProps> = ({
@@ -92,7 +107,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     onUpdate(todo.id, {
       title: values.title,
       dueDate: values.dueDate,
-      priority: values.priority as TodoPriority,
+      priority: values.priority as TodoPriorityEnum,
     });
     setIsEditing(false);
   };
@@ -115,18 +130,21 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     }
   };
 
-  const handleStatusChange = (newStatus: TodoStatus) => {
-    const updates: Partial<Todo> = { status: newStatus };
-    if (newStatus === "completed") {
+  const handleStatusChange = (newStatus: TodoStatusEnum) => {
+    const updates: Partial<TodoWithRelations> = { status: newStatus };
+    if (newStatus === TodoStatusEnum.COMPLETED) {
       updates.completedAt = new Date();
-    } else if (newStatus === "inprogress" && todo.status === "completed") {
+    } else if (
+      newStatus === TodoStatusEnum.IN_PROGRESS &&
+      todo.status === TodoStatusEnum.COMPLETED
+    ) {
       updates.completedAt = undefined;
     }
     onUpdate(todo.id, updates);
   };
 
   // New handler for priority change
-  const handlePriorityChange = (priority: TodoPriority) => {
+  const handlePriorityChange = (priority: TodoPriorityEnum) => {
     onUpdate(todo.id, { priority });
   };
 
@@ -167,7 +185,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
       <div
         className={cn(
           "border-b-1 dark:shadow-neutral-800 shadow-sm border-neutral-200 dark:border-neutral-800 px-2 py-3 rounded-xl group hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors duration-200",
-          todo.status === "completed" && "opacity-70",
+          todo.status === TodoStatusEnum.COMPLETED && "opacity-70",
           !isEditing && "cursor-pointer" // Add cursor-pointer when not in edit mode
         )}
         onClick={!isEditing ? handleTodoItemClick : undefined} // Only enable click handler when not editing
@@ -178,7 +196,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
             defaultValues={{
               title: todo.title,
               dueDate: todo.dueDate ? new Date(todo.dueDate) : undefined,
-              priority: todo.priority as TodoPriorityEnum,
+              priority: todo.priority,
             }}
             onCancelEditing={() => setIsEditing(false)}
           />
@@ -191,37 +209,43 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                     <button
                       className={cn(
                         "p-1 rounded-md mr-3 mt-1 flex items-center justify-center h-5 w-5 border",
-                        todo.status === "completed"
+                        todo.status === TodoStatusEnum.COMPLETED
                           ? "bg-blue-500 border-blue-500 text-white"
                           : "border-gray-300"
                       )}
                     >
-                      {todo.status === "completed" && (
+                      {todo.status === TodoStatusEnum.COMPLETED && (
                         <Check className="h-3 w-3" />
                       )}
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start">
                     <DropdownMenuItem
-                      onClick={() => handleStatusChange("inprogress")}
+                      onClick={() =>
+                        handleStatusChange(TodoStatusEnum.IN_PROGRESS)
+                      }
                     >
                       <Clock className="h-4 w-4 mr-2 text-green-500" />
                       <span>In Progress</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => handleStatusChange("completed")}
+                      onClick={() =>
+                        handleStatusChange(TodoStatusEnum.COMPLETED)
+                      }
                     >
                       <Check className="h-4 w-4 mr-2 text-blue-500" />
                       <span>Completed</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => handleStatusChange("backlog")}
+                      onClick={() => handleStatusChange(TodoStatusEnum.BACKLOG)}
                     >
                       <FolderClosed className="h-4 w-4 mr-2 text-purple-500" />
                       <span>Backlog</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => handleStatusChange("archived")}
+                      onClick={() =>
+                        handleStatusChange(TodoStatusEnum.ARCHIVED)
+                      }
                     >
                       <Trash className="h-4 w-4 mr-2 text-neutral-500" />
                       <span>Archived</span>
@@ -244,7 +268,8 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                       <h3
                         className={cn(
                           "font-medium cursor-pointer",
-                          todo.status === "completed" && "line-through"
+                          todo.status === TodoStatusEnum.COMPLETED &&
+                            "line-through"
                         )}
                         onDoubleClick={(e) => {
                           e.stopPropagation(); // Prevent triggering the container click
@@ -286,7 +311,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                   )}
 
                   {/* Optional: Additional tag example like "win" from the reference image */}
-                  {todo.priority === "high" && (
+                  {todo.priority === TodoPriorityEnum.HIGH && (
                     <div className="mt-1 ml-2 inline-block rounded-full bg-blue-100 dark:bg-blue-900 px-2 py-0.5 text-xs font-medium">
                       win
                     </div>
@@ -339,19 +364,23 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
-                      onClick={() => handlePriorityChange("low")}
+                      onClick={() => handlePriorityChange(TodoPriorityEnum.LOW)}
                     >
                       <Flag className="h-4 w-4 mr-2 text-green-500" />
                       <span>Low Priority</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => handlePriorityChange("medium")}
+                      onClick={() =>
+                        handlePriorityChange(TodoPriorityEnum.MEDIUM)
+                      }
                     >
                       <Flag className="h-4 w-4 mr-2 text-yellow-500" />
                       <span>Medium Priority</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => handlePriorityChange("high")}
+                      onClick={() =>
+                        handlePriorityChange(TodoPriorityEnum.HIGH)
+                      }
                     >
                       <Flag className="h-4 w-4 mr-2 text-red-500" />
                       <span>High Priority</span>
@@ -448,19 +477,23 @@ export const TodoItem: React.FC<TodoItemProps> = ({
 
                     {/* Priority submenu items */}
                     <DropdownMenuItem
-                      onClick={() => handlePriorityChange("low")}
+                      onClick={() => handlePriorityChange(TodoPriorityEnum.LOW)}
                     >
                       <Flag className="h-4 w-4 mr-2 text-green-500" />
                       <span>Low Priority</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => handlePriorityChange("medium")}
+                      onClick={() =>
+                        handlePriorityChange(TodoPriorityEnum.MEDIUM)
+                      }
                     >
                       <Flag className="h-4 w-4 mr-2 text-yellow-500" />
                       <span>Medium Priority</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => handlePriorityChange("high")}
+                      onClick={() =>
+                        handlePriorityChange(TodoPriorityEnum.HIGH)
+                      }
                     >
                       <Flag className="h-4 w-4 mr-2 text-red-500" />
                       <span>High Priority</span>

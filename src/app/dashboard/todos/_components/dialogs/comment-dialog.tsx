@@ -1,5 +1,17 @@
 import React, { useState } from "react";
-import { Todo } from "@/types/todo";
+import { Todo, TodoTag } from "@/server/database/drizzle/todo.schema";
+
+interface TodoComment {
+  id: string;
+  text: string;
+  createdAt: Date;
+}
+
+interface TodoWithRelations extends Todo {
+  comments?: TodoComment[];
+  tags?: TodoTag[];
+}
+
 import {
   Dialog,
   DialogContent,
@@ -12,7 +24,7 @@ import { Button } from "@/shared/components/ui/button";
 interface CommentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  todo: Todo;
+  todo: TodoWithRelations;
   onAddComment: (comment: string) => void;
 }
 
