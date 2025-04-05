@@ -153,19 +153,23 @@ export const TodoStats: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
           <div className="p-3 rounded">
             <p className="text-lg font-medium">{inProgressCount}</p>
-            <p className="text-xs text-gray-500">In Progress</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              In Progress
+            </p>
           </div>
           <div className="p-3 rounded">
             <p className="text-lg font-medium">{completedCount}</p>
-            <p className="text-xs text-gray-500">Completed</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Completed
+            </p>
           </div>
           <div className="p-3 rounded">
             <p className="text-lg font-medium">{backlogCount}</p>
-            <p className="text-xs text-gray-500">Backlog</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Backlog</p>
           </div>
           <div className="p-3 rounded">
             <p className="text-lg font-medium">{archivedCount}</p>
-            <p className="text-xs text-gray-500">Archived</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Archived</p>
           </div>
         </div>
       </Card>
