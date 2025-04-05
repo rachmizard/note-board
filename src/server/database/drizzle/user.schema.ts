@@ -8,6 +8,8 @@ export const usersSchema = pgCore.pgTable("users", {
   lastName: pgCore.text("last_name"),
   bio: pgCore.text("bio"),
   email: pgCore.text("email").notNull(),
+  gender: pgCore.text("gender"),
+  lastActiveAt: pgCore.timestamp("last_active_at"),
   createdAt: pgCore.timestamp("created_at").defaultNow().notNull(),
   updatedAt: pgCore.timestamp("updated_at").defaultNow().notNull(),
 });
