@@ -1,11 +1,7 @@
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Todo, TodoPriority, TodoStatus } from "@/types/todo";
-import {
-  formatDate,
-  getPriorityColor,
-  getStatusColor,
-} from "@/utils/todo-utils";
+import { formatDate, getPriorityColor } from "@/utils/todo-utils";
 import {
   Check,
   ChevronDown,
@@ -32,6 +28,7 @@ import { DeleteConfirmationDialog } from "./dialogs/delete-confirmation-dialog";
 import { cn } from "@/shared/lib/utils";
 import { DatePicker } from "@/shared/components/ui/datepicker";
 import { Combobox, ComboboxOption } from "@/shared/components/ui/combobox";
+import { Badge } from "@/shared/components/ui/badge";
 
 interface TodoItemProps {
   todo: Todo;
@@ -178,7 +175,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
   return (
     <div
       className={cn(
-        "border-b py-3 group hover:bg-gray-50 transition-colors duration-200",
+        "border-b py-3 group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200",
         todo.status === "completed" && "opacity-70",
         !isEditing && "cursor-pointer" // Add cursor-pointer when not in edit mode
       )}
@@ -317,34 +314,34 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                 </div>
 
                 {isToday && (
-                  <div className="mt-1 inline-block rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium">
+                  <Badge className="mt-1 bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
                     Today
-                  </div>
+                  </Badge>
                 )}
 
                 {!isToday && todo.dueDate && (
-                  <div className="mt-1 inline-block rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium">
+                  <Badge className="mt-1 bg-red-100 text-red-800 hover:bg-red-100">
                     {formattedDate}
-                  </div>
+                  </Badge>
                 )}
 
                 {/* Optional: Additional tag example like "win" from the reference image */}
                 {todo.priority === "high" && (
-                  <div className="mt-1 ml-2 inline-block rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium">
+                  <Badge className="mt-1 ml-2 bg-blue-100 text-blue-800 hover:bg-blue-100">
                     win
-                  </div>
+                  </Badge>
                 )}
 
                 {/* Display tags if available */}
                 {todo.tags && todo.tags.length > 0 && (
                   <div className="mt-1 flex flex-wrap gap-1">
                     {todo.tags.map((tag, index) => (
-                      <div
+                      <Badge
                         key={index}
-                        className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium"
+                        className="bg-gray-100 text-gray-800 hover:bg-gray-100"
                       >
                         {tag}
-                      </div>
+                      </Badge>
                     ))}
                   </div>
                 )}
@@ -520,48 +517,65 @@ export const TodoItem: React.FC<TodoItemProps> = ({
             </div>
           </div>
 
-          {isExpanded && (
-            <div className="mt-3 ml-9 space-y-2">
-              <div className="flex items-center text-sm text-gray-500">
-                <Clock className="h-3 w-3 mr-1" />
-                <span>
-                  Due: {todo.dueDate ? formatDate(todo.dueDate) : "No due date"}
-                </span>
-              </div>
-              <div className="flex items-center text-sm text-gray-500">
-                <span
-                  className={cn(
-                    "mr-2 inline-block px-2 py-0.5 rounded-full text-xs",
-                    getPriorityColor(todo.priority)
-                  )}
-                >
-                  {todo.priority}
-                </span>
-                <span
-                  className={cn(
-                    "inline-block px-2 py-0.5 rounded-full text-xs",
-                    getStatusColor(todo.status)
-                  )}
-                >
-                  {todo.status}
-                </span>
-              </div>
+          {isExpanded && !isEditing && (
+            <div className="px-4 pb-2 mt-3 grid gap-3 text-sm">
+              {/* Due date section */}
+              {todo.dueDate && (
+                <div className="flex items-center">
+                  <Clock className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-2" />
+                  <span
+                    className={cn(
+                      "text-gray-700 dark:text-gray-300",
+                      isToday &&
+                        "text-amber-700 dark:text-amber-400 font-medium"
+                    )}
+                  >
+                    {formattedDate}
+                    {isToday && (
+                      <span className="ml-2 text-xs font-medium text-amber-600 dark:text-amber-400">
+                        (Today)
+                      </span>
+                    )}
+                  </span>
+                </div>
+              )}
 
-              {/* Display comments if expanded and available */}
+              {/* Tags section */}
+              {todo.tags && todo.tags.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <TagIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                  <div className="flex flex-wrap gap-1.5">
+                    {todo.tags.map((tag) => (
+                      <Badge
+                        key={tag}
+                        variant="outline"
+                        className="px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                      >
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Notes section - summarized version */}
               {todo.comments && todo.comments.length > 0 && (
-                <div className="mt-2 space-y-2">
-                  <h4 className="text-sm font-medium">Comments</h4>
-                  {todo.comments.map((comment) => (
-                    <div
-                      key={comment.id}
-                      className="bg-gray-50 p-2 rounded-md text-sm"
-                    >
-                      <div className="text-gray-500 text-xs">
-                        {new Date(comment.createdAt).toLocaleString()}
-                      </div>
-                      <div>{comment.text}</div>
-                    </div>
-                  ))}
+                <div className="flex items-start">
+                  <MessageSquare className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-2 mt-0.5" />
+                  <div className="text-gray-700 dark:text-gray-300">
+                    <p className="font-medium text-xs mb-1">
+                      Comments ({todo.comments.length})
+                    </p>
+                    <p className="line-clamp-2">{todo.comments[0].text}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Completion date if completed */}
+              {todo.status === "completed" && todo.completedAt && (
+                <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                  <Check className="h-3.5 w-3.5 mr-1.5" />
+                  <span>Completed on {formatDate(todo.completedAt)}</span>
                 </div>
               )}
             </div>
