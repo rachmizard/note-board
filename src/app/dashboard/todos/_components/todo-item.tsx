@@ -292,14 +292,21 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                 {/* Display tags if available */}
                 {todo.tags && todo.tags.length > 0 && (
                   <div className="mt-1 flex flex-wrap gap-1">
-                    {todo.tags.map((tag, index) => (
-                      <div
-                        key={index}
-                        className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium"
-                      >
-                        {tag}
+                    {todo.tags
+                      .slice(0, todo.tags.length > 3 ? 2 : 3)
+                      .map((tag, index) => (
+                        <div
+                          key={index}
+                          className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium"
+                        >
+                          {tag.name}
+                        </div>
+                      ))}
+                    {todo.tags.length > 3 && (
+                      <div className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium">
+                        +{todo.tags.length - 2} More
                       </div>
-                    ))}
+                    )}
                   </div>
                 )}
               </div>
@@ -547,16 +554,6 @@ export const TodoItem: React.FC<TodoItemProps> = ({
         open={showTagDialog}
         onOpenChange={setShowTagDialog}
         todo={todo}
-        onAddTag={(tag) => {
-          const tags = todo.tags || [];
-          if (!tags.includes(tag)) {
-            onUpdate(todo.id, { tags: [...tags, tag] });
-          }
-        }}
-        onRemoveTag={(tag) => {
-          const updatedTags = [...(todo.tags || [])].filter((t) => t !== tag);
-          onUpdate(todo.id, { tags: updatedTags });
-        }}
       />
 
       <DeleteConfirmationDialog

@@ -43,20 +43,17 @@ export const TodoList = () => {
     if (todos.data?.data) {
       // Map server todo format to frontend Todo format
       const convertedTodos = todos.data.data.map((serverTodo) => ({
-        id: String(serverTodo.id), // Convert number id to string
+        id: String(serverTodo.id), // Convert to string to match Todo type
         title: serverTodo.title,
         dueDate: serverTodo.dueDate || undefined,
         priority: serverTodo.priority.toLowerCase() as Todo["priority"],
         status: mapTodoStatusFromServer(serverTodo.status),
         createdAt: serverTodo.createdAt,
-        // Server doesn't have completedAt, so we'll use updatedAt for completed items
         completedAt:
           serverTodo.status === TodoStatusEnum.COMPLETED
             ? serverTodo.updatedAt
             : undefined,
-        // Add missing fields with default values
-        comments: [],
-        tags: [],
+        tags: serverTodo.tags || undefined, // Convert null to undefined
       }));
 
       setLocalTodos(convertedTodos);
@@ -86,12 +83,18 @@ export const TodoList = () => {
 
     // Convert priority string to enum if present
     if (updates.priority) {
-      serverUpdates.priority = updates.priority as TodoPriorityEnum; // Will refactor soon with actual enum
+      serverUpdates.priority =
+        updates.priority.toUpperCase() as TodoPriorityEnum; // Will refactor soon with actual enum
     }
 
     // Convert status string to enum if present
     if (updates.status) {
-      serverUpdates.status = updates.status as TodoStatusEnum; // Will refactor soon with actual enum
+      // Convert kebab-case status to enum
+      if (updates.status === "in-progress") {
+        serverUpdates.status = TodoStatusEnum.IN_PROGRESS;
+      } else {
+        serverUpdates.status = updates.status.toUpperCase() as TodoStatusEnum;
+      }
     }
 
     updateTodo.mutate(serverUpdates);

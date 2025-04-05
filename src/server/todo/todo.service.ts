@@ -1,8 +1,13 @@
-import type { Database } from "@/server/database";
-import { type Todo, todoSchema } from "@/server/database/drizzle/todo.schema";
+import type { Database, TodoWithTags } from "@/server/database";
+import {
+  type Todo,
+  todoSchema,
+  todoTags,
+} from "@/server/database/drizzle/todo.schema";
 import type { PaginationResponse } from "@/server/types/response";
 import { desc, eq, sql } from "drizzle-orm";
 import type {
+  AddTodoTagRequest,
   CreateTodoRequest,
   DeleteTodoRequest,
   GetTodoRequest,
@@ -34,17 +39,19 @@ const createTodo = async (
 const getTodos = async (
   request: GetTodosRequest,
   db: Database
-): Promise<PaginationResponse<Todo>> => {
+): Promise<PaginationResponse<TodoWithTags>> => {
   const { page = 1, limit = 10 } = request;
   const offset = (page - 1) * limit;
 
   // Execute the main query with pagination
-  const todos = await db
-    .select()
-    .from(todoSchema)
-    .orderBy(desc(todoSchema.createdAt))
-    .limit(limit)
-    .offset(offset);
+  const todos = await db.query.todoSchema.findMany({
+    with: {
+      tags: true,
+    },
+    orderBy: [desc(todoSchema.createdAt)],
+    offset,
+    limit,
+  });
 
   // Get total count for pagination
   const [{ count }] = await db
@@ -101,4 +108,19 @@ const getTodo = async (
   return todo;
 };
 
-export { createTodo, deleteTodo, getTodos, getTodo, qb, updateTodo };
+const addTodoTag = async (
+  request: AddTodoTagRequest,
+  db: Database
+): Promise<void> => {
+  await db.insert(todoTags).values(request);
+};
+
+export {
+  createTodo,
+  deleteTodo,
+  getTodos,
+  getTodo,
+  qb,
+  updateTodo,
+  addTodoTag,
+};

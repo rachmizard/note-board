@@ -3,12 +3,12 @@ import { produce } from "immer";
 
 export const useUpdateTodo = () => {
   const trpcUtils = trpc.useUtils();
-  return trpc.updateTodo.useMutation({
+  return trpc.todo.updateTodo.useMutation({
     onMutate: async (updatedTodo) => {
-      await trpcUtils.getTodos.cancel();
-      const previousTodos = trpcUtils.getTodos.getData();
+      await trpcUtils.todo.getTodos.cancel();
+      const previousTodos = trpcUtils.todo.getTodos.getData();
 
-      trpcUtils.getTodos.setData({}, (prev) => {
+      trpcUtils.todo.getTodos.setData({}, (prev) => {
         if (!prev) return prev;
 
         // Use immer's produce to create an immutable update
@@ -50,10 +50,10 @@ export const useUpdateTodo = () => {
     },
     onError: (error, updatedTodo, context) => {
       // Revert to the previous state if there's an error
-      trpcUtils.getTodos.setData({}, context?.previousTodos);
+      trpcUtils.todo.getTodos.setData({}, context?.previousTodos);
     },
     onSuccess: () => {
-      trpcUtils.getTodos.invalidate();
+      trpcUtils.todo.getTodos.invalidate();
     },
   });
 };

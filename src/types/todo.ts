@@ -1,3 +1,5 @@
+import { TodoTag } from "@/server/database";
+
 export type TodoPriority = "low" | "medium" | "high";
 export type TodoStatus = "in-progress" | "completed" | "backlog" | "archived";
 
@@ -16,5 +18,5 @@ export interface Todo {
   createdAt: Date;
   completedAt?: Date;
   comments?: TodoComment[];
-  tags?: string[];
+  tags?: TodoTag[];
 }

@@ -1,17 +1,17 @@
+import type { TodoWithTags } from "@/server/database/drizzle/todo.schema";
 import { trpc } from "@/server/trpc";
 import { produce } from "immer";
-import type { Todo } from "@/server/database/drizzle/todo.schema";
 
 export const useCreateTodo = () => {
   const trpcUtils = trpc.useUtils();
 
-  return trpc.createTodo.useMutation({
+  return trpc.todo.createTodo.useMutation({
     onMutate: async (newTodo) => {
-      await trpcUtils.getTodos.cancel();
-      const previousTodos = trpcUtils.getTodos.getData();
+      await trpcUtils.todo.getTodos.cancel();
+      const previousTodos = trpcUtils.todo.getTodos.getData();
 
       // Use immer to safely update the cache with proper typing
-      trpcUtils.getTodos.setData(
+      trpcUtils.todo.getTodos.setData(
         {
           page: 1,
           limit: 100, // Fetch a reasonable number of todos
@@ -33,7 +33,9 @@ export const useCreateTodo = () => {
                   status: newTodo.status,
                   createdAt: new Date(),
                   updatedAt: new Date(),
-                } as Todo,
+                  tags: [],
+                  completedAt: null,
+                } as TodoWithTags,
               ],
               total: 1,
               page: 1,
@@ -53,7 +55,7 @@ export const useCreateTodo = () => {
               status: newTodo.status,
               createdAt: new Date(),
               updatedAt: new Date(),
-            } as Todo);
+            } as TodoWithTags);
 
             // Update the total count
             draft.total += 1;
@@ -64,13 +66,13 @@ export const useCreateTodo = () => {
       return { previousTodos };
     },
     onError: (error, newTodo, context) => {
-      trpcUtils.getTodos.setData(
+      trpcUtils.todo.getTodos.setData(
         { page: 1, limit: 100 },
         context?.previousTodos
       );
     },
     onSuccess: () => {
-      trpcUtils.getTodos.invalidate();
+      trpcUtils.todo.getTodos.invalidate();
     },
   });
 };

@@ -9,6 +9,7 @@ export type GetTodosRequest = z.infer<typeof getTodosValidator>;
 export type DeleteTodoRequest = z.infer<typeof deleteTodoValidator>;
 export type UpdateTodoRequest = z.infer<typeof updateTodoValidator>;
 export type GetTodoRequest = z.infer<typeof getTodoValidator>;
+export type AddTodoTagRequest = z.infer<typeof addTodoTagValidator>;
 
 export const createTodoValidator = z.object({
   title: z.string().min(1),
@@ -46,4 +47,9 @@ export const updateTodoValidator = z.object({
 
 export const getTodoValidator = z.object({
   id: z.number(),
+});
+
+export const addTodoTagValidator = z.object({
+  todoId: z.number(),
+  name: z.string().min(1, { message: "What's your tag?" }),
 });

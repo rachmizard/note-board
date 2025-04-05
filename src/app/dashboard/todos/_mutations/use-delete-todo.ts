@@ -3,7 +3,7 @@ import { useInvalidateTodos } from "../_queries/use-todos";
 
 export const useDeleteTodo = () => {
   const invalidateTodos = useInvalidateTodos();
-  return trpc.deleteTodo.useMutation({
+  return trpc.todo.deleteTodo.useMutation({
     onSuccess: () => {
       invalidateTodos();
     },

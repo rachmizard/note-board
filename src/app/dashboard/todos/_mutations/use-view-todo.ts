@@ -1,7 +1,7 @@
 import { trpc } from "@/server/trpc";
 
 export const useViewTodo = (todoId: number) => {
-  return trpc.getTodo.useQuery({
+  return trpc.todo.getTodo.useQuery({
     id: todoId,
   });
 };

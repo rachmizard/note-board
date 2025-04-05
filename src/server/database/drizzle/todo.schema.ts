@@ -55,7 +55,8 @@ export const todoComments = pgCore.pgTable("todo_comments", {
 });
 
 export type Todo = typeof todoSchema.$inferSelect;
-export type TodoTags = typeof todoTags.$inferSelect;
+export type TodoWithTags = Todo & { tags: TodoTag[] | null };
+export type TodoTag = typeof todoTags.$inferSelect;
 export type TodoComments = typeof todoComments.$inferSelect;
 
 export type NewTodo = typeof todoSchema.$inferInsert;
