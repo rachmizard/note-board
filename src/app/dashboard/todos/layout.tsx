@@ -6,7 +6,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     <DashboardLayout
       breadcrumbs={[
         { href: "/dashboard", label: "Dashboard" },
-        { href: "/dashboard/todos", label: "Todo List", isCurrent: true },
+        { href: "/dashboard/todos", label: "To-Do", isCurrent: true },
       ]}
     >
       {children}

@@ -1,16 +1,7 @@
 import React from "react";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 
-interface TodoItemSkeletonProps {
-  index?: number; // Optional index to determine expanded state
-}
-
-export const TodoItemSkeleton: React.FC<TodoItemSkeletonProps> = ({
-  index = 0,
-}) => {
-  // Deterministic expansion based on index (every third item)
-  const isExpanded = index % 3 === 0;
-
+export const TodoItemSkeleton: React.FC = () => {
   return (
     <div className="border-b py-3">
       <div className="flex items-start justify-between">
@@ -43,37 +34,6 @@ export const TodoItemSkeleton: React.FC<TodoItemSkeletonProps> = ({
           <Skeleton className="h-8 w-8" />
         </div>
       </div>
-
-      {/* Expanded item content skeleton - deterministically show for some items */}
-      {isExpanded && (
-        <div className="px-4 pb-2 mt-3 grid gap-3 text-sm">
-          {/* Due date section */}
-          <div className="flex items-center">
-            <Skeleton className="h-4 w-4 mr-2" />
-            <Skeleton className="h-4 w-[150px]" />
-          </div>
-
-          {/* Tags section */}
-          <div className="flex flex-wrap items-center gap-2">
-            <Skeleton className="h-4 w-4" />
-            <div className="flex flex-wrap gap-1.5">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-5 w-12 rounded-full" />
-              ))}
-            </div>
-          </div>
-
-          {/* Notes section */}
-          <div className="flex items-start">
-            <Skeleton className="h-4 w-4 mr-2 mt-0.5" />
-            <div>
-              <Skeleton className="h-4 w-[100px] mb-1" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-[80%] mt-1" />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

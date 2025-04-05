@@ -36,6 +36,7 @@ export const todoSchema = pgCore.pgTable("todos", {
   description: pgCore.text("description"),
   priority: todoPriority("priority").default(TodoPriorityEnum.MEDIUM).notNull(),
   status: todoStatus("status").default(TodoStatusEnum.BACKLOG).notNull(),
+  completedAt: pgCore.timestamp("completed_at"),
   createdAt: pgCore.timestamp("created_at").defaultNow().notNull(),
   updatedAt: pgCore.timestamp("updated_at").defaultNow().notNull(),
 });
@@ -43,12 +44,30 @@ export const todoSchema = pgCore.pgTable("todos", {
 export const todoTags = pgCore.pgTable("todo_tags", {
   id: pgCore.serial("id").primaryKey(),
   name: pgCore.text("name").notNull(),
-  todoId: pgCore.integer("todo_id").references(() => todoSchema.id),
+  todoId: pgCore.integer("todo_id").references(() => todoSchema.id, {
+    onDelete: "cascade",
+  }),
 });
 
 export const todoComments = pgCore.pgTable("todo_comments", {
   id: pgCore.serial("id").primaryKey(),
   comment: pgCore.text("comment").notNull(),
-  todoId: pgCore.integer("todo_id").references(() => todoSchema.id),
+  todoId: pgCore.integer("todo_id").references(() => todoSchema.id, {
+    onDelete: "cascade",
+  }),
+  createdAt: pgCore.timestamp("created_at").defaultNow().notNull(),
+  updatedAt: pgCore.timestamp("updated_at").defaultNow().notNull(),
   // TODO: add user id
 });
+
+export type Todo = typeof todoSchema.$inferSelect;
+export type TodoWithRelations = Todo & {
+  tags: TodoTag[] | null;
+  comments: TodoComment[] | null;
+};
+export type TodoTag = typeof todoTags.$inferSelect;
+export type TodoComment = typeof todoComments.$inferSelect;
+
+export type NewTodo = typeof todoSchema.$inferInsert;
+export type NewTodoTags = typeof todoTags.$inferInsert;
+export type NewTodoComments = typeof todoComments.$inferInsert;

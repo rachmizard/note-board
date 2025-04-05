@@ -25,7 +25,7 @@ export const TodoListSkeleton = () => {
             {Array(5)
               .fill(0)
               .map((_, index) => (
-                <TodoItemSkeleton key={index} index={index} />
+                <TodoItemSkeleton key={index} />
               ))}
           </div>
         </div>

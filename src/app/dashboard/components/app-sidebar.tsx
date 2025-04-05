@@ -34,7 +34,7 @@ const data = {
       icon: LayoutDashboard,
     },
     {
-      title: "Todo List",
+      title: "To-Do",
       url: "/dashboard/todos",
       icon: CheckSquare,
     },
