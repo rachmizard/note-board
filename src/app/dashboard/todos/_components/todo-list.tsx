@@ -159,7 +159,7 @@ export const TodoList = () => {
 
           {/* Todo List */}
           {filteredTodos.length > 0 ? (
-            <AnimatedList delay={0} className="gap-2">
+            <AnimatedList delay={200} className="gap-2">
               {filteredTodos.map((todo) => (
                 <TodoItem
                   key={todo.id}

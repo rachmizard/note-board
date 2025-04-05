@@ -13,6 +13,7 @@ import React, { useRef } from "react";
 import { useAddTodoTag } from "../../_mutations/use-add-todo-tag";
 import { Label } from "@/shared/components/ui/label";
 import { useRemoveTodoTag } from "../../_mutations/use-remove-todo-tag";
+import { Badge } from "@/shared/components/ui/badge";
 
 interface TagDialogProps {
   open: boolean;
@@ -80,10 +81,7 @@ export const TagDialog: React.FC<TagDialogProps> = ({
                 <h4 className="text-sm font-medium mb-2">Current Tags</h4>
                 <div className="flex flex-wrap gap-2">
                   {todo.tags.map((tag, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center bg-gray-100 rounded-full px-3 py-1 text-sm"
-                    >
+                    <Badge key={index} variant="outline">
                       {tag.name}
                       <button
                         type="button"
@@ -96,7 +94,7 @@ export const TagDialog: React.FC<TagDialogProps> = ({
                       >
                         <X className="h-3 w-3" />
                       </button>
-                    </div>
+                    </Badge>
                   ))}
                 </div>
               </div>
