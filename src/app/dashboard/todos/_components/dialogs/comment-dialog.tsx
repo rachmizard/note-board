@@ -55,11 +55,11 @@ export const CommentDialog: React.FC<CommentDialogProps> = ({
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
               Comment
             </label>
             <textarea
-              className="w-full border rounded-md p-2 min-h-[100px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200"
+              className="w-full border rounded-md p-2 min-h-[100px] dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-200"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Add your comment here..."
@@ -69,7 +69,7 @@ export const CommentDialog: React.FC<CommentDialogProps> = ({
           {/* Display existing comments */}
           {todo.comments && todo.comments.length > 0 && (
             <div className="mt-4">
-              <h4 className="text-sm font-medium mb-2 dark:text-gray-300">
+              <h4 className="text-sm font-medium mb-2 dark:text-neutral-300">
                 Previous Comments
               </h4>
               <ScrollArea className="h-[400px]">
@@ -77,12 +77,12 @@ export const CommentDialog: React.FC<CommentDialogProps> = ({
                   {todo.comments.map((comment) => (
                     <div
                       key={comment.id}
-                      className="group relative bg-gray-50 dark:bg-gray-800 p-2 rounded-md"
+                      className="group relative bg-neutral-50 dark:bg-neutral-800 p-2 rounded-md"
                     >
-                      <div className="text-gray-500 dark:text-gray-400 text-xs">
+                      <div className="text-neutral-500 dark:text-neutral-400 text-xs">
                         {new Date(comment.createdAt).toLocaleString()}
                       </div>
-                      <div className="text-sm dark:text-gray-300">
+                      <div className="text-sm dark:text-neutral-300">
                         {comment.comment}
                       </div>
 

@@ -1,15 +1,18 @@
 "use client";
 
-import { TodoPriorityEnum } from "@/server/database";
+import { TodoPriorityEnum, TodoStatusEnum } from "@/server/database";
 import { Input } from "@/shared/components/ui/input";
 import { cn } from "@/shared/lib/utils";
 import { Loader2Icon } from "lucide-react";
 import { KeyboardEventHandler, useRef } from "react";
+import { useSetFilterQueryState } from "../_hooks/use-filter-query-state";
 import { useCreateTodo } from "../_mutations/use-create-todo";
 
 export const AddQuickTodoForm = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const createTodo = useCreateTodo();
+
+  const setFilter = useSetFilterQueryState();
 
   const handleQuickAddTodo: KeyboardEventHandler<HTMLInputElement> = (e) => {
     if (e.key === "Enter" && inputRef.current?.value.trim()) {
@@ -21,6 +24,7 @@ export const AddQuickTodoForm = () => {
         },
         {
           onSuccess: () => {
+            setFilter(TodoStatusEnum.BACKLOG);
             if (inputRef.current) {
               inputRef.current.focus();
               inputRef.current.select();

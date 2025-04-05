@@ -1,4 +1,5 @@
 import * as pgCore from "drizzle-orm/pg-core";
+import { users } from "./user.schema";
 
 export enum TodoPriorityEnum {
   LOW = "low",
@@ -36,6 +37,12 @@ export const todoSchema = pgCore.pgTable("todos", {
   description: pgCore.text("description"),
   priority: todoPriority("priority").default(TodoPriorityEnum.MEDIUM).notNull(),
   status: todoStatus("status").default(TodoStatusEnum.BACKLOG).notNull(),
+  userId: pgCore
+    .text("user_id")
+    .references(() => users.id, {
+      onDelete: "cascade",
+    })
+    .$default(() => ""),
   completedAt: pgCore.timestamp("completed_at"),
   createdAt: pgCore.timestamp("created_at").defaultNow().notNull(),
   updatedAt: pgCore.timestamp("updated_at").defaultNow().notNull(),
@@ -55,9 +62,14 @@ export const todoComments = pgCore.pgTable("todo_comments", {
   todoId: pgCore.integer("todo_id").references(() => todoSchema.id, {
     onDelete: "cascade",
   }),
+  userId: pgCore
+    .text("user_id")
+    .references(() => users.id, {
+      onDelete: "cascade",
+    })
+    .$default(() => ""),
   createdAt: pgCore.timestamp("created_at").defaultNow().notNull(),
   updatedAt: pgCore.timestamp("updated_at").defaultNow().notNull(),
-  // TODO: add user id
 });
 
 export type Todo = typeof todoSchema.$inferSelect;

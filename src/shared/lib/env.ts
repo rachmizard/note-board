@@ -11,6 +11,7 @@ export const appEnv = createEnv({
       .string()
       .url()
       .describe("The URL of the database for development"),
+    SIGNING_SECRET: z.string().describe("The signing secret for the webhook"),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z

@@ -1,7 +1,5 @@
 "use client";
 
-import { parseAsString, useQueryState } from "nuqs";
-
 import { AnimatedList } from "@/components/magicui/animated-list";
 import {
   TodoPriorityEnum,
@@ -11,6 +9,7 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { ListFilter } from "lucide-react";
 import { useCallback, useMemo } from "react";
+import { useFilterQueryState } from "../_hooks/use-filter-query-state";
 import { useDeleteTodo } from "../_mutations/use-delete-todo";
 import { useUpdateTodo } from "../_mutations/use-update-todo";
 import { useTodos } from "../_queries/use-todos";
@@ -20,10 +19,6 @@ import { TodoCompletionHistory } from "./todo-completion-history";
 import { TodoItem } from "./todo-item";
 import { TodoItemSkeleton } from "./todo-item-skeleton";
 import { TodoStats } from "./todo-stats";
-
-const useFilterQueryState = () => {
-  return useQueryState("status", parseAsString.withDefault("all"));
-};
 
 export const TodoList = () => {
   const [filter, setFilter] = useFilterQueryState();
@@ -57,6 +52,7 @@ export const TodoList = () => {
       completedAt: serverTodo.completedAt,
       tags: serverTodo.tags || [],
       comments: serverTodo.comments || [],
+      userId: serverTodo.userId,
     }));
   }, [todos.data]);
 

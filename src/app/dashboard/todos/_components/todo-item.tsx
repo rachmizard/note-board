@@ -173,7 +173,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     <Fragment>
       <div
         className={cn(
-          "border-b-1 dark:shadow-neutral-800 shadow-sm border-neutral-200 dark:border-neutral-800 px-2 py-3 rounded-xl group hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors duration-200",
+          "border-b-1 dark:shadow-neutral-800 shadow-sm border-neutral-200 dark:border-neutral-800 px-2 py-3 rounded-xl group hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors duration-200",
           todo.status === TodoStatusEnum.COMPLETED && "opacity-70",
           !isEditing && "cursor-pointer" // Add cursor-pointer when not in edit mode
         )}
@@ -545,9 +545,9 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                     {todo.comments.map((comment) => (
                       <div
                         key={comment.id}
-                        className="bg-neutral-50 p-2 rounded-md text-sm"
+                        className="bg-neutral-50 dark:bg-neutral-800 p-2 rounded-md text-sm"
                       >
-                        <div className="text-neutral-500 text-xs">
+                        <div className="text-neutral-500 dark:text-neutral-400 text-xs">
                           {new Date(comment.createdAt).toLocaleString()}
                         </div>
                         <div>{comment.comment}</div>

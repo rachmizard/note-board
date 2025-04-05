@@ -63,8 +63,9 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.55.0",
     "server-only": "^0.0.1",
-    "superjson": "^2.2.2",
     "sonner": "^2.0.3",
+    "superjson": "^2.2.2",
+    "svix": "^1.63.1",
     "tailwind-merge": "^3.1.0",
     "tw-animate-css": "^1.2.5",
     "zod": "^3.24.2"
