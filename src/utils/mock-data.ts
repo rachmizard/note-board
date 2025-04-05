@@ -3,7 +3,7 @@ import { Todo, TodoPriority, TodoStatus } from "@/types/todo";
 export const generateMockTodos = (count: number = 5): Todo[] => {
   const priorities: TodoPriority[] = ["low", "medium", "high"];
   const statuses: TodoStatus[] = [
-    "in-progress",
+    "inprogress",
     "completed",
     "backlog",
     "archived",

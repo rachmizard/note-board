@@ -1,58 +1,25 @@
+import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
 
-import { loadEnvConfig } from "@next/env";
-
-const projectDir = process.cwd();
-loadEnvConfig(projectDir);
-
-/**
- * Define schema for environment variables
- */
-export const envSchema = z.object({
-  DATABASE_URL: z
-    .string()
-    .url("Invalid database URL")
-    .describe("Production database URL"),
-  DATABASE_URL_DEV: z
-    .string()
-    .url("Invalid database URL")
-    .describe("Development database URL"),
+export const appEnv = createEnv({
+  server: {
+    DATABASE_URL: z
+      .string()
+      .url()
+      .describe("The URL of the database for production"),
+    DATABASE_URL_DEV: z
+      .string()
+      .url()
+      .describe("The URL of the database for development"),
+  },
+  client: {
+    NEXT_PUBLIC_APP_URL: z
+      .string()
+      .url()
+      .optional()
+      .describe("The URL of the app"),
+  },
+  // If you're using Next.js < 13.4.4, you'll need to specify the runtimeEnv manually
+  runtimeEnv: process.env,
+  clientPrefix: "NEXT_PUBLIC_",
 });
-
-// Create a type from the schema
-export type Env = z.infer<typeof envSchema>;
-
-/**
- * Validate environment variables against the schema
- */
-export function validateEnv() {
-  try {
-    // Using Bun's process.env which is automatically loaded from .env.local
-    return envSchema.parse(process.env);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      const formattedErrors = error.format();
-      const missingVars = Object.entries(formattedErrors)
-        .filter(([key]) => key !== "_errors")
-        .map(([key, val]) => {
-          // Safely access _errors with proper type handling
-          const errors =
-            val && typeof val === "object" && "_errors" in val
-              ? (val._errors as string[]).join(", ")
-              : "Invalid value";
-          return `${key}: ${errors}`;
-        });
-
-      throw new Error(
-        `❌ Invalid environment variables:\n${missingVars.join("\n")}`
-      );
-    }
-
-    throw error;
-  }
-}
-
-/**
- * Type-safe environment variables
- */
-export const env = validateEnv() as Env;
