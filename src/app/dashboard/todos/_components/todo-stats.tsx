@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useMemo } from "react";
 import { TodoStatusEnum } from "@/server/database/drizzle/todo.schema";
-import { calculateCompletionRate } from "@/utils/todo-utils";
 import { Card } from "@/shared/components/ui/card";
 import confetti from "canvas-confetti";
 import { useTodos } from "../_queries/use-todos";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { Progress } from "@/shared/components/ui/progress";
+import { calculateCompletionRate } from "../_utils/todo.utils";
 
 // Remove the empty interface since we don't need props anymore
 export const TodoStats: React.FC = () => {

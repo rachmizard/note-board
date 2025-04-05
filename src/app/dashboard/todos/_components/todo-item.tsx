@@ -18,7 +18,7 @@ import {
   getPriorityColor,
   getPriorityIconColor,
   getStatusColor,
-} from "@/utils/todo-utils";
+} from "../_utils/todo.utils";
 import {
   Check,
   ChevronDown,

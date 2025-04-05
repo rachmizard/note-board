@@ -15,11 +15,12 @@ import { useCallback, useMemo } from "react";
 import { useDeleteTodo } from "../_mutations/use-delete-todo";
 import { useUpdateTodo } from "../_mutations/use-update-todo";
 import { useTodos } from "../_queries/use-todos";
-import { mapTodoStatusFromServer } from "../utils/todo.utils";
+import { mapTodoStatusFromServer } from "../_utils/todo.utils";
 import { AddQuickTodoForm } from "./add-quick-todo-form";
 import { TodoCompletionHistory } from "./todo-completion-history";
 import { TodoItem } from "./todo-item";
 import { TodoStats } from "./todo-stats";
+import { TodoItemSkeleton } from "./todo-item-skeleton";
 
 interface TodoComment {
   id: string;
@@ -159,6 +160,14 @@ export const TodoList = () => {
               Archived
             </Button>
           </div>
+
+          {todos.isLoading && (
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <TodoItemSkeleton key={index} index={index} />
+              ))}
+            </div>
+          )}
 
           {/* Todo List */}
           {filteredTodos.length > 0 ? (
