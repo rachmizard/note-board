@@ -12,6 +12,7 @@ import type {
   DeleteTodoRequest,
   GetTodoRequest,
   GetTodosRequest,
+  RemoveTodoTagRequest,
   UpdateTodoRequest,
 } from "./todo.validator";
 import { TRPCError } from "@trpc/server";
@@ -115,6 +116,12 @@ const addTodoTag = async (
   await db.insert(todoTags).values(request);
 };
 
+const removeTodoTag = async (
+  request: RemoveTodoTagRequest,
+  db: Database
+): Promise<void> => {
+  await db.delete(todoTags).where(eq(todoTags.id, Number(request.tagId)));
+};
 export {
   createTodo,
   deleteTodo,
@@ -123,4 +130,5 @@ export {
   qb,
   updateTodo,
   addTodoTag,
+  removeTodoTag,
 };

@@ -12,6 +12,7 @@ import { X } from "lucide-react";
 import React, { useRef } from "react";
 import { useAddTodoTag } from "../../_mutations/use-add-todo-tag";
 import { Label } from "@/shared/components/ui/label";
+import { useRemoveTodoTag } from "../../_mutations/use-remove-todo-tag";
 
 interface TagDialogProps {
   open: boolean;
@@ -27,6 +28,7 @@ export const TagDialog: React.FC<TagDialogProps> = ({
   const inputTagRef = useRef<HTMLInputElement>(null);
 
   const addTodoTag = useAddTodoTag();
+  const removeTodoTag = useRemoveTodoTag();
 
   const handleAddTag: React.FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
@@ -45,7 +47,10 @@ export const TagDialog: React.FC<TagDialogProps> = ({
   };
 
   const handleRemoveTag = (tagId: number) => {
-    console.log(tagId);
+    removeTodoTag.mutate({
+      todoId: Number(todo.id),
+      tagId,
+    });
   };
 
   return (
@@ -77,22 +82,15 @@ export const TagDialog: React.FC<TagDialogProps> = ({
                   {todo.tags.map((tag, index) => (
                     <div
                       key={index}
-                      className="flex items-center bg-gray-100 rounded-full px-3 py-1 text-sm cursor-pointer"
-                      role="button"
-                      onClick={(event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        handleRemoveTag(tag.id);
-                      }}
-                      tabIndex={0}
+                      className="flex items-center bg-gray-100 rounded-full px-3 py-1 text-sm"
                     >
                       {tag.name}
                       <button
+                        type="button"
                         className="ml-1 text-gray-500 hover:text-gray-700"
                         onClick={(event) => {
                           event.preventDefault();
                           event.stopPropagation();
-
                           handleRemoveTag(tag.id);
                         }}
                       >

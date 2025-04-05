@@ -5,6 +5,7 @@ import {
   deleteTodo,
   getTodo,
   getTodos,
+  removeTodoTag,
   updateTodo,
 } from "./todo.service";
 import {
@@ -13,6 +14,7 @@ import {
   deleteTodoValidator,
   getTodosValidator,
   getTodoValidator,
+  removeTodoTagValidator,
   updateTodoValidator,
 } from "./todo.validator";
 
@@ -46,5 +48,10 @@ export const todoRouter = router({
     .input(addTodoTagValidator)
     .mutation(async ({ input, ctx }) => {
       return await addTodoTag(input, ctx.db);
+    }),
+  removeTodoTag: publicProcedure
+    .input(removeTodoTagValidator)
+    .mutation(async ({ input, ctx }) => {
+      return await removeTodoTag(input, ctx.db);
     }),
 });

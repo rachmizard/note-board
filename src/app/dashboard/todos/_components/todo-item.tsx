@@ -27,7 +27,7 @@ import {
   Tag as TagIcon,
   Trash,
 } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { Fragment, useEffect, useRef, useState } from "react";
 import { TodoFormValues } from "../_validators/todo-form.validator";
 import { CommentDialog } from "./dialogs/comment-dialog";
 import { DeleteConfirmationDialog } from "./dialogs/delete-confirmation-dialog";
@@ -137,6 +137,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
         e.target.closest("input") ||
         e.target.closest("h3") ||
         e.target.closest('[role="menuitem"]') ||
+        e.target.closest('[role="button"]') ||
         isEditingTitle)
     ) {
       return;
@@ -160,375 +161,385 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     : "";
 
   return (
-    <div
-      className={cn(
-        "border-b py-3 group hover:bg-gray-50 transition-colors duration-200",
-        todo.status === "completed" && "opacity-70",
-        !isEditing && "cursor-pointer" // Add cursor-pointer when not in edit mode
-      )}
-      onClick={!isEditing ? handleTodoItemClick : undefined} // Only enable click handler when not editing
-    >
-      {isEditing ? (
-        <TodoForm
-          onSubmit={handleSaveEdit}
-          defaultValues={{
-            title: todo.title,
-            dueDate: todo.dueDate ? new Date(todo.dueDate) : undefined,
-            priority: todo.priority as TodoPriorityEnum,
-          }}
-          onCancelEditing={() => setIsEditing(false)}
-        />
-      ) : (
-        <div>
-          <div className="flex items-start justify-between">
-            <div className="flex items-start flex-1">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    className={cn(
-                      "p-1 rounded-md mr-3 mt-1 flex items-center justify-center h-5 w-5 border",
-                      todo.status === "completed"
-                        ? "bg-blue-500 border-blue-500 text-white"
-                        : "border-gray-300"
-                    )}
-                  >
-                    {todo.status === "completed" && (
-                      <Check className="h-3 w-3" />
-                    )}
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  <DropdownMenuItem
-                    onClick={() => handleStatusChange("in-progress")}
-                  >
-                    <Clock className="h-4 w-4 mr-2 text-green-500" />
-                    <span>In Progress</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => handleStatusChange("completed")}
-                  >
-                    <Check className="h-4 w-4 mr-2 text-blue-500" />
-                    <span>Completed</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => handleStatusChange("backlog")}
-                  >
-                    <FolderClosed className="h-4 w-4 mr-2 text-purple-500" />
-                    <span>Backlog</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => handleStatusChange("archived")}
-                  >
-                    <Trash className="h-4 w-4 mr-2 text-gray-500" />
-                    <span>Archived</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <div className="flex-1">
-                <div className="flex items-start">
-                  {isEditingTitle ? (
-                    <Input
-                      ref={titleInputRef}
-                      value={inlineEditedTitle}
-                      onChange={(e) => setInlineEditedTitle(e.target.value)}
-                      onBlur={handleSaveInlineTitleEdit}
-                      onKeyDown={handleTitleInputKeyDown}
-                      className="min-w-[200px] h-7 py-1 px-2"
-                    />
-                  ) : (
-                    <h3
+    <Fragment>
+      <div
+        className={cn(
+          "border-b py-3 group hover:bg-gray-50 transition-colors duration-200",
+          todo.status === "completed" && "opacity-70",
+          !isEditing && "cursor-pointer" // Add cursor-pointer when not in edit mode
+        )}
+        onClick={!isEditing ? handleTodoItemClick : undefined} // Only enable click handler when not editing
+      >
+        {isEditing ? (
+          <TodoForm
+            onSubmit={handleSaveEdit}
+            defaultValues={{
+              title: todo.title,
+              dueDate: todo.dueDate ? new Date(todo.dueDate) : undefined,
+              priority: todo.priority as TodoPriorityEnum,
+            }}
+            onCancelEditing={() => setIsEditing(false)}
+          />
+        ) : (
+          <div>
+            <div className="flex items-start justify-between">
+              <div className="flex items-start flex-1">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
                       className={cn(
-                        "font-medium cursor-pointer",
-                        todo.status === "completed" &&
-                          "line-through text-gray-500"
+                        "p-1 rounded-md mr-3 mt-1 flex items-center justify-center h-5 w-5 border",
+                        todo.status === "completed"
+                          ? "bg-blue-500 border-blue-500 text-white"
+                          : "border-gray-300"
                       )}
-                      onDoubleClick={(e) => {
-                        e.stopPropagation(); // Prevent triggering the container click
-                        setIsEditingTitle(true);
-                      }}
+                    >
+                      {todo.status === "completed" && (
+                        <Check className="h-3 w-3" />
+                      )}
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuItem
+                      onClick={() => handleStatusChange("in-progress")}
+                    >
+                      <Clock className="h-4 w-4 mr-2 text-green-500" />
+                      <span>In Progress</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleStatusChange("completed")}
+                    >
+                      <Check className="h-4 w-4 mr-2 text-blue-500" />
+                      <span>Completed</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleStatusChange("backlog")}
+                    >
+                      <FolderClosed className="h-4 w-4 mr-2 text-purple-500" />
+                      <span>Backlog</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleStatusChange("archived")}
+                    >
+                      <Trash className="h-4 w-4 mr-2 text-gray-500" />
+                      <span>Archived</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <div className="flex-1">
+                  <div className="flex items-start">
+                    {isEditingTitle ? (
+                      <Input
+                        ref={titleInputRef}
+                        value={inlineEditedTitle}
+                        onChange={(e) => setInlineEditedTitle(e.target.value)}
+                        onBlur={handleSaveInlineTitleEdit}
+                        onKeyDown={handleTitleInputKeyDown}
+                        className="min-w-[200px] h-7 py-1 px-2"
+                      />
+                    ) : (
+                      <h3
+                        className={cn(
+                          "font-medium cursor-pointer",
+                          todo.status === "completed" &&
+                            "line-through text-gray-500"
+                        )}
+                        onDoubleClick={(e) => {
+                          e.stopPropagation(); // Prevent triggering the container click
+                          setIsEditingTitle(true);
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent triggering the container click
+                          setIsEditingTitle(true);
+                        }}
+                      >
+                        {todo.title}
+                      </h3>
+                    )}
+                    <button
                       onClick={(e) => {
                         e.stopPropagation(); // Prevent triggering the container click
-                        setIsEditingTitle(true);
+                        setIsExpanded(!isExpanded);
+                      }}
+                      className="ml-2 text-gray-400 hover:text-gray-600"
+                    >
+                      {isExpanded ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+
+                  {isToday && (
+                    <div className="mt-1 inline-block rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium">
+                      Today
+                    </div>
+                  )}
+
+                  {!isToday && todo.dueDate && (
+                    <div className="mt-1 inline-block rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium">
+                      {formattedDate}
+                    </div>
+                  )}
+
+                  {/* Optional: Additional tag example like "win" from the reference image */}
+                  {todo.priority === "high" && (
+                    <div className="mt-1 ml-2 inline-block rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium">
+                      win
+                    </div>
+                  )}
+
+                  {/* Display tags if available */}
+                  {todo.tags && todo.tags.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {todo.tags
+                        .slice(0, todo.tags.length > 3 ? 2 : 3)
+                        .map((tag, index) => (
+                          <div
+                            key={index}
+                            className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium"
+                          >
+                            {tag.name}
+                          </div>
+                        ))}
+                      {todo.tags.length > 3 && (
+                        <div className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium">
+                          +{todo.tags.length - 2} More
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Desktop action buttons - visible on hover */}
+              <div
+                className={cn(
+                  "hidden md:flex space-x-1 transition-opacity duration-200 px-4",
+                  isInteracting
+                    ? "opacity-100"
+                    : "opacity-0 group-hover:opacity-100"
+                )}
+                onClick={(e) => e.stopPropagation()} // Prevent triggering container click
+              >
+                {/* Priority dropdown using shadcn DropdownMenu */}
+                <DropdownMenu onOpenChange={setIsPriorityDropdownOpen}>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Flag
+                        className={cn(
+                          "h-4 w-4",
+                          getPriorityColor(todo.priority).replace(
+                            "bg-",
+                            "text-"
+                          )
+                        )}
+                      />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() => handlePriorityChange("low")}
+                    >
+                      <Flag className="h-4 w-4 mr-2 text-green-500" />
+                      <span>Low Priority</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handlePriorityChange("medium")}
+                    >
+                      <Flag className="h-4 w-4 mr-2 text-yellow-500" />
+                      <span>Medium Priority</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handlePriorityChange("high")}
+                    >
+                      <Flag className="h-4 w-4 mr-2 text-red-500" />
+                      <span>High Priority</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Other desktop action buttons */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering the container click
+                    setShowCommentModal(true);
+                  }}
+                >
+                  <MessageSquare className="h-4 w-4" />
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering the container click
+                    setShowTagDialog(true);
+                  }}
+                >
+                  <TagIcon className="h-4 w-4" />
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering the container click
+                    /* Implement folder functionality */
+                  }}
+                >
+                  <FolderClosed className="h-4 w-4" />
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering the container click
+                    setIsEditing(true);
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-red-500"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering the container click
+                    setShowDeleteDialog(true);
+                  }}
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Mobile action button - always visible */}
+              <div
+                className="block md:hidden !opacity-100"
+                onClick={(e) => e.stopPropagation()} // Prevent triggering container click
+              >
+                <DropdownMenu onOpenChange={setIsMobileMenuOpen}>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      <span>Edit</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowCommentModal(true)}>
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      <span>Add Comment</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowTagDialog(true)}>
+                      <TagIcon className="h-4 w-4 mr-2" />
+                      <span>Manage Tags</span>
+                    </DropdownMenuItem>
+
+                    {/* Priority submenu items */}
+                    <DropdownMenuItem
+                      onClick={() => handlePriorityChange("low")}
+                    >
+                      <Flag className="h-4 w-4 mr-2 text-green-500" />
+                      <span>Low Priority</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handlePriorityChange("medium")}
+                    >
+                      <Flag className="h-4 w-4 mr-2 text-yellow-500" />
+                      <span>Medium Priority</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handlePriorityChange("high")}
+                    >
+                      <Flag className="h-4 w-4 mr-2 text-red-500" />
+                      <span>High Priority</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onClick={() => {
+                        /* Implement folder functionality */
                       }}
                     >
-                      {todo.title}
-                    </h3>
-                  )}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent triggering the container click
-                      setIsExpanded(!isExpanded);
-                    }}
-                    className="ml-2 text-gray-400 hover:text-gray-600"
-                  >
-                    {isExpanded ? (
-                      <ChevronUp className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
+                      <FolderClosed className="h-4 w-4 mr-2" />
+                      <span>Move to Folder</span>
+                    </DropdownMenuItem>
 
-                {isToday && (
-                  <div className="mt-1 inline-block rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium">
-                    Today
-                  </div>
-                )}
-
-                {!isToday && todo.dueDate && (
-                  <div className="mt-1 inline-block rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium">
-                    {formattedDate}
-                  </div>
-                )}
-
-                {/* Optional: Additional tag example like "win" from the reference image */}
-                {todo.priority === "high" && (
-                  <div className="mt-1 ml-2 inline-block rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium">
-                    win
-                  </div>
-                )}
-
-                {/* Display tags if available */}
-                {todo.tags && todo.tags.length > 0 && (
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    {todo.tags
-                      .slice(0, todo.tags.length > 3 ? 2 : 3)
-                      .map((tag, index) => (
-                        <div
-                          key={index}
-                          className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium"
-                        >
-                          {tag.name}
-                        </div>
-                      ))}
-                    {todo.tags.length > 3 && (
-                      <div className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium">
-                        +{todo.tags.length - 2} More
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Desktop action buttons - visible on hover */}
-            <div
-              className={cn(
-                "hidden md:flex space-x-1 transition-opacity duration-200 px-4",
-                isInteracting
-                  ? "opacity-100"
-                  : "opacity-0 group-hover:opacity-100"
-              )}
-              onClick={(e) => e.stopPropagation()} // Prevent triggering container click
-            >
-              {/* Priority dropdown using shadcn DropdownMenu */}
-              <DropdownMenu onOpenChange={setIsPriorityDropdownOpen}>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Flag
-                      className={cn(
-                        "h-4 w-4",
-                        getPriorityColor(todo.priority).replace("bg-", "text-")
-                      )}
-                    />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handlePriorityChange("low")}>
-                    <Flag className="h-4 w-4 mr-2 text-green-500" />
-                    <span>Low Priority</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => handlePriorityChange("medium")}
-                  >
-                    <Flag className="h-4 w-4 mr-2 text-yellow-500" />
-                    <span>Medium Priority</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => handlePriorityChange("high")}
-                  >
-                    <Flag className="h-4 w-4 mr-2 text-red-500" />
-                    <span>High Priority</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {/* Other desktop action buttons */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent triggering the container click
-                  setShowCommentModal(true);
-                }}
-              >
-                <MessageSquare className="h-4 w-4" />
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent triggering the container click
-                  setShowTagDialog(true);
-                }}
-              >
-                <TagIcon className="h-4 w-4" />
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent triggering the container click
-                  /* Implement folder functionality */
-                }}
-              >
-                <FolderClosed className="h-4 w-4" />
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent triggering the container click
-                  setIsEditing(true);
-                }}
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-red-500"
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent triggering the container click
-                  setShowDeleteDialog(true);
-                }}
-              >
-                <Trash className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {/* Mobile action button - always visible */}
-            <div
-              className="block md:hidden !opacity-100"
-              onClick={(e) => e.stopPropagation()} // Prevent triggering container click
-            >
-              <DropdownMenu onOpenChange={setIsMobileMenuOpen}>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                    <Pencil className="h-4 w-4 mr-2" />
-                    <span>Edit</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setShowCommentModal(true)}>
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    <span>Add Comment</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setShowTagDialog(true)}>
-                    <TagIcon className="h-4 w-4 mr-2" />
-                    <span>Manage Tags</span>
-                  </DropdownMenuItem>
-
-                  {/* Priority submenu items */}
-                  <DropdownMenuItem onClick={() => handlePriorityChange("low")}>
-                    <Flag className="h-4 w-4 mr-2 text-green-500" />
-                    <span>Low Priority</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => handlePriorityChange("medium")}
-                  >
-                    <Flag className="h-4 w-4 mr-2 text-yellow-500" />
-                    <span>Medium Priority</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => handlePriorityChange("high")}
-                  >
-                    <Flag className="h-4 w-4 mr-2 text-red-500" />
-                    <span>High Priority</span>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem
-                    onClick={() => {
-                      /* Implement folder functionality */
-                    }}
-                  >
-                    <FolderClosed className="h-4 w-4 mr-2" />
-                    <span>Move to Folder</span>
-                  </DropdownMenuItem>
-
-                  {/* Delete with confirmation (will trigger dialog) */}
-                  <DropdownMenuItem
-                    onClick={() => setShowDeleteDialog(true)}
-                    className="text-red-500"
-                  >
-                    <Trash className="h-4 w-4 mr-2" />
-                    <span>Delete</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-
-          {isExpanded && (
-            <div className="mt-3 ml-9 space-y-2">
-              <div className="flex items-center text-sm text-gray-500">
-                <Clock className="h-3 w-3 mr-1" />
-                <span>
-                  Due: {todo.dueDate ? formatDate(todo.dueDate) : "No due date"}
-                </span>
-              </div>
-              <div className="flex items-center text-sm text-gray-500">
-                <span
-                  className={cn(
-                    "mr-2 inline-block px-2 py-0.5 rounded-full text-xs",
-                    getPriorityColor(todo.priority)
-                  )}
-                >
-                  {todo.priority}
-                </span>
-                <span
-                  className={cn(
-                    "inline-block px-2 py-0.5 rounded-full text-xs",
-                    getStatusColor(todo.status)
-                  )}
-                >
-                  {todo.status}
-                </span>
-              </div>
-
-              {/* Display comments if expanded and available */}
-              {todo.comments && todo.comments.length > 0 && (
-                <div className="mt-2 space-y-2">
-                  <h4 className="text-sm font-medium">Comments</h4>
-                  {todo.comments.map((comment) => (
-                    <div
-                      key={comment.id}
-                      className="bg-gray-50 p-2 rounded-md text-sm"
+                    {/* Delete with confirmation (will trigger dialog) */}
+                    <DropdownMenuItem
+                      onClick={() => setShowDeleteDialog(true)}
+                      className="text-red-500"
                     >
-                      <div className="text-gray-500 text-xs">
-                        {new Date(comment.createdAt).toLocaleString()}
-                      </div>
-                      <div>{comment.text}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                      <Trash className="h-4 w-4 mr-2" />
+                      <span>Delete</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
-          )}
-        </div>
-      )}
+
+            {isExpanded && (
+              <div className="mt-3 ml-9 space-y-2">
+                <div className="flex items-center text-sm text-gray-500">
+                  <Clock className="h-3 w-3 mr-1" />
+                  <span>
+                    Due:{" "}
+                    {todo.dueDate ? formatDate(todo.dueDate) : "No due date"}
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <span
+                    className={cn(
+                      "mr-2 inline-block px-2 py-0.5 rounded-full text-xs",
+                      getPriorityColor(todo.priority)
+                    )}
+                  >
+                    {todo.priority}
+                  </span>
+                  <span
+                    className={cn(
+                      "inline-block px-2 py-0.5 rounded-full text-xs",
+                      getStatusColor(todo.status)
+                    )}
+                  >
+                    {todo.status}
+                  </span>
+                </div>
+
+                {/* Display comments if expanded and available */}
+                {todo.comments && todo.comments.length > 0 && (
+                  <div className="mt-2 space-y-2">
+                    <h4 className="text-sm font-medium">Comments</h4>
+                    {todo.comments.map((comment) => (
+                      <div
+                        key={comment.id}
+                        className="bg-gray-50 p-2 rounded-md text-sm"
+                      >
+                        <div className="text-gray-500 text-xs">
+                          {new Date(comment.createdAt).toLocaleString()}
+                        </div>
+                        <div>{comment.text}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Separate Dialog Components */}
       <CommentDialog
@@ -561,6 +572,6 @@ export const TodoItem: React.FC<TodoItemProps> = ({
         onOpenChange={setShowDeleteDialog}
         onConfirm={() => onDelete(todo.id)}
       />
-    </div>
+    </Fragment>
   );
 };
