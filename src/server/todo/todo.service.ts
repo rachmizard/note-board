@@ -63,7 +63,9 @@ const getTodos = async (
     where: whereClauses.length > 0 ? and(...whereClauses) : undefined,
     with: {
       tags: true,
-      comments: true,
+      comments: {
+        orderBy: [desc(todoComments.createdAt)],
+      },
     },
     orderBy: [desc(todoSchema.createdAt)],
     offset,
