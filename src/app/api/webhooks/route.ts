@@ -10,6 +10,7 @@ import {
   users,
 } from "@/server/database";
 import { appEnv } from "@/shared/lib/env";
+import { eq } from "drizzle-orm";
 
 export async function POST(req: Request) {
   const SIGNING_SECRET = appEnv.SIGNING_SECRET;
@@ -70,11 +71,39 @@ export async function POST(req: Request) {
     }
   }
 
+  if (evt.type === "user.updated") {
+    try {
+      await updateUserFromWebHook(evt.data);
+
+      if (evt.data.external_accounts) {
+        await updateUserSessionProviderFromWebHook(evt.data);
+      }
+    } catch (error) {
+      console.error("Error: Could not update user:", error);
+      return new Response("Error: Could not update user", {
+        status: 500,
+      });
+    }
+  }
+
+  if (evt.type === "user.deleted") {
+    try {
+      if (!evt.data.id) {
+        throw new Error("User ID is required");
+      }
+      await db.delete(users).where(eq(users.id, evt.data.id));
+    } catch (error) {
+      console.error("Error: Could not delete user:", error);
+      return new Response("Error: Could not delete user", {
+        status: 500,
+      });
+    }
+  }
   return new Response("Webhook received", { status: 200 });
 }
 
 const createUserFromWebHook = async (json: UserJSON) => {
-  const user = await db.insert(users).values(mapCreateUserFromJson(json));
+  const user = await db.insert(users).values(mapUserFromJson(json));
 
   return { user };
 };
@@ -84,14 +113,36 @@ const createUserSessionProvider = async (json: UserJSON) => {
 
   const sessionProvider = await db
     .insert(userSessionProviders)
-    .values(mapCreateUserSessionProviderFromJson(json));
+    .values(mapUserSessionProviderFromJson(json));
 
   return sessionProvider;
 };
 
-const mapCreateUserFromJson = (json: UserJSON): NewUser => {
+const updateUserFromWebHook = async (json: UserJSON) => {
+  const user = await db
+    .update(users)
+    .set(mapUserFromJson(json))
+    .where(eq(users.id, json.id));
+
+  return { user };
+};
+
+const updateUserSessionProviderFromWebHook = async (json: UserJSON) => {
+  const sessionProvider = await db
+    .update(userSessionProviders)
+    .set({
+      id: json.id,
+      ...mapUserSessionProviderFromJson(json),
+    })
+    .where(eq(userSessionProviders.userId, json.id));
+
+  return { sessionProvider };
+};
+
+const mapUserFromJson = (json: UserJSON): NewUser => {
   const [mainEmail] = json.email_addresses;
-  return {
+
+  const userPayload = {
     email: mainEmail.email_address,
     id: json.id,
     firstName: json.first_name ?? "",
@@ -99,10 +150,15 @@ const mapCreateUserFromJson = (json: UserJSON): NewUser => {
     gender: "",
     profilePicture: json.image_url,
     username: json.username ?? "",
+    lastActiveAt: json.last_active_at
+      ? new Date(json.last_active_at)
+      : undefined,
   };
+
+  return userPayload;
 };
 
-const mapCreateUserSessionProviderFromJson = (
+const mapUserSessionProviderFromJson = (
   json: UserJSON
 ): NewUserSessionProvider[] => {
   return json.external_accounts.map((account) => ({
