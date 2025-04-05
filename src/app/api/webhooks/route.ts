@@ -99,8 +99,7 @@ export async function POST(req: Request) {
         .from(users)
         .where(eq(users.id, evt.data.user_id));
 
-      if (!user) return new Response("User not found", { status: 404 });
-
+      if (user.length === 0) return new Response("User not found", { status: 404 });
       await db
         .update(users)
         .set({
