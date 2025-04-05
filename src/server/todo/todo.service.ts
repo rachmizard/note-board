@@ -12,6 +12,7 @@ import {
 import type { PaginationResponse } from "@/server/types/response";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, SQL, sql } from "drizzle-orm";
+import type { Context } from "../context";
 import type {
   AddTodoCommentRequest,
   AddTodoTagRequest,
@@ -25,16 +26,26 @@ import type {
   UpdateTodoRequest,
 } from "./todo.validator";
 
-const qb = async (request: CreateTodoRequest, db: Database): Promise<Todo> => {
-  const [todo] = await db.insert(todoSchema).values(request).returning();
-  return todo;
-};
-
 const createTodo = async (
   request: CreateTodoRequest,
-  db: Database
+  context: Context
 ): Promise<Todo> => {
-  const [todo] = await db.insert(todoSchema).values(request).returning();
+  const { auth, db } = context;
+
+  if (!auth || !auth.userId) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Unauthorized",
+    });
+  }
+
+  const [todo] = await db
+    .insert(todoSchema)
+    .values({
+      ...request,
+      userId: auth.userId,
+    })
+    .returning();
   return todo;
 };
 
@@ -47,19 +58,26 @@ const createTodo = async (
  */
 const getTodos = async (
   request: GetTodosRequest,
-  db: Database
+  context: Context
 ): Promise<PaginationResponse<TodoWithRelations>> => {
+  if (!context.auth || !context.auth.userId) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Unauthorized",
+    });
+  }
+
   const { page = 1, limit = 10 } = request;
   const offset = (page - 1) * limit;
 
-  const whereClauses: SQL[] = [];
+  const whereClauses: SQL[] = [eq(todoSchema.userId, context.auth.userId)];
 
   if (request.status) {
     whereClauses.push(eq(todoSchema.status, request.status));
   }
 
   // Execute the main query with pagination
-  const todos = await db.query.todoSchema.findMany({
+  const todos = await context.db.query.todoSchema.findMany({
     where: whereClauses.length > 0 ? and(...whereClauses) : undefined,
     with: {
       tags: true,
@@ -73,7 +91,7 @@ const getTodos = async (
   });
 
   // Get total count for pagination
-  const [{ count }] = await db
+  const [{ count }] = await context.db
     .select({
       count: sql`count(*)`,
     })
@@ -174,7 +192,6 @@ export {
   getTodo,
   getTodoComments,
   getTodos,
-  qb,
   removeTodoComment,
   removeTodoTag,
   updateTodo,

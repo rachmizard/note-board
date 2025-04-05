@@ -28,12 +28,12 @@ export const todoRouter = router({
   createTodo: publicProcedure
     .input(createTodoValidator)
     .mutation(async ({ input, ctx }) => {
-      return await createTodo(input, ctx.db);
+      return await createTodo(input, ctx);
     }),
   getTodos: publicProcedure
     .input(getTodosValidator)
     .query(async ({ input, ctx }) => {
-      return await getTodos(input, ctx.db);
+      return await getTodos(input, ctx);
     }),
   deleteTodo: publicProcedure
     .input(deleteTodoValidator)
