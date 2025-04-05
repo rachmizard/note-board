@@ -2,13 +2,7 @@ import { UserJSON, WebhookEvent } from "@clerk/nextjs/server";
 import { headers } from "next/headers";
 import { Webhook } from "svix";
 
-import {
-  db,
-  NewUser,
-  NewUserSessionProvider,
-  userSessionProviders,
-  users,
-} from "@/server/database";
+import { db, NewUser, users } from "@/server/database";
 import { appEnv } from "@/shared/lib/env";
 import { eq } from "drizzle-orm";
 
@@ -56,13 +50,12 @@ export async function POST(req: Request) {
       status: 400,
     });
   }
-  // Narrate the user.created event
+
+  // Narrowing the user.created event
   if (evt.type === "user.created") {
     try {
       await createUserFromWebHook(evt.data);
-      if (evt.data.external_accounts) {
-        await createUserSessionProvider(evt.data);
-      }
+      return new Response("User created", { status: 200 });
     } catch (err) {
       console.error("Error: Could not create user:", err);
       return new Response("Error: Could not create user", {
@@ -74,10 +67,7 @@ export async function POST(req: Request) {
   if (evt.type === "user.updated") {
     try {
       await updateUserFromWebHook(evt.data);
-
-      if (evt.data.external_accounts) {
-        await updateUserSessionProviderFromWebHook(evt.data);
-      }
+      return new Response("User updated", { status: 200 });
     } catch (error) {
       console.error("Error: Could not update user:", error);
       return new Response("Error: Could not update user", {
@@ -92,6 +82,8 @@ export async function POST(req: Request) {
         throw new Error("User ID is required");
       }
       await db.delete(users).where(eq(users.id, evt.data.id));
+
+      return new Response("User deleted", { status: 200 });
     } catch (error) {
       console.error("Error: Could not delete user:", error);
       return new Response("Error: Could not delete user", {
@@ -99,6 +91,54 @@ export async function POST(req: Request) {
       });
     }
   }
+
+  if (evt.type === "session.created") {
+    try {
+      const user = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, evt.data.user_id));
+
+      if (!user) return new Response("User not found", { status: 404 });
+
+      await db
+        .update(users)
+        .set({
+          lastActiveAt: evt.data.last_active_at
+            ? new Date(evt.data.last_active_at)
+            : undefined,
+        })
+        .where(eq(users.id, evt.data.user_id));
+
+      return new Response("Session created", { status: 200 });
+    } catch (error) {
+      console.error("Error: Could not create user session provider:", error);
+      return new Response("Error: Could not create user session provider", {
+        status: 500,
+      });
+    }
+  }
+
+  if (evt.type === "session.removed" || evt.type === "session.ended") {
+    try {
+      await db
+        .update(users)
+        .set({
+          lastActiveAt: evt.data.last_active_at
+            ? new Date(evt.data.last_active_at)
+            : undefined,
+        })
+        .where(eq(users.id, evt.data.user_id));
+
+      return new Response("Session ended", { status: 200 });
+    } catch (error) {
+      console.error("Error: Could not update user session provider:", error);
+      return new Response("Error: Could not update user session provider", {
+        status: 500,
+      });
+    }
+  }
+
   return new Response("Webhook received", { status: 200 });
 }
 
@@ -108,17 +148,14 @@ const createUserFromWebHook = async (json: UserJSON) => {
   return { user };
 };
 
-const createUserSessionProvider = async (json: UserJSON) => {
-  if (!json.external_accounts) return;
-
-  const sessionProvider = await db
-    .insert(userSessionProviders)
-    .values(mapUserSessionProviderFromJson(json));
-
-  return sessionProvider;
-};
-
 const updateUserFromWebHook = async (json: UserJSON) => {
+  // Check if user already exists
+  const existingUser = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, json.id));
+  if (!existingUser) return;
+
   const user = await db
     .update(users)
     .set(mapUserFromJson(json))
@@ -126,19 +163,6 @@ const updateUserFromWebHook = async (json: UserJSON) => {
 
   return { user };
 };
-
-const updateUserSessionProviderFromWebHook = async (json: UserJSON) => {
-  const sessionProvider = await db
-    .update(userSessionProviders)
-    .set({
-      id: json.id,
-      ...mapUserSessionProviderFromJson(json),
-    })
-    .where(eq(userSessionProviders.userId, json.id));
-
-  return { sessionProvider };
-};
-
 const mapUserFromJson = (json: UserJSON): NewUser => {
   const [mainEmail] = json.email_addresses;
 
@@ -156,15 +180,4 @@ const mapUserFromJson = (json: UserJSON): NewUser => {
   };
 
   return userPayload;
-};
-
-const mapUserSessionProviderFromJson = (
-  json: UserJSON
-): NewUserSessionProvider[] => {
-  return json.external_accounts.map((account) => ({
-    userId: json.id,
-    id: account.id,
-    provider: account.provider,
-    providerId: account.provider_user_id,
-  }));
 };

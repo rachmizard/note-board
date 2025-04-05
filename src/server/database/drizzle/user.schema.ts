@@ -14,19 +14,5 @@ export const users = pgCore.pgTable("users", {
   updatedAt: pgCore.timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const userSessionProviders = pgCore.pgTable("user_session_providers", {
-  id: pgCore.text("id").primaryKey(),
-  userId: pgCore.text("user_id").references(() => users.id, {
-    onDelete: "cascade",
-  }),
-  provider: pgCore.text("provider"),
-  providerId: pgCore.text("provider_id"),
-  createdAt: pgCore.timestamp("created_at").defaultNow().notNull(),
-  updatedAt: pgCore.timestamp("updated_at").defaultNow().notNull(),
-});
-
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
-
-export type UserSessionProvider = typeof userSessionProviders.$inferSelect;
-export type NewUserSessionProvider = typeof userSessionProviders.$inferInsert;
