@@ -1,16 +1,16 @@
 import { relations } from "drizzle-orm";
-import { userSessionProvidersSchema, usersSchema } from "./user.schema";
+import { userSessionProviders, users } from "./user.schema";
 
-export const userRelations = relations(usersSchema, ({ many }) => ({
-  sessionProviders: many(userSessionProvidersSchema),
+export const userRelations = relations(users, ({ many }) => ({
+  sessionProviders: many(userSessionProviders),
 }));
 
 export const userSessionProvidersRelations = relations(
-  userSessionProvidersSchema,
+  userSessionProviders,
   ({ one }) => ({
-    user: one(usersSchema, {
-      fields: [userSessionProvidersSchema.userId],
-      references: [usersSchema.id],
+    user: one(users, {
+      fields: [userSessionProviders.userId],
+      references: [users.id],
     }),
   })
 );

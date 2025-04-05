@@ -6,8 +6,8 @@ import {
   db,
   NewUser,
   NewUserSessionProvider,
-  userSessionProvidersSchema,
-  usersSchema,
+  userSessionProviders,
+  users,
 } from "@/server/database";
 import { appEnv } from "@/shared/lib/env";
 
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
 }
 
 const createUserFromWebHook = async (json: UserJSON) => {
-  const user = await db.insert(usersSchema).values(mapCreateUserFromJson(json));
+  const user = await db.insert(users).values(mapCreateUserFromJson(json));
 
   return { user };
 };
@@ -83,7 +83,7 @@ const createUserSessionProvider = async (json: UserJSON) => {
   if (!json.external_accounts) return;
 
   const sessionProvider = await db
-    .insert(userSessionProvidersSchema)
+    .insert(userSessionProviders)
     .values(mapCreateUserSessionProviderFromJson(json));
 
   return sessionProvider;

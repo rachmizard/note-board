@@ -1,11 +1,11 @@
-import { Database, userSessionProvidersSchema, usersSchema } from "../database";
+import { Database, users, userSessionProviders } from "../database";
 import {
   CreateUserValidator,
   CreateUserSessionProviderValidator,
 } from "./user.validator";
 
 export const createUser = async (input: CreateUserValidator, db: Database) => {
-  const [user] = await db.insert(usersSchema).values(input).returning();
+  const [user] = await db.insert(users).values(input).returning();
   return user;
 };
 
@@ -14,7 +14,7 @@ export const createUserSessionProvider = async (
   db: Database
 ) => {
   const sessionProviders = await db
-    .insert(userSessionProvidersSchema)
+    .insert(userSessionProviders)
     .values(input.providers)
     .returning();
 
