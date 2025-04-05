@@ -153,8 +153,9 @@ const updateUserFromWebHook = async (json: UserJSON) => {
     .select()
     .from(users)
     .where(eq(users.id, json.id));
-  if (!existingUser) return;
-
+  if (!existingUser) {
+    return new Response("User not found", { status: 404 });
+  }
   const user = await db
     .update(users)
     .set(mapUserFromJson(json))
