@@ -1,5 +1,6 @@
 import { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import { db } from "./database";
+import { auth as clerkAuth } from "@clerk/nextjs/server";
 /**
  * Defines your inner context shape.
  * Add fields here that the inner context brings.
@@ -17,8 +18,10 @@ interface CreateInnerContextOptions
  * @see https://trpc.io/docs/v11/context#inner-and-outer-context
  */
 export async function createContextInner(opts?: CreateInnerContextOptions) {
+  const auth = await clerkAuth();
   return {
     db,
+    auth,
     ...opts,
   };
 }
