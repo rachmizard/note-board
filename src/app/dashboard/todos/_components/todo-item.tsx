@@ -228,7 +228,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                 </DropdownMenu>
 
                 <div className="flex-1">
-                  <div className="flex items-start">
+                  <div className="flex items-center">
                     {isEditingTitle ? (
                       <Input
                         ref={titleInputRef}
@@ -236,7 +236,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                         onChange={(e) => setInlineEditedTitle(e.target.value)}
                         onBlur={handleSaveInlineTitleEdit}
                         onKeyDown={handleTitleInputKeyDown}
-                        className="min-w-[200px] h-7 py-1 px-2"
+                        className="w-fit min-w-fit h-7 py-1 px-2"
                       />
                     ) : (
                       <h3
@@ -491,7 +491,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
             </div>
 
             {isExpanded && (
-              <div className="mt-3 ml-9 space-y-2">
+              <div className="mt-1 ml-9 space-y-2">
                 <div className="flex items-center text-sm text-gray-500">
                   <Clock className="h-3 w-3 mr-1" />
                   <span>

@@ -2,24 +2,23 @@
 
 import { parseAsString, useQueryState } from "nuqs";
 
+import { AnimatedList } from "@/components/magicui/animated-list";
 import {
   TodoPriorityEnum,
   TodoStatusEnum,
 } from "@/server/database/drizzle/todo.schema";
 import { Button } from "@/shared/components/ui/button";
-import { Card } from "@/shared/components/ui/card";
 import { Todo } from "@/types/todo";
 import { ListFilter } from "lucide-react";
-import { useMemo, useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useDeleteTodo } from "../_mutations/use-delete-todo";
 import { useUpdateTodo } from "../_mutations/use-update-todo";
 import { useTodos } from "../_queries/use-todos";
 import { mapTodoStatusFromServer } from "../utils/todo.utils";
 import { AddQuickTodoForm } from "./add-quick-todo-form";
+import { TodoCompletionHistory } from "./todo-completion-history";
 import { TodoItem } from "./todo-item";
 import { TodoStats } from "./todo-stats";
-import { AnimatedList } from "@/components/magicui/animated-list";
-import React from "react";
 
 const useFilterQueryState = () => {
   return useQueryState("status", parseAsString.withDefault("all"));
@@ -105,23 +104,8 @@ export const TodoList = () => {
     });
   }, [convertedTodos, filter]);
 
-  // Keep existing completion history logic
-  const completionHistory = useMemo(() => {
-    return convertedTodos
-      .filter((todo) => todo.status === "completed" && todo.completedAt)
-      .sort((a, b) => {
-        const dateA = a.completedAt || new Date();
-        const dateB = b.completedAt || new Date();
-        return dateB.getTime() - dateA.getTime();
-      });
-  }, [convertedTodos]);
-
-  if (todos.isLoading) {
-    return <div>Loading todos...</div>;
-  }
-
   return (
-    <div className="w-full mx-auto px-4 sm:px-6 lg:max-w-8xl">
+    <div className="w-full mx-auto px-0 sm:px-6 lg:max-w-8xl">
       <div className="flex flex-col lg:flex-row lg:justify-between w-full gap-4 lg:gap-8">
         <div className="w-full lg:max-w-[60%]">
           {/* Task Input Area */}
@@ -205,36 +189,9 @@ export const TodoList = () => {
         </div>
 
         <div className="w-full mt-6 lg:mt-0 lg:max-w-[40%]">
-          <TodoStats todos={convertedTodos} />
+          <TodoStats />
 
-          {/* Completion History section can be moved to a separate tab or section if needed */}
-          {completionHistory.length > 0 && (
-            <Card className="p-3 sm:p-4 mt-4 sm:mt-6">
-              <h3 className="text-base sm:text-lg font-medium mb-2 sm:mb-3">
-                Completion History
-              </h3>
-              <div className="space-y-2 max-h-48 sm:max-h-60 overflow-y-auto">
-                {completionHistory.map((todo) => (
-                  <div
-                    key={`history-${todo.id}`}
-                    className="text-xs sm:text-sm border-b pb-2 dark:border-gray-700"
-                  >
-                    <p className="font-medium">{todo.title}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Completed:{" "}
-                      {todo.completedAt?.toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
+          <TodoCompletionHistory />
         </div>
       </div>
     </div>

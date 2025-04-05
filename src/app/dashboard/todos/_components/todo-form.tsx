@@ -58,7 +58,7 @@ export const TodoForm: React.FC<AddTodoProps> = ({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(handleSubmit)}
-        className="space-y-3 px-4"
+        className="space-y-4 px-4"
       >
         <div>
           <FormField
@@ -71,7 +71,7 @@ export const TodoForm: React.FC<AddTodoProps> = ({
                   <Input
                     {...field}
                     placeholder="What needs to be done?"
-                    className="w-full"
+                    className="w-full "
                     autoFocus
                   />
                 </FormControl>
@@ -81,7 +81,7 @@ export const TodoForm: React.FC<AddTodoProps> = ({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-3">
           <div>
             <FormField
               control={form.control}
