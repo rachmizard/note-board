@@ -5,7 +5,7 @@ import {
   todoTags,
 } from "@/server/database/drizzle/todo.schema";
 import type { PaginationResponse } from "@/server/types/response";
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, SQL, sql } from "drizzle-orm";
 import type {
   AddTodoTagRequest,
   CreateTodoRequest,
@@ -44,8 +44,15 @@ const getTodos = async (
   const { page = 1, limit = 10 } = request;
   const offset = (page - 1) * limit;
 
+  const whereClauses: SQL[] = [];
+
+  if (request.status) {
+    whereClauses.push(eq(todoSchema.status, request.status));
+  }
+
   // Execute the main query with pagination
   const todos = await db.query.todoSchema.findMany({
+    where: whereClauses.length > 0 ? and(...whereClauses) : undefined,
     with: {
       tags: true,
     },

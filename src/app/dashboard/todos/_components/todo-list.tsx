@@ -34,6 +34,7 @@ export const TodoList = () => {
     limit: 100, // Fetch a reasonable number of todos
     sortBy: "createdAt",
     sortOrder: "desc",
+    status: filter === "all" ? undefined : (filter as TodoStatusEnum),
   });
 
   const deleteTodo = useDeleteTodo();

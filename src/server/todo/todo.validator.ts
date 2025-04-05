@@ -31,6 +31,7 @@ export const getTodosValidator = z.object({
   limit: z.number().optional().default(10),
   sortBy: z.string().optional().default("createdAt"),
   sortOrder: z.string().optional().default("desc"),
+  status: z.nativeEnum(TodoStatusEnum).optional(),
 });
 
 export const deleteTodoValidator = z.object({
