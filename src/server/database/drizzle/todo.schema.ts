@@ -44,13 +44,17 @@ export const todoSchema = pgCore.pgTable("todos", {
 export const todoTags = pgCore.pgTable("todo_tags", {
   id: pgCore.serial("id").primaryKey(),
   name: pgCore.text("name").notNull(),
-  todoId: pgCore.integer("todo_id").references(() => todoSchema.id),
+  todoId: pgCore.integer("todo_id").references(() => todoSchema.id, {
+    onDelete: "cascade",
+  }),
 });
 
 export const todoComments = pgCore.pgTable("todo_comments", {
   id: pgCore.serial("id").primaryKey(),
   comment: pgCore.text("comment").notNull(),
-  todoId: pgCore.integer("todo_id").references(() => todoSchema.id),
+  todoId: pgCore.integer("todo_id").references(() => todoSchema.id, {
+    onDelete: "cascade",
+  }),
   // TODO: add user id
 });
 

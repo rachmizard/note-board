@@ -15,7 +15,6 @@ export default defineConfig({
   migrations: {
     schema: "public",
     table: "migrations",
-    prefix: "none",
   },
   // Customize your migration settings as needed
   verbose: true,
