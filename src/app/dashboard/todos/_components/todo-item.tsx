@@ -117,7 +117,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     const updates: Partial<Todo> = { status: newStatus };
     if (newStatus === "completed") {
       updates.completedAt = new Date();
-    } else if (newStatus === "in-progress" && todo.status === "completed") {
+    } else if (newStatus === "inprogress" && todo.status === "completed") {
       updates.completedAt = undefined;
     }
     onUpdate(todo.id, updates);
@@ -201,7 +201,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start">
                     <DropdownMenuItem
-                      onClick={() => handleStatusChange("in-progress")}
+                      onClick={() => handleStatusChange("inprogress")}
                     >
                       <Clock className="h-4 w-4 mr-2 text-green-500" />
                       <span>In Progress</span>

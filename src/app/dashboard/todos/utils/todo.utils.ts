@@ -5,7 +5,7 @@ import { TodoStatus } from "@/types/todo";
 export const mapTodoStatusFromServer = (status: TodoStatusEnum): TodoStatus => {
   switch (status) {
     case TodoStatusEnum.IN_PROGRESS:
-      return "in-progress";
+      return "inprogress";
     case TodoStatusEnum.COMPLETED:
       return "completed";
     case TodoStatusEnum.BACKLOG:

@@ -142,9 +142,9 @@ export const TodoList = () => {
               All
             </Button>
             <Button
-              variant={filter === "in-progress" ? "default" : "outline"}
+              variant={filter === "inprogress" ? "default" : "outline"}
               size="sm"
-              onClick={() => setFilter("in-progress")}
+              onClick={() => setFilter("inprogress")}
               className="rounded-full text-xs sm:text-sm"
             >
               In Progress

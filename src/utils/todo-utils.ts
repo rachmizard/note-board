@@ -42,7 +42,7 @@ export const getPriorityColor = (priority: TodoPriority): string => {
 
 export const getStatusColor = (status: TodoStatus): string => {
   switch (status) {
-    case "in-progress":
+    case "inprogress":
       return "bg-green-100 text-green-800";
     case "completed":
       return "bg-gray-100 text-gray-800";

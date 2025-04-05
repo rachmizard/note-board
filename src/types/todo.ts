@@ -1,7 +1,7 @@
 import { TodoTag } from "@/server/database";
 
 export type TodoPriority = "low" | "medium" | "high";
-export type TodoStatus = "in-progress" | "completed" | "backlog" | "archived";
+export type TodoStatus = "inprogress" | "completed" | "backlog" | "archived";
 
 export interface TodoComment {
   id: string;

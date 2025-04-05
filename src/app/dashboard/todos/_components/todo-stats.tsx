@@ -13,7 +13,7 @@ export const TodoStats: React.FC<TodoStatsProps> = ({ todos }) => {
     (todo) => todo.status === "completed"
   ).length;
   const inProgressCount = todos.filter(
-    (todo) => todo.status === "in-progress"
+    (todo) => todo.status === "inprogress"
   ).length;
   const backlogCount = todos.filter((todo) => todo.status === "backlog").length;
   const archivedCount = todos.filter(
