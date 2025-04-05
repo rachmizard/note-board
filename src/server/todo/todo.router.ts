@@ -63,7 +63,7 @@ export const todoRouter = router({
   addTodoComment: publicProcedure
     .input(addTodoCommentValidator)
     .mutation(async ({ input, ctx }) => {
-      return await addTodoComment(input, ctx.db);
+      return await addTodoComment(input, ctx);
     }),
   removeTodoComment: publicProcedure
     .input(removeTodoCommentValidator)

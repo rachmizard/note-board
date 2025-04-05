@@ -161,9 +161,19 @@ const removeTodoTag = async (
 
 const addTodoComment = async (
   request: AddTodoCommentRequest,
-  db: Database
+  context: Context
 ): Promise<void> => {
-  await db.insert(todoComments).values(request);
+  if (!context.auth || !context.auth.userId) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Unauthorized",
+    });
+  }
+
+  await context.db.insert(todoComments).values({
+    ...request,
+    userId: context.auth.userId,
+  });
 };
 
 const removeTodoComment = async (
