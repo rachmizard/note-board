@@ -27,3 +27,11 @@ export const userSessionProvidersSchema = pgCore.pgTable(
     updatedAt: pgCore.timestamp("updated_at").defaultNow().notNull(),
   }
 );
+
+export type User = typeof usersSchema.$inferSelect;
+export type NewUser = typeof usersSchema.$inferInsert;
+
+export type UserSessionProvider =
+  typeof userSessionProvidersSchema.$inferSelect;
+export type NewUserSessionProvider =
+  typeof userSessionProvidersSchema.$inferInsert;
