@@ -10,7 +10,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
 import { Todo } from "@/types/todo";
 import { ListFilter } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useMemo, useCallback } from "react";
 import { useDeleteTodo } from "../_mutations/use-delete-todo";
 import { useUpdateTodo } from "../_mutations/use-update-todo";
 import { useTodos } from "../_queries/use-todos";
@@ -19,6 +19,7 @@ import { AddQuickTodoForm } from "./add-quick-todo-form";
 import { TodoItem } from "./todo-item";
 import { TodoStats } from "./todo-stats";
 import { AnimatedList } from "@/components/magicui/animated-list";
+import React from "react";
 
 const useFilterQueryState = () => {
   return useQueryState("status", parseAsString.withDefault("all"));
@@ -26,7 +27,6 @@ const useFilterQueryState = () => {
 
 export const TodoList = () => {
   const [filter, setFilter] = useFilterQueryState();
-  const [localTodos, setLocalTodos] = useState<Todo[]>([]);
 
   // Use the real data source with useTodos hook
   const todos = useTodos({
@@ -40,84 +40,81 @@ export const TodoList = () => {
   const deleteTodo = useDeleteTodo();
   const updateTodo = useUpdateTodo();
 
-  // Convert server todos to frontend Todo format and merge with local todos
-  useEffect(() => {
-    if (todos.data?.data) {
-      // Map server todo format to frontend Todo format
-      const convertedTodos = todos.data.data.map((serverTodo) => ({
-        id: String(serverTodo.id), // Convert to string to match Todo type
-        title: serverTodo.title,
-        dueDate: serverTodo.dueDate || undefined,
-        priority: serverTodo.priority.toLowerCase() as Todo["priority"],
-        status: mapTodoStatusFromServer(serverTodo.status),
-        createdAt: serverTodo.createdAt,
-        completedAt:
-          serverTodo.status === TodoStatusEnum.COMPLETED
-            ? serverTodo.updatedAt
-            : undefined,
-        tags: serverTodo.tags || undefined, // Convert null to undefined
-      }));
+  // Convert server todos to frontend Todo format
+  const convertedTodos = useMemo(() => {
+    if (!todos.data?.data) return [];
 
-      setLocalTodos(convertedTodos);
-    }
+    // Map server todo format to frontend Todo format
+    return todos.data.data.map((serverTodo) => ({
+      id: String(serverTodo.id), // Convert to string to match Todo type
+      title: serverTodo.title,
+      dueDate: serverTodo.dueDate || undefined,
+      priority: serverTodo.priority.toLowerCase() as Todo["priority"],
+      status: mapTodoStatusFromServer(serverTodo.status),
+      createdAt: serverTodo.createdAt,
+      completedAt:
+        serverTodo.status === TodoStatusEnum.COMPLETED
+          ? serverTodo.updatedAt
+          : undefined,
+      tags: serverTodo.tags || undefined, // Convert null to undefined
+    }));
   }, [todos.data]);
 
-  const handleUpdateTodo = (id: string, updates: Partial<Todo>) => {
-    // Keep existing update functionality
-    // Note: In a real implementation, this might need to call a mutation
-    // but keeping it local as requested
-    setLocalTodos((prevTodos) =>
-      prevTodos.map((todo) => (todo.id === id ? { ...todo, ...updates } : todo))
-    );
+  const handleUpdateTodo = useCallback(
+    (id: string, updates: Partial<Todo>) => {
+      // Convert client types to server enum types before mutation
+      const serverUpdates: {
+        id: number;
+        title?: string;
+        dueDate?: Date;
+        priority?: TodoPriorityEnum;
+        status?: TodoStatusEnum;
+        description?: string;
+      } = { id: Number(id) };
 
-    // Convert client types to server enum types before mutation
-    const serverUpdates: {
-      id: number;
-      title?: string;
-      dueDate?: Date;
-      priority?: TodoPriorityEnum;
-      status?: TodoStatusEnum;
-      description?: string;
-    } = { id: Number(id) };
+      if (updates.title) serverUpdates.title = updates.title;
+      if (updates.dueDate) serverUpdates.dueDate = updates.dueDate;
 
-    if (updates.title) serverUpdates.title = updates.title;
-    if (updates.dueDate) serverUpdates.dueDate = updates.dueDate;
+      // Convert priority string to enum if present
+      if (updates.priority) {
+        serverUpdates.priority = updates.priority as TodoPriorityEnum; // Will refactor soon with actual enum
+      }
 
-    // Convert priority string to enum if present
-    if (updates.priority) {
-      serverUpdates.priority = updates.priority as TodoPriorityEnum; // Will refactor soon with actual enum
-    }
+      // Convert status string to enum if present
+      if (updates.status) {
+        serverUpdates.status = updates.status as TodoStatusEnum;
+      }
 
-    // Convert status string to enum if present
-    if (updates.status) {
-      serverUpdates.status = updates.status as TodoStatusEnum;
-    }
+      updateTodo.mutate(serverUpdates);
+    },
+    [updateTodo]
+  );
 
-    updateTodo.mutate(serverUpdates);
-  };
-
-  const handleDeleteTodo = (id: string) => {
-    // Keep existing delete functionality
-    // Note: In a real implementation, this might need to call a mutation
-    // but keeping it local as requested
-    setLocalTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
-    deleteTodo.mutate({ id: Number(id) });
-  };
+  const handleDeleteTodo = useCallback(
+    (id: string) => {
+      deleteTodo.mutate({ id: Number(id) });
+    },
+    [deleteTodo]
+  );
 
   // Keep existing filtering logic
-  const filteredTodos = localTodos.filter((todo) => {
-    if (filter === "all") return true;
-    return todo.status === filter;
-  });
+  const filteredTodos = useMemo(() => {
+    return convertedTodos.filter((todo) => {
+      if (filter === "all") return true;
+      return todo.status === filter;
+    });
+  }, [convertedTodos, filter]);
 
   // Keep existing completion history logic
-  const completionHistory = localTodos
-    .filter((todo) => todo.status === "completed" && todo.completedAt)
-    .sort((a, b) => {
-      const dateA = a.completedAt || new Date();
-      const dateB = b.completedAt || new Date();
-      return dateB.getTime() - dateA.getTime();
-    });
+  const completionHistory = useMemo(() => {
+    return convertedTodos
+      .filter((todo) => todo.status === "completed" && todo.completedAt)
+      .sort((a, b) => {
+        const dateA = a.completedAt || new Date();
+        const dateB = b.completedAt || new Date();
+        return dateB.getTime() - dateA.getTime();
+      });
+  }, [convertedTodos]);
 
   if (todos.isLoading) {
     return <div>Loading todos...</div>;
@@ -178,7 +175,7 @@ export const TodoList = () => {
 
           {/* Todo List */}
           {filteredTodos.length > 0 ? (
-            <AnimatedList delay={100}>
+            <AnimatedList delay={0}>
               {filteredTodos.map((todo) => (
                 <TodoItem
                   key={todo.id}
@@ -208,7 +205,7 @@ export const TodoList = () => {
         </div>
 
         <div className="w-full mt-6 lg:mt-0 lg:max-w-[40%]">
-          <TodoStats todos={localTodos} />
+          <TodoStats todos={convertedTodos} />
 
           {/* Completion History section can be moved to a separate tab or section if needed */}
           {completionHistory.length > 0 && (
