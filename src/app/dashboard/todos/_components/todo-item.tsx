@@ -27,6 +27,7 @@ import {
   Flag,
   FlagIcon,
   FolderClosed,
+  ListPlusIcon,
   MessageSquare,
   MoreHorizontal,
   Pencil,
@@ -239,7 +240,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                     <DropdownMenuItem
                       onClick={() => handleStatusChange(TodoStatusEnum.BACKLOG)}
                     >
-                      <FolderClosed className="h-4 w-4 mr-2 text-purple-500" />
+                      <ListPlusIcon className="h-4 w-4 mr-2 text-purple-500" />
                       <span>Backlog</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
@@ -422,7 +423,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                     /* Implement folder functionality */
                   }}
                 >
-                  <FolderClosed className="h-4 w-4" />
+                  <ListPlusIcon className="h-4 w-4" />
                 </Button>
 
                 <Button

@@ -161,16 +161,16 @@ export const TodoList = () => {
             </Button>
           </div>
 
-          {todos.isLoading && (
+          {todos.isLoading && !filteredTodos.length && (
             <div className="flex flex-col gap-2">
               {Array.from({ length: 5 }).map((_, index) => (
-                <TodoItemSkeleton key={index} index={index} />
+                <TodoItemSkeleton key={index} />
               ))}
             </div>
           )}
 
           {/* Todo List */}
-          {filteredTodos.length > 0 ? (
+          {filteredTodos.length > 0 && !todos.isLoading && (
             <AnimatedList delay={200} className="gap-2">
               {filteredTodos.map((todo) => (
                 <TodoItem
@@ -181,10 +181,12 @@ export const TodoList = () => {
                 />
               ))}
             </AnimatedList>
-          ) : (
-            <div className="text-center py-6 sm:py-8 border rounded-lg dark:border-gray-700">
-              <ListFilter className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-gray-400 dark:text-gray-500 mb-2" />
-              <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
+          )}
+
+          {!filteredTodos.length && !todos.isLoading && (
+            <div className="text-center py-6 sm:py-8 border rounded-lg">
+              <ListFilter className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-foreground mb-2" />
+              <p className="text-sm sm:text-base text-foreground">
                 No todos found for the selected filter
               </p>
               {filter !== "all" && (
