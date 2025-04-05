@@ -1,3 +1,5 @@
+import { SparklesText } from "@/components/magicui/sparkles-text";
+import { TypingAnimation } from "@/components/magicui/typing-animation";
 import { Button } from "@/shared/components/ui/button";
 import { SignInButton } from "@clerk/nextjs";
 import { currentUser } from "@clerk/nextjs/server";
@@ -19,10 +21,17 @@ export default async function Home() {
             width={80}
             height={80}
           />
-          <h1 className="text-4xl font-bold tracking-tight">NoteBoard</h1>
-          <p className="text-muted-foreground">
+          <SparklesText
+            className="text-4xl font-bold tracking-tight"
+            text="NoteBoard"
+          />
+
+          <TypingAnimation
+            duration={50}
+            className="text-muted-foreground text-md font-medium"
+          >
             Your ideas, organized beautifully.
-          </p>
+          </TypingAnimation>
         </div>
 
         {/* Sign In Button */}
@@ -55,7 +64,7 @@ export default async function Home() {
 
       {/* Footer */}
       <p className="fixed bottom-4 text-sm text-muted-foreground">
-        Built with Next.js and Clerk
+        Made by SixMav&apos;s Team with ❤️
       </p>
     </div>
   );
