@@ -163,6 +163,10 @@ export const TodoList = () => {
             </TodoCollapsibleStats>
           </TodoStatsWrapperMobile>
 
+          <div className="my-4">
+            <h1 className="text-xl font-bold">To Do</h1>
+          </div>
+
           {todos.isLoading && !filteredTodos.length && (
             <div className="flex flex-col gap-2">
               {Array.from({ length: 5 }).map((_, index) => (
