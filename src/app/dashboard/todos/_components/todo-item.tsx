@@ -173,9 +173,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     <Fragment>
       <div
         className={cn(
-          "border-b-1 dark:shadow-neutral-800 shadow-sm border-neutral-200 dark:border-neutral-800 px-2 py-3 rounded-xl group hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors duration-200",
-          todo.status === TodoStatusEnum.COMPLETED &&
-            "opacity-70 dark:opacity-85",
+          "border-1 rounded-sm px-2 py-3 group hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors duration-200",
           !isEditing && "cursor-pointer" // Add cursor-pointer when not in edit mode
         )}
         onClick={!isEditing ? handleTodoItemClick : undefined} // Only enable click handler when not editing
@@ -198,14 +196,14 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                   <DropdownMenuTrigger asChild>
                     <button
                       className={cn(
-                        "p-1 rounded-md mr-3 mt-1 flex items-center justify-center h-5 w-5 border",
+                        "p-1 rounded-none mr-3 mt-1 flex items-center justify-center h-5 w-5 border outline-none",
                         todo.status === TodoStatusEnum.COMPLETED
-                          ? "bg-blue-500 border-blue-500 text-white"
+                          ? "bg-blue-500 border-none text-white"
                           : "border-gray-300"
                       )}
                     >
                       {todo.status === TodoStatusEnum.COMPLETED && (
-                        <Check className="h-3 w-3" />
+                        <Check className="h-4 w-4" />
                       )}
                     </button>
                   </DropdownMenuTrigger>
@@ -257,7 +255,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                     ) : (
                       <h3
                         className={cn(
-                          "font-medium cursor-pointer",
+                          "font-semibold cursor-pointer text-sm",
                           todo.status === TodoStatusEnum.COMPLETED &&
                             "line-through"
                         )}
@@ -372,8 +370,16 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                         handlePriorityChange(TodoPriorityEnum.HIGH)
                       }
                     >
-                      <Flag className="h-4 w-4 mr-2 text-red-500" />
+                      <Flag className="h-4 w-4 mr-2 text-orange-500" />
                       <span>High Priority</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        handlePriorityChange(TodoPriorityEnum.CRITICAL)
+                      }
+                    >
+                      <Flag className="h-4 w-4 mr-2 text-red-500" />
+                      <span>Critical Priority</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -515,7 +521,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
               <div className="mt-1 ml-9 space-y-2">
                 <div className="flex items-center text-sm">
                   <Clock className="h-3 w-3 mr-1" />
-                  <span>
+                  <span className="text-xs">
                     Due:{" "}
                     {todo.dueDate ? formatDate(todo.dueDate) : "No due date"}
                   </span>
@@ -523,7 +529,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                 <div className="flex items-center text-sm">
                   <span
                     className={cn(
-                      "mr-2 inline-block px-2 py-0.5 rounded-full text-xs",
+                      "mr-2 inline-block px-2 py-0.5 rounded-full text-xs border-1",
                       getPriorityColor(todo.priority)
                     )}
                   >
@@ -531,7 +537,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                   </span>
                   <span
                     className={cn(
-                      "inline-block px-2 py-0.5 rounded-full text-xs",
+                      "inline-block px-2 py-0.5 rounded-full text-xs border-1",
                       getStatusColor(todo.status)
                     )}
                   >
