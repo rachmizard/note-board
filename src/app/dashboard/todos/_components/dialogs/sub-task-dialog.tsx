@@ -58,12 +58,15 @@ export const SubTaskDialog: React.FC<SubTaskDialogProps> = ({
   const editInputRef = useRef<HTMLInputElement>(null);
 
   // Calculate progress
-  const completedCount = subTaskCount.data?.completed ?? 0;
-  const totalCount = subTaskCount?.data?.total ?? 0;
-  const progressPercentage =
-    subTaskCount.data && !subTaskCount.isLoading
-      ? Math.round((completedCount / totalCount) * 100)
-      : 0;
+  const completedCount = subTaskCount.completedCount;
+  const totalCount = subTaskCount.count;
+
+  const progressPercentage = useMemo(() => {
+    if (!subTaskCount.data) return 0;
+    if (!completedCount && !totalCount) return 0;
+
+    return Math.round((completedCount / totalCount) * 100);
+  }, [completedCount, subTaskCount.data, totalCount]);
 
   // Focus edit input when editing starts
   React.useEffect(() => {
