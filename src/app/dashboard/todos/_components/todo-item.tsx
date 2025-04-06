@@ -190,15 +190,15 @@ export const TodoItem: React.FC<TodoItemProps> = ({
           />
         ) : (
           <div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center flex-1">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start flex-1">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button
                       className={cn(
                         "p-1 rounded-none mr-3 mt-1 flex items-center justify-center h-5 w-5 border outline-none",
                         todo.status === TodoStatusEnum.COMPLETED
-                          ? "bg-blue-500 border-none text-white"
+                          ? "bg-blue-400 border-none text-white"
                           : "border-gray-300"
                       )}
                     >
