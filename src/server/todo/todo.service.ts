@@ -16,7 +16,7 @@ import type {
   PaginationResponse,
 } from "@/server/types/response";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, SQL, sql } from "drizzle-orm";
+import { and, asc, desc, eq, SQL, sql } from "drizzle-orm";
 import type { Context } from "../context";
 import type {
   AddTodoCommentRequest,
@@ -89,6 +89,17 @@ const getTodos = async (
   const offset = (page - 1) * limit;
 
   const whereClauses: SQL[] = [eq(todoSchema.userId, context.auth.userId)];
+  // First sort by priority (ascending means higher priority numbers come first)
+  // Then sort by creation date (newest first)
+  const orderBy = [
+    asc(todoSchema.priority), // Assuming lower numbers = higher priority
+    desc(todoSchema.createdAt),
+  ];
+
+  // If a specific priority is requested, filter by it rather than sort
+  if (request.priority) {
+    whereClauses.push(eq(todoSchema.priority, request.priority));
+  }
 
   if (request.status) {
     whereClauses.push(eq(todoSchema.status, request.status));
@@ -104,7 +115,7 @@ const getTodos = async (
       },
       subTasks: true,
     },
-    orderBy: [desc(todoSchema.createdAt)],
+    orderBy: orderBy,
     offset,
     limit,
   });

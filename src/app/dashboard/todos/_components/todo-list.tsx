@@ -13,11 +13,22 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/shared/components/ui/collapsible";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu";
 import { useIsMobile } from "@/shared/hooks/use-mobile";
+import { cn } from "@/shared/lib/utils";
 import confetti from "canvas-confetti";
+import { cva } from "class-variance-authority";
 import { ChevronDownIcon, ChevronUpIcon, ListFilter } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
+import { priorityOptions } from "../_constants/todo.constant";
 import { useFilterQueryState } from "../_hooks/use-filter-query-state";
+import { usePriorityQueryState } from "../_hooks/use-priority-query-state";
 import { useDeleteTodo } from "../_mutations/use-delete-todo";
 import { useUpdateTodo } from "../_mutations/use-update-todo";
 import { useTodos } from "../_queries/use-todos";
@@ -33,6 +44,7 @@ import { TodoStats } from "./todo-stats";
 
 export const TodoList = () => {
   const [filter, setFilter] = useFilterQueryState();
+  const [priority] = usePriorityQueryState();
 
   // Use the real data source with useTodos hook
   const todos = useTodos({
@@ -41,6 +53,7 @@ export const TodoList = () => {
     sortBy: "createdAt",
     sortOrder: "desc",
     status: filter === "all" ? undefined : (filter as TodoStatusEnum),
+    priority,
   });
 
   const deleteTodo = useDeleteTodo();
@@ -182,8 +195,21 @@ export const TodoList = () => {
             </TodoCollapsibleStats>
           </TodoStatsWrapperMobile>
 
-          <div className="my-4">
+          <div className="my-4 flex justify-between items-start">
             <h1 className="text-xl font-bold">To Do</h1>
+
+            <div>
+              <FilterPriorityDropdown>
+                {priorityOptions.map((option) => (
+                  <FilterPriorityDropdownItem
+                    key={option.value}
+                    value={option.value as TodoPriorityEnum}
+                  >
+                    {option.label}
+                  </FilterPriorityDropdownItem>
+                ))}
+              </FilterPriorityDropdown>
+            </div>
           </div>
 
           {todos.isLoading && !filteredTodos.length && (
@@ -341,3 +367,78 @@ const TodoConfettiEffect = ({ children }: { children?: React.ReactNode }) => {
 
   return <div>{children}</div>;
 };
+
+const FilterPriorityDropdown = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const [open, setOpen] = useState(false);
+  const [priority, setPriority] = usePriorityQueryState();
+
+  const Icon = open ? ChevronUpIcon : ChevronDownIcon;
+
+  const foundLabel = priorityOptions.find(
+    (option) => option.value === priority
+  );
+
+  const buttonSortVariant = cva("text-foreground", {
+    variants: {
+      priority: {
+        [TodoPriorityEnum.LOW]:
+          "text-green-500 border-green-500 hover:bg-green-500 hover:text-white",
+        [TodoPriorityEnum.MEDIUM]:
+          "text-yellow-500 border-yellow-500 hover:bg-yellow-500 hover:text-white",
+        [TodoPriorityEnum.HIGH]:
+          "text-red-500 border-red-500 hover:bg-red-500 hover:text-white",
+        [TodoPriorityEnum.CRITICAL]:
+          "text-red-500 border-red-500 hover:bg-red-500 hover:text-white",
+      },
+    },
+  });
+
+  const handlePriorityChange = (value: string) => {
+    if (value === priority) {
+      setPriority(null);
+    } else {
+      setPriority(value as TodoPriorityEnum);
+    }
+  };
+
+  return (
+    <DropdownMenu open={open} onOpenChange={setOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(buttonSortVariant({ priority }))}
+        >
+          <Icon className="w-4 h-4 mr-1/2" />
+          <span>{foundLabel?.label || "Filter by priority"}</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuRadioGroup
+          value={priority as string}
+          onValueChange={handlePriorityChange}
+        >
+          {children}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+const FilterPriorityDropdownItem = forwardRef<
+  HTMLDivElement,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuRadioItem> & {
+    value: TodoPriorityEnum;
+  }
+>(({ children, value, ...props }, ref) => {
+  return (
+    <DropdownMenuRadioItem ref={ref} {...props} value={value}>
+      {children}
+    </DropdownMenuRadioItem>
+  );
+});
+
+FilterPriorityDropdownItem.displayName = "FilterPriorityDropdownItem";
