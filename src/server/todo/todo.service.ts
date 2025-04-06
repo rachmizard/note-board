@@ -1,6 +1,7 @@
 import type {
   Database,
   TodoComment,
+  TodoSubTask,
   TodoWithRelations,
 } from "@/server/database";
 import {
@@ -8,6 +9,7 @@ import {
   todoComments,
   todoSchema,
   todoTags,
+  todoSubTasks,
 } from "@/server/database/drizzle/todo.schema";
 import type { PaginationResponse } from "@/server/types/response";
 import { TRPCError } from "@trpc/server";
@@ -20,11 +22,24 @@ import type {
   DeleteTodoRequest,
   GetTodoCommentsRequest,
   GetTodoRequest,
+  GetTodoSubTasksRequest,
   GetTodosRequest,
   RemoveTodoCommentRequest,
   RemoveTodoTagRequest,
   UpdateTodoRequest,
+  AddTodoSubTaskRequest,
+  UpdateTodoSubTaskRequest,
+  RemoveTodoSubTaskRequest,
 } from "./todo.validator";
+
+// Enhanced Todo type with subtask counts
+interface TodoWithSubTaskCounts extends Omit<TodoWithRelations, "subTasks"> {
+  subTasks: {
+    data: TodoSubTask[];
+    total: number;
+    completed: number;
+  };
+}
 
 const createTodo = async (
   request: CreateTodoRequest,
@@ -59,7 +74,7 @@ const createTodo = async (
 const getTodos = async (
   request: GetTodosRequest,
   context: Context
-): Promise<PaginationResponse<TodoWithRelations>> => {
+): Promise<PaginationResponse<TodoWithSubTaskCounts>> => {
   if (!context.auth || !context.auth.userId) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
@@ -84,6 +99,7 @@ const getTodos = async (
       comments: {
         orderBy: [desc(todoComments.createdAt)],
       },
+      subTasks: true,
     },
     orderBy: [desc(todoSchema.createdAt)],
     offset,
@@ -97,8 +113,24 @@ const getTodos = async (
     })
     .from(todoSchema);
 
+  // Process subtasks information for each todo
+  const todosWithSubTaskCounts = todos.map((todo) => {
+    const subTasksTotal = todo.subTasks?.length || 0;
+    const subTasksCompleted =
+      todo.subTasks?.filter((task) => task.completed).length || 0;
+
+    return {
+      ...todo,
+      subTasks: {
+        data: todo.subTasks || [],
+        total: subTasksTotal,
+        completed: subTasksCompleted,
+      },
+    };
+  });
+
   return {
-    data: todos,
+    data: todosWithSubTaskCounts,
     total: Number(count),
     page,
     limit,
@@ -194,15 +226,230 @@ const getTodoComments = async (
   });
 };
 
+/**
+ * Get subtasks for a specific todo with pagination
+ *
+ * @param request GetTodoSubTasksRequest
+ * @param context Context
+ * @returns Paginated subtasks
+ */
+const getTodoSubTasks = async (
+  request: GetTodoSubTasksRequest,
+  context: Context
+): Promise<PaginationResponse<TodoSubTask>> => {
+  if (!context.auth || !context.auth.userId) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Unauthorized",
+    });
+  }
+
+  const { todoId, page = 1, limit = 10 } = request;
+  const offset = (page - 1) * limit;
+
+  // Verify todo belongs to the authenticated user
+  const [todo] = await context.db
+    .select()
+    .from(todoSchema)
+    .where(
+      and(
+        eq(todoSchema.id, Number(todoId)),
+        eq(todoSchema.userId, context.auth.userId)
+      )
+    );
+
+  if (!todo) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Todo not found or access denied",
+    });
+  }
+
+  // Get subtasks with pagination
+  const subtasks = await context.db.query.todoSubTasks.findMany({
+    where: eq(todoSubTasks.todoId, Number(todoId)),
+    orderBy: [desc(todoSubTasks.createdAt)],
+    offset,
+    limit,
+  });
+
+  // Get total count for pagination
+  const [{ count }] = await context.db
+    .select({
+      count: sql`count(*)`,
+    })
+    .from(todoSubTasks)
+    .where(eq(todoSubTasks.todoId, Number(todoId)));
+
+  return {
+    data: subtasks,
+    total: Number(count),
+    page,
+    limit,
+  };
+};
+
+/**
+ * Add a subtask to a todo
+ */
+const addTodoSubTask = async (
+  request: AddTodoSubTaskRequest,
+  context: Context
+): Promise<TodoSubTask> => {
+  if (!context.auth || !context.auth.userId) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Unauthorized",
+    });
+  }
+
+  // Verify todo belongs to the authenticated user
+  const [todo] = await context.db
+    .select()
+    .from(todoSchema)
+    .where(
+      and(
+        eq(todoSchema.id, Number(request.todoId)),
+        eq(todoSchema.userId, context.auth.userId)
+      )
+    );
+
+  if (!todo) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Todo not found or access denied",
+    });
+  }
+
+  const [subtask] = await context.db
+    .insert(todoSubTasks)
+    .values({
+      todoId: request.todoId,
+      title: request.title,
+      completed: false,
+    })
+    .returning();
+
+  return subtask;
+};
+
+/**
+ * Update a subtask
+ */
+const updateTodoSubTask = async (
+  request: UpdateTodoSubTaskRequest,
+  context: Context
+): Promise<void> => {
+  if (!context.auth || !context.auth.userId) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Unauthorized",
+    });
+  }
+
+  // Verify todo belongs to the authenticated user
+  const [todo] = await context.db
+    .select()
+    .from(todoSchema)
+    .where(
+      and(
+        eq(todoSchema.id, Number(request.todoId)),
+        eq(todoSchema.userId, context.auth.userId)
+      )
+    );
+
+  if (!todo) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Todo not found or access denied",
+    });
+  }
+
+  // Verify subtask exists and belongs to the todo
+  const [subtask] = await context.db
+    .select()
+    .from(todoSubTasks)
+    .where(
+      and(
+        eq(todoSubTasks.id, Number(request.id)),
+        eq(todoSubTasks.todoId, Number(request.todoId))
+      )
+    );
+
+  if (!subtask) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Subtask not found",
+    });
+  }
+
+  // Update the subtask
+  await context.db
+    .update(todoSubTasks)
+    .set({
+      title: request.title,
+      completed: request.completed,
+      updatedAt: new Date(),
+    })
+    .where(eq(todoSubTasks.id, Number(request.id)));
+};
+
+/**
+ * Remove a subtask
+ */
+const removeTodoSubTask = async (
+  request: RemoveTodoSubTaskRequest,
+  context: Context
+): Promise<void> => {
+  if (!context.auth || !context.auth.userId) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Unauthorized",
+    });
+  }
+
+  // Verify todo belongs to the authenticated user
+  const [todo] = await context.db
+    .select()
+    .from(todoSchema)
+    .where(
+      and(
+        eq(todoSchema.id, Number(request.todoId)),
+        eq(todoSchema.userId, context.auth.userId)
+      )
+    );
+
+  if (!todo) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Todo not found or access denied",
+    });
+  }
+
+  // Delete the subtask
+  await context.db
+    .delete(todoSubTasks)
+    .where(
+      and(
+        eq(todoSubTasks.id, Number(request.id)),
+        eq(todoSubTasks.todoId, Number(request.todoId))
+      )
+    );
+};
+
 export {
   addTodoComment,
+  addTodoSubTask,
   addTodoTag,
   createTodo,
   deleteTodo,
   getTodo,
   getTodoComments,
+  getTodoSubTasks,
   getTodos,
   removeTodoComment,
+  removeTodoSubTask,
   removeTodoTag,
   updateTodo,
+  updateTodoSubTask,
 };

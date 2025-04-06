@@ -72,14 +72,28 @@ export const todoComments = pgCore.pgTable("todo_comments", {
   updatedAt: pgCore.timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const todoSubTasks = pgCore.pgTable("todo_sub_tasks", {
+  id: pgCore.serial("id").primaryKey(),
+  title: pgCore.text("title").notNull(),
+  completed: pgCore.boolean("completed").default(false).notNull(),
+  todoId: pgCore.integer("todo_id").references(() => todoSchema.id, {
+    onDelete: "cascade",
+  }),
+  createdAt: pgCore.timestamp("created_at").defaultNow().notNull(),
+  updatedAt: pgCore.timestamp("updated_at").defaultNow().notNull(),
+});
+
 export type Todo = typeof todoSchema.$inferSelect;
 export type TodoWithRelations = Todo & {
   tags: TodoTag[] | null;
   comments: TodoComment[] | null;
+  subTasks: TodoSubTask[] | null;
 };
 export type TodoTag = typeof todoTags.$inferSelect;
 export type TodoComment = typeof todoComments.$inferSelect;
+export type TodoSubTask = typeof todoSubTasks.$inferSelect;
 
 export type NewTodo = typeof todoSchema.$inferInsert;
 export type NewTodoTags = typeof todoTags.$inferInsert;
 export type NewTodoComments = typeof todoComments.$inferInsert;
+export type NewTodoSubTask = typeof todoSubTasks.$inferInsert;

@@ -17,6 +17,15 @@ export type AddTodoCommentRequest = z.infer<typeof addTodoCommentValidator>;
 export type RemoveTodoCommentRequest = z.infer<
   typeof removeTodoCommentValidator
 >;
+export type GetTodoSubTasksRequest = z.infer<typeof getTodoSubTasksValidator>;
+
+export type AddTodoSubTaskRequest = z.infer<typeof addTodoSubTaskValidator>;
+export type UpdateTodoSubTaskRequest = z.infer<
+  typeof updateTodoSubTaskValidator
+>;
+export type RemoveTodoSubTaskRequest = z.infer<
+  typeof removeTodoSubTaskValidator
+>;
 
 export const createTodoValidator = z.object({
   title: z.string().min(1),
@@ -79,4 +88,27 @@ export const addTodoCommentValidator = z.object({
 export const removeTodoCommentValidator = z.object({
   commentId: z.number(),
   todoId: z.number(),
+});
+
+export const getTodoSubTasksValidator = z.object({
+  todoId: z.number().int().positive(),
+  page: z.number().int().min(1).default(1).optional(),
+  limit: z.number().int().min(1).max(50).default(10).optional(),
+});
+
+export const addTodoSubTaskValidator = z.object({
+  todoId: z.number().int().positive(),
+  title: z.string().min(1, { message: "What's your subtask?" }),
+});
+
+export const updateTodoSubTaskValidator = z.object({
+  id: z.number().int().positive(),
+  todoId: z.number().int().positive(),
+  title: z.string().min(1).optional(),
+  completed: z.boolean().optional(),
+});
+
+export const removeTodoSubTaskValidator = z.object({
+  id: z.number().int().positive(),
+  todoId: z.number().int().positive(),
 });

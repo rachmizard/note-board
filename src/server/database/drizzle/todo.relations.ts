@@ -1,10 +1,16 @@
 import { relations } from "drizzle-orm";
-import { todoComments, todoSchema, todoTags } from "./todo.schema";
+import {
+  todoComments,
+  todoSchema,
+  todoTags,
+  todoSubTasks,
+} from "./todo.schema";
 import { users } from "./user.schema";
 
 export const todoRelations = relations(todoSchema, ({ many, one }) => ({
   tags: many(todoTags),
   comments: many(todoComments),
+  subTasks: many(todoSubTasks),
   user: one(users, {
     fields: [todoSchema.userId],
     references: [users.id],
@@ -26,5 +32,12 @@ export const todoCommentRelations = relations(todoComments, ({ one }) => ({
   user: one(users, {
     fields: [todoComments.userId],
     references: [users.id],
+  }),
+}));
+
+export const todoSubTaskRelations = relations(todoSubTasks, ({ one }) => ({
+  todo: one(todoSchema, {
+    fields: [todoSubTasks.todoId],
+    references: [todoSchema.id],
   }),
 }));

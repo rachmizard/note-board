@@ -10,6 +10,10 @@ import {
   removeTodoComment,
   removeTodoTag,
   updateTodo,
+  getTodoSubTasks,
+  addTodoSubTask,
+  updateTodoSubTask,
+  removeTodoSubTask,
 } from "./todo.service";
 import {
   addTodoCommentValidator,
@@ -22,6 +26,10 @@ import {
   removeTodoCommentValidator,
   removeTodoTagValidator,
   updateTodoValidator,
+  getTodoSubTasksValidator,
+  addTodoSubTaskValidator,
+  updateTodoSubTaskValidator,
+  removeTodoSubTaskValidator,
 } from "./todo.validator";
 
 export const todoRouter = router({
@@ -74,5 +82,25 @@ export const todoRouter = router({
     .input(getTodoCommentsValidator)
     .query(async ({ input, ctx }) => {
       return await getTodoComments(input, ctx.db);
+    }),
+  getSubTasks: protectedProcedure
+    .input(getTodoSubTasksValidator)
+    .query(async ({ input, ctx }) => {
+      return await getTodoSubTasks(input, ctx);
+    }),
+  addSubTask: protectedProcedure
+    .input(addTodoSubTaskValidator)
+    .mutation(async ({ ctx, input }) => {
+      return await addTodoSubTask(input, ctx);
+    }),
+  updateSubTask: protectedProcedure
+    .input(updateTodoSubTaskValidator)
+    .mutation(async ({ ctx, input }) => {
+      return await updateTodoSubTask(input, ctx);
+    }),
+  removeSubTask: protectedProcedure
+    .input(removeTodoSubTaskValidator)
+    .mutation(async ({ ctx, input }) => {
+      return await removeTodoSubTask(input, ctx);
     }),
 });

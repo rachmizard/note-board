@@ -4,6 +4,7 @@ import { AnimatedList } from "@/components/magicui/animated-list";
 import {
   TodoPriorityEnum,
   TodoStatusEnum,
+  TodoSubTask,
   TodoWithRelations,
 } from "@/server/database/drizzle/todo.schema";
 import { Button } from "@/shared/components/ui/button";
@@ -49,21 +50,39 @@ export const TodoList = () => {
   const convertedTodos = useMemo(() => {
     if (!todos.data?.data) return [];
 
-    // Map server todo format to frontend Todo format
-    return todos.data.data.map((serverTodo) => ({
-      id: serverTodo.id,
-      title: serverTodo.title,
-      dueDate: serverTodo.dueDate,
-      description: serverTodo.description,
-      priority: serverTodo.priority,
-      status: serverTodo.status,
-      createdAt: serverTodo.createdAt,
-      updatedAt: serverTodo.updatedAt,
-      completedAt: serverTodo.completedAt,
-      tags: serverTodo.tags || [],
-      comments: serverTodo.comments || [],
-      userId: serverTodo.userId,
-    }));
+    // Map server todo format to frontend Todo format, ensuring subTasks is always in the expected array format
+    return todos.data.data.map((serverTodo) => {
+      // Handle the case where subTasks might be in the new format with data, total, and completed properties
+      let subTasksArray: TodoSubTask[] = [];
+
+      if (serverTodo.subTasks) {
+        // Check if subTasks has the data property (new format)
+        const subTasksObj = serverTodo.subTasks as { data?: TodoSubTask[] };
+        if (subTasksObj.data && Array.isArray(subTasksObj.data)) {
+          subTasksArray = subTasksObj.data;
+        }
+        // Otherwise assume it's already an array (old format)
+        else if (Array.isArray(serverTodo.subTasks)) {
+          subTasksArray = serverTodo.subTasks;
+        }
+      }
+
+      return {
+        id: serverTodo.id,
+        title: serverTodo.title,
+        dueDate: serverTodo.dueDate,
+        description: serverTodo.description,
+        priority: serverTodo.priority,
+        status: serverTodo.status,
+        createdAt: serverTodo.createdAt,
+        updatedAt: serverTodo.updatedAt,
+        completedAt: serverTodo.completedAt,
+        tags: serverTodo.tags || [],
+        comments: serverTodo.comments || [],
+        subTasks: subTasksArray,
+        userId: serverTodo.userId,
+      };
+    });
   }, [todos.data]);
 
   const handleUpdateTodo = useCallback(

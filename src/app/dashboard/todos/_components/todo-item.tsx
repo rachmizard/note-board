@@ -1,6 +1,7 @@
 import {
   TodoPriorityEnum,
   TodoStatusEnum,
+  TodoSubTask,
   TodoWithRelations,
 } from "@/server/database/drizzle/todo.schema";
 import { Button } from "@/shared/components/ui/button";
@@ -20,6 +21,7 @@ import {
   Flag,
   FlagIcon,
   FolderClosed,
+  ListCheck,
   ListPlusIcon,
   MessageSquare,
   MoreHorizontal,
@@ -37,11 +39,38 @@ import {
 import { TodoFormValues } from "../_validators/todo-form.validator";
 import { CommentDialog } from "./dialogs/comment-dialog";
 import { DeleteConfirmationDialog } from "./dialogs/delete-confirmation-dialog";
+import { SubTaskDialog } from "./dialogs/sub-task-dialog";
 import { TagDialog } from "./dialogs/tag-dialog";
 import { TodoForm } from "./todo-form";
+import { getSubTaskCount } from "../_hooks/use-todo-subtask-count";
+import { useTodoSubTasks } from "../_hooks/use-infinite-todo-subtasks";
+
+// Define interface for server responses with different subTasks format
+interface TodoWithSubTaskCounts {
+  id: number;
+  title: string;
+  dueDate: Date | null;
+  description: string | null;
+  priority: TodoPriorityEnum;
+  status: TodoStatusEnum;
+  completedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string | null;
+  tags: TodoWithRelations["tags"];
+  comments: TodoWithRelations["comments"];
+  subTasks: {
+    data: TodoSubTask[];
+    total: number;
+    completed: number;
+  };
+}
+
+// Define a type that can be either format
+type TodoItem = TodoWithRelations | TodoWithSubTaskCounts;
 
 interface TodoItemProps {
-  todo: TodoWithRelations;
+  todo: TodoItem;
   onUpdate: (id: number, updates: Partial<TodoWithRelations>) => void;
   onDelete: (id: number) => void;
 }
@@ -70,11 +99,26 @@ export const TodoItem: React.FC<TodoItemProps> = ({
   // Add state to track mobile action menu
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Add state for SubTaskDialog
+  const [showSubTaskDialog, setShowSubTaskDialog] = useState(false);
+
+  // Get subtask count using the new helper function
+  const { count: subtaskCount, completedCount: completedSubtaskCount } =
+    getSubTaskCount(todo);
+
+  // Fetch subtasks when expanded for preview
+  const { items: subtasks } = useTodoSubTasks({
+    todoId: todo.id,
+    limit: 3,
+    enabled: isExpanded,
+  });
+
   // Compute if any interaction is active
   const isInteracting =
     showCommentModal ||
     showDeleteDialog ||
     showTagDialog ||
+    showSubTaskDialog ||
     isPriorityDropdownOpen ||
     isMobileMenuOpen;
 
@@ -222,6 +266,12 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                       <span>Backlog</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
+                      onClick={() => setShowSubTaskDialog(true)}
+                    >
+                      <ListCheck className="h-4 w-4 mr-2 text-blue-500" />
+                      <span>Manage Sub-Tasks</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
                       onClick={() =>
                         handleStatusChange(TodoStatusEnum.ARCHIVED)
                       }
@@ -279,6 +329,14 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                     {isToday && (
                       <div className="inline-block rounded-full bg-yellow-100 dark:bg-yellow-900 px-2 py-0.5 text-xs font-medium">
                         Today
+                      </div>
+                    )}
+
+                    {/* Display sub-task count if there are any */}
+                    {subtaskCount > 0 && (
+                      <div className="inline-block rounded-full bg-blue-100 dark:bg-blue-900 px-2 py-0.5 text-xs font-medium">
+                        <ListCheck className="h-3 w-3 inline mr-1" />
+                        {completedSubtaskCount}/{subtaskCount}
                       </div>
                     )}
 
@@ -401,10 +459,10 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                   className="h-8 w-8"
                   onClick={(e) => {
                     e.stopPropagation(); // Prevent triggering the container click
-                    /* Implement folder functionality */
+                    setShowSubTaskDialog(true);
                   }}
                 >
-                  <ListPlusIcon className="h-4 w-4" />
+                  <ListCheck className="h-4 w-4" />
                 </Button>
 
                 <Button
@@ -490,6 +548,14 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                       <span>Move to Folder</span>
                     </DropdownMenuItem>
 
+                    {/* Add SubTask menu item to mobile menu */}
+                    <DropdownMenuItem
+                      onClick={() => setShowSubTaskDialog(true)}
+                    >
+                      <ListCheck className="h-4 w-4 mr-2" />
+                      <span>Manage Sub-Tasks</span>
+                    </DropdownMenuItem>
+
                     {/* Delete with confirmation (will trigger dialog) */}
                     <DropdownMenuItem
                       onClick={() => setShowDeleteDialog(true)}
@@ -548,6 +614,60 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                     ))}
                   </div>
                 )}
+
+                {/* Display sub-tasks in expanded view if available */}
+                {subtaskCount > 0 && (
+                  <div className="mt-2 space-y-2">
+                    <div className="flex justify-between items-center">
+                      <h4 className="text-sm font-medium">Sub-Tasks</h4>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowSubTaskDialog(true);
+                        }}
+                      >
+                        Manage
+                      </Button>
+                    </div>
+
+                    <div className="space-y-1 max-h-[150px] overflow-y-auto pr-2">
+                      {subtasks.map((subTask) => (
+                        <div
+                          key={subTask.id}
+                          className={cn(
+                            "flex items-center text-xs p-1.5 rounded-sm",
+                            "bg-neutral-50 dark:bg-neutral-800",
+                            subTask.completed && "text-neutral-400"
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              "w-3 h-3 mr-2 rounded-sm border flex items-center justify-center",
+                              subTask.completed
+                                ? "bg-blue-400 border-blue-400 text-white"
+                                : "border-gray-300"
+                            )}
+                          >
+                            {subTask.completed && <Check className="h-2 w-2" />}
+                          </div>
+                          <span
+                            className={cn(subTask.completed && "line-through")}
+                          >
+                            {subTask.title}
+                          </span>
+                        </div>
+                      ))}
+                      {subtaskCount > 3 && (
+                        <div className="text-xs text-neutral-500 text-center">
+                          +{subtaskCount - 3} more sub-tasks
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -558,13 +678,19 @@ export const TodoItem: React.FC<TodoItemProps> = ({
       <CommentDialog
         open={showCommentModal}
         onOpenChange={setShowCommentModal}
-        todo={todo}
+        todo={todo as TodoWithRelations}
       />
 
       <TagDialog
         open={showTagDialog}
         onOpenChange={setShowTagDialog}
-        todo={todo}
+        todo={todo as TodoWithRelations}
+      />
+
+      <SubTaskDialog
+        open={showSubTaskDialog}
+        onOpenChange={setShowSubTaskDialog}
+        todo={todo as TodoWithRelations}
       />
 
       <DeleteConfirmationDialog
