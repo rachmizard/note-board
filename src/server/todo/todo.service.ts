@@ -8,28 +8,31 @@ import {
   type Todo,
   todoComments,
   todoSchema,
-  todoTags,
   todoSubTasks,
+  todoTags,
 } from "@/server/database/drizzle/todo.schema";
-import type { PaginationResponse } from "@/server/types/response";
+import type {
+  CursorPaginationResponse,
+  PaginationResponse,
+} from "@/server/types/response";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, SQL, sql } from "drizzle-orm";
 import type { Context } from "../context";
 import type {
   AddTodoCommentRequest,
+  AddTodoSubTaskRequest,
   AddTodoTagRequest,
   CreateTodoRequest,
   DeleteTodoRequest,
   GetTodoCommentsRequest,
   GetTodoRequest,
-  GetTodoSubTasksRequest,
   GetTodosRequest,
+  GetTodoSubTasksRequest,
   RemoveTodoCommentRequest,
+  RemoveTodoSubTaskRequest,
   RemoveTodoTagRequest,
   UpdateTodoRequest,
-  AddTodoSubTaskRequest,
   UpdateTodoSubTaskRequest,
-  RemoveTodoSubTaskRequest,
 } from "./todo.validator";
 
 // Enhanced Todo type with subtask counts
@@ -233,10 +236,10 @@ const getTodoComments = async (
  * @param context Context
  * @returns Paginated subtasks
  */
-const getTodoSubTasks = async (
+const getCursorTodoSubTasks = async (
   request: GetTodoSubTasksRequest,
   context: Context
-): Promise<PaginationResponse<TodoSubTask>> => {
+): Promise<CursorPaginationResponse<TodoSubTask>> => {
   if (!context.auth || !context.auth.userId) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
@@ -244,33 +247,21 @@ const getTodoSubTasks = async (
     });
   }
 
-  const { todoId, page = 1, limit = 10 } = request;
-  const offset = (page - 1) * limit;
+  const { todoId, cursor, limit = 10 } = request;
+  const extraLimit = limit + 1;
 
-  // Verify todo belongs to the authenticated user
-  const [todo] = await context.db
-    .select()
-    .from(todoSchema)
-    .where(
-      and(
-        eq(todoSchema.id, Number(todoId)),
-        eq(todoSchema.userId, context.auth.userId)
-      )
-    );
+  const whereClauses: SQL[] = [eq(todoSubTasks.todoId, Number(todoId))];
 
-  if (!todo) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Todo not found or access denied",
-    });
+  // Since we're sorting in descending order, we need to use "less than" for proper cursor pagination
+  if (cursor) {
+    whereClauses.push(sql`${todoSubTasks.id} <= ${cursor}`);
   }
 
   // Get subtasks with pagination
   const subtasks = await context.db.query.todoSubTasks.findMany({
-    where: eq(todoSubTasks.todoId, Number(todoId)),
-    orderBy: [desc(todoSubTasks.createdAt)],
-    offset,
-    limit,
+    where: and(...whereClauses),
+    orderBy: [desc(todoSubTasks.id)],
+    limit: extraLimit,
   });
 
   // Get total count for pagination
@@ -281,11 +272,23 @@ const getTodoSubTasks = async (
     .from(todoSubTasks)
     .where(eq(todoSubTasks.todoId, Number(todoId)));
 
+  let nextCursor: typeof cursor | undefined = undefined;
+
+  // Check if we fetched more items than requested limit
+  if (subtasks.length > limit) {
+    // Get the last item as next cursor
+    const nextItem = subtasks.pop();
+    nextCursor = nextItem?.id;
+  }
+
+  // Current page's first item becomes the cursor for previous page
+  const previousCursor = subtasks.length > 0 ? subtasks[0].id : undefined;
+
   return {
     data: subtasks,
     total: Number(count),
-    page,
-    limit,
+    nextCursor,
+    previousCursor,
   };
 };
 
@@ -437,6 +440,63 @@ const removeTodoSubTask = async (
     );
 };
 
+/**
+ * Get count of subtasks for a todo
+ * @param request GetTodoSubTasksRequest
+ * @param context Context
+ * @returns Object with subtasks, total count, and completed count
+ */
+const getTodoSubTaskCount = async (
+  request: GetTodoSubTasksRequest,
+  context: Context
+) => {
+  if (!context.auth || !context.auth.userId) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Unauthorized",
+    });
+  }
+
+  const { todoId } = request;
+
+  // Verify todo belongs to the authenticated user
+  const [todo] = await context.db
+    .select()
+    .from(todoSchema)
+    .where(
+      and(
+        eq(todoSchema.id, Number(todoId)),
+        eq(todoSchema.userId, context.auth.userId)
+      )
+    );
+
+  if (!todo) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Todo not found or access denied",
+    });
+  }
+
+  // Get subtasks
+  const subtasks = await context.db.query.todoSubTasks.findMany({
+    where: eq(todoSubTasks.todoId, Number(todoId)),
+  });
+
+  // Get total count
+  const [{ count }] = await context.db
+    .select({
+      count: sql`count(*)`,
+    })
+    .from(todoSubTasks)
+    .where(eq(todoSubTasks.todoId, Number(todoId)));
+
+  return {
+    data: subtasks,
+    total: Number(count),
+    completed: subtasks.filter((task) => task.completed).length,
+  };
+};
+
 export {
   addTodoComment,
   addTodoSubTask,
@@ -445,8 +505,9 @@ export {
   deleteTodo,
   getTodo,
   getTodoComments,
-  getTodoSubTasks,
   getTodos,
+  getCursorTodoSubTasks,
+  getTodoSubTaskCount,
   removeTodoComment,
   removeTodoSubTask,
   removeTodoTag,

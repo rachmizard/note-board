@@ -92,8 +92,8 @@ export const removeTodoCommentValidator = z.object({
 
 export const getTodoSubTasksValidator = z.object({
   todoId: z.number().int().positive(),
-  page: z.number().int().min(1).default(1).optional(),
   limit: z.number().int().min(1).max(50).default(10).optional(),
+  cursor: z.number().int().positive().nullish(),
 });
 
 export const addTodoSubTaskValidator = z.object({

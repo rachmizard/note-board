@@ -5,8 +5,13 @@ export const useAddTodoSubTask = () => {
   return trpc.todo.addSubTask.useMutation({
     onSuccess: (_, variables) => {
       // Invalidate all todo queries to refresh the data
-      trpcUtils.todo.getSubTasks.invalidate({ todoId: variables.todoId });
-      trpcUtils.todo.invalidate(); // Invalidate all todo queries to refresh any counts
+      trpcUtils.todo.getCursorTodoSubTasks.invalidate({
+        todoId: variables.todoId,
+      });
+      trpcUtils.todo.getTodoSubTaskCount.invalidate({
+        todoId: variables.todoId,
+      });
+      trpcUtils.todo.getTodos.invalidate(); // Invalidate all todo queries to refresh any counts
     },
   });
 };
@@ -16,8 +21,13 @@ export const useUpdateTodoSubTask = () => {
   return trpc.todo.updateSubTask.useMutation({
     onSuccess: (_, variables) => {
       // Invalidate all todo queries to refresh the data
-      trpcUtils.todo.getSubTasks.invalidate({ todoId: variables.todoId });
-      trpcUtils.todo.invalidate(); // Invalidate all todo queries to refresh any counts
+      trpcUtils.todo.getCursorTodoSubTasks.invalidate({
+        todoId: variables.todoId,
+      });
+      trpcUtils.todo.getTodoSubTaskCount.invalidate({
+        todoId: variables.todoId,
+      });
+      trpcUtils.todo.getTodos.invalidate(); // Invalidate all todo queries to refresh any counts
     },
   });
 };
@@ -27,8 +37,13 @@ export const useRemoveTodoSubTask = () => {
   return trpc.todo.removeSubTask.useMutation({
     onSuccess: (_, variables) => {
       // Invalidate all todo queries to refresh the data
-      trpcUtils.todo.getSubTasks.invalidate({ todoId: variables.todoId });
-      trpcUtils.todo.invalidate(); // Invalidate all todo queries to refresh any counts
+      trpcUtils.todo.getCursorTodoSubTasks.invalidate({
+        todoId: variables.todoId,
+      });
+      trpcUtils.todo.getTodoSubTaskCount.invalidate({
+        todoId: variables.todoId,
+      });
+      trpcUtils.todo.getTodos.invalidate(); // Invalidate all todo queries to refresh any counts
     },
   });
 };

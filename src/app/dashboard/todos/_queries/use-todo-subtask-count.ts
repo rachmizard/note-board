@@ -14,22 +14,18 @@ interface TodoWithSubTaskCounts extends Omit<Todo, "subTasks"> {
   };
 }
 
-/**
- * Get subtask counts for a todo
- * @deprecated Use the subTasks field from the todo object directly
- */
 export const useTodoSubTaskCount = (todoId: number, enabled = true) => {
-  const query = trpc.todo.getSubTasks.useQuery(
+  const query = trpc.todo.getTodoSubTaskCount.useQuery(
     {
       todoId,
-      page: 1,
       limit: 1, // We only need the count, not the actual items
     },
     {
       enabled,
       select: (data) => ({
         total: data.total,
-        completed: data.data.filter((task) => task.completed).length,
+        completed: data.data.filter((task: TodoSubTask) => task.completed)
+          .length,
       }),
     }
   );

@@ -42,8 +42,8 @@ import { DeleteConfirmationDialog } from "./dialogs/delete-confirmation-dialog";
 import { SubTaskDialog } from "./dialogs/sub-task-dialog";
 import { TagDialog } from "./dialogs/tag-dialog";
 import { TodoForm } from "./todo-form";
-import { getSubTaskCount } from "../_hooks/use-todo-subtask-count";
-import { useTodoSubTasks } from "../_hooks/use-infinite-todo-subtasks";
+import { useTodoSubTasks } from "../_queries/use-infinite-todo-subtasks";
+import { getSubTaskCount } from "../_queries/use-todo-subtask-count";
 
 // Define interface for server responses with different subTasks format
 interface TodoWithSubTaskCounts {
@@ -107,11 +107,15 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     getSubTaskCount(todo);
 
   // Fetch subtasks when expanded for preview
-  const { items: subtasks } = useTodoSubTasks({
+  const subTasksInfiniteQuery = useTodoSubTasks({
     todoId: todo.id,
     limit: 3,
     enabled: isExpanded,
   });
+
+  const subtasks = subTasksInfiniteQuery.data?.pages.flatMap(
+    (page) => page.data
+  );
 
   // Compute if any interaction is active
   const isInteracting =
@@ -634,32 +638,38 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                     </div>
 
                     <div className="space-y-1 max-h-[150px] overflow-y-auto pr-2">
-                      {subtasks.map((subTask) => (
-                        <div
-                          key={subTask.id}
-                          className={cn(
-                            "flex items-center text-xs p-1.5 rounded-sm",
-                            "bg-neutral-50 dark:bg-neutral-800",
-                            subTask.completed && "text-neutral-400"
-                          )}
-                        >
+                      {subtasks &&
+                        subtasks.length &&
+                        subtasks.map((subTask) => (
                           <div
+                            key={subTask.id}
                             className={cn(
-                              "w-3 h-3 mr-2 rounded-sm border flex items-center justify-center",
-                              subTask.completed
-                                ? "bg-blue-400 border-blue-400 text-white"
-                                : "border-gray-300"
+                              "flex items-center text-xs p-1.5 rounded-sm",
+                              "bg-neutral-50 dark:bg-neutral-800",
+                              subTask.completed && "text-neutral-400"
                             )}
                           >
-                            {subTask.completed && <Check className="h-2 w-2" />}
+                            <div
+                              className={cn(
+                                "w-3 h-3 mr-2 rounded-sm border flex items-center justify-center",
+                                subTask.completed
+                                  ? "bg-blue-400 border-blue-400 text-white"
+                                  : "border-gray-300"
+                              )}
+                            >
+                              {subTask.completed && (
+                                <Check className="h-2 w-2" />
+                              )}
+                            </div>
+                            <span
+                              className={cn(
+                                subTask.completed && "line-through"
+                              )}
+                            >
+                              {subTask.title}
+                            </span>
                           </div>
-                          <span
-                            className={cn(subTask.completed && "line-through")}
-                          >
-                            {subTask.title}
-                          </span>
-                        </div>
-                      ))}
+                        ))}
                       {subtaskCount > 3 && (
                         <div className="text-xs text-neutral-500 text-center">
                           +{subtaskCount - 3} more sub-tasks

@@ -1,23 +1,25 @@
-import React, { useRef, useState } from "react";
+import { TodoWithRelations } from "@/server/database/drizzle/todo.schema";
+import { Button } from "@/shared/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
-import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
-import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { Progress } from "@/shared/components/ui/progress";
-import { Check, Plus, Trash } from "lucide-react";
+import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { cn } from "@/shared/lib/utils";
-import { TodoWithRelations } from "@/server/database/drizzle/todo.schema";
-import { useTodoSubTasks } from "../../_hooks/use-infinite-todo-subtasks";
+import { Check, Plus, Trash } from "lucide-react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   useAddTodoSubTask,
-  useUpdateTodoSubTask,
   useRemoveTodoSubTask,
+  useUpdateTodoSubTask,
 } from "../../_mutations/use-subtask-mutations";
+import { useTodoSubTasks } from "../../_queries/use-infinite-todo-subtasks";
+import { useTodoSubTaskCount } from "../../_queries/use-todo-subtask-count";
+import { Skeleton } from "@/shared/components/ui/skeleton";
 
 interface SubTaskDialogProps {
   open: boolean;
@@ -31,17 +33,18 @@ export const SubTaskDialog: React.FC<SubTaskDialogProps> = ({
   todo,
 }) => {
   // Fetch subtasks using our custom hook
-  const {
-    items: subTasks,
-    totalItems,
-    isLoading,
-    hasNextPage,
-    nextPage,
-  } = useTodoSubTasks({
+  const subtaskInfiniteQuery = useTodoSubTasks({
     todoId: todo.id,
-    limit: 20,
+    limit: 10,
     enabled: open, // Only fetch when dialog is open
   });
+
+  const subTaskCount = useTodoSubTaskCount(todo.id, open);
+
+  const subTasks = useMemo(() => {
+    if (!subtaskInfiniteQuery.data) return [];
+    return subtaskInfiniteQuery.data.pages.flatMap((page) => page.data);
+  }, [subtaskInfiniteQuery.data]);
 
   // Mutation hooks
   const addSubTask = useAddTodoSubTask();
@@ -55,10 +58,11 @@ export const SubTaskDialog: React.FC<SubTaskDialogProps> = ({
   const editInputRef = useRef<HTMLInputElement>(null);
 
   // Calculate progress
-  const completedCount = subTasks.filter((task) => task.completed).length;
+  const completedCount = subTaskCount.data?.completed ?? 0;
+  const totalCount = subTaskCount?.data?.total ?? 0;
   const progressPercentage =
-    subTasks.length > 0
-      ? Math.round((completedCount / subTasks.length) * 100)
+    subTaskCount.data && !subTaskCount.isLoading
+      ? Math.round((completedCount / totalCount) * 100)
       : 0;
 
   // Focus edit input when editing starts
@@ -131,17 +135,6 @@ export const SubTaskDialog: React.FC<SubTaskDialogProps> = ({
     });
   };
 
-  // Handle scroll to load more
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLDivElement;
-    const isAtBottom =
-      target.scrollHeight - target.scrollTop <= target.clientHeight + 50;
-
-    if (isAtBottom && hasNextPage && !isLoading) {
-      nextPage();
-    }
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md w-full">
@@ -151,13 +144,19 @@ export const SubTaskDialog: React.FC<SubTaskDialogProps> = ({
 
         {/* Progress Bar */}
         <div className="mb-4 space-y-2">
-          <div className="flex justify-between text-sm">
-            <span>
-              {completedCount} of {totalItems} completed
-            </span>
-            <span>{progressPercentage}%</span>
-          </div>
-          <Progress value={progressPercentage} />
+          {subTaskCount.isLoading && <Skeleton className="w-full h-7" />}
+          {!subTaskCount.isLoading && (
+            <>
+              <div className="flex justify-between text-sm">
+                <span>
+                  {subTaskCount.data?.completed} of {subTaskCount.data?.total}{" "}
+                  completed
+                </span>
+                <span>{progressPercentage}%</span>
+              </div>
+              <Progress value={progressPercentage} />
+            </>
+          )}
         </div>
 
         {/* Add New Sub-Task Form */}
@@ -180,9 +179,19 @@ export const SubTaskDialog: React.FC<SubTaskDialogProps> = ({
         </div>
 
         {/* Sub-Tasks List */}
-        <ScrollArea className="h-[300px] pr-4" onScroll={handleScroll}>
+        <SubTasksScrollArea
+          className="h-[300px] pr-4"
+          onReachBottom={() => {
+            if (
+              subtaskInfiniteQuery.hasNextPage &&
+              !subtaskInfiniteQuery.isLoading
+            ) {
+              subtaskInfiniteQuery.fetchNextPage();
+            }
+          }}
+        >
           <div className="space-y-2">
-            {isLoading && subTasks.length === 0 ? (
+            {subtaskInfiniteQuery.isLoading && subTasks.length === 0 ? (
               <div className="text-center py-4 text-muted-foreground">
                 Loading sub-tasks...
               </div>
@@ -258,14 +267,57 @@ export const SubTaskDialog: React.FC<SubTaskDialogProps> = ({
             )}
 
             {/* Loading indicator for pagination */}
-            {isLoading && subTasks.length > 0 && (
+            {subtaskInfiniteQuery.isFetchingNextPage && subTasks.length > 0 && (
               <div className="text-center py-2 text-sm text-muted-foreground">
                 Loading more...
               </div>
             )}
           </div>
-        </ScrollArea>
+        </SubTasksScrollArea>
       </DialogContent>
     </Dialog>
+  );
+};
+
+const SubTasksScrollArea = ({
+  className,
+  onReachBottom,
+  ...props
+}: React.ComponentProps<typeof ScrollArea> & {
+  onReachBottom: () => void;
+}) => {
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const isFetchingRef = useRef(false);
+
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      const scrollArea = scrollAreaRef.current;
+
+      const handleScroll = (e: Event) => {
+        const target = e.target as HTMLDivElement;
+        const isAtBottom =
+          target.scrollHeight - target.scrollTop <= target.clientHeight + 50;
+
+        if (isAtBottom && !isFetchingRef.current) {
+          isFetchingRef.current = true;
+          onReachBottom?.();
+
+          // Reset the fetching flag after a short delay
+          setTimeout(() => {
+            isFetchingRef.current = false;
+          }, 500);
+        }
+      };
+
+      scrollArea.addEventListener("scroll", handleScroll);
+
+      return () => {
+        scrollArea.removeEventListener("scroll", handleScroll);
+      };
+    }
+  }, [onReachBottom]);
+
+  return (
+    <ScrollArea ref={scrollAreaRef} className={cn(className)} {...props} />
   );
 };

@@ -10,10 +10,11 @@ import {
   removeTodoComment,
   removeTodoTag,
   updateTodo,
-  getTodoSubTasks,
   addTodoSubTask,
   updateTodoSubTask,
   removeTodoSubTask,
+  getCursorTodoSubTasks,
+  getTodoSubTaskCount,
 } from "./todo.service";
 import {
   addTodoCommentValidator,
@@ -83,10 +84,15 @@ export const todoRouter = router({
     .query(async ({ input, ctx }) => {
       return await getTodoComments(input, ctx.db);
     }),
-  getSubTasks: protectedProcedure
+  getTodoSubTaskCount: protectedProcedure
     .input(getTodoSubTasksValidator)
     .query(async ({ input, ctx }) => {
-      return await getTodoSubTasks(input, ctx);
+      return await getTodoSubTaskCount(input, ctx);
+    }),
+  getCursorTodoSubTasks: protectedProcedure
+    .input(getTodoSubTasksValidator)
+    .query(async ({ input, ctx }) => {
+      return await getCursorTodoSubTasks(input, ctx);
     }),
   addSubTask: protectedProcedure
     .input(addTodoSubTaskValidator)
