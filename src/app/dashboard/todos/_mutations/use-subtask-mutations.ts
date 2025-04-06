@@ -96,6 +96,7 @@ export const useAddTodoSubTask = () => {
         todoId: variables.todoId,
         limit: 3,
       });
+      trpcUtils.todo.getTodos.invalidate();
     },
   });
 };
@@ -163,6 +164,7 @@ export const useUpdateTodoSubTask = () => {
         todoId: variables.todoId,
         limit: 3,
       });
+      trpcUtils.todo.getTodos.invalidate();
     },
   });
 };
@@ -248,6 +250,7 @@ export const useRemoveTodoSubTask = () => {
         todoId: variables.todoId,
         limit: 3,
       });
+      trpcUtils.todo.getTodos.invalidate();
     },
   });
 };
