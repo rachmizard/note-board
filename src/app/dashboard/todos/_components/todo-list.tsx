@@ -108,7 +108,7 @@ export const TodoList = () => {
       <div className="flex flex-col lg:flex-row lg:justify-between w-full gap-4 lg:gap-8">
         <div className="w-full lg:max-w-[60%]">
           {/* Task Input Area */}
-          <div className="mb-4 sm:mb-6 border-b pb-4">
+          <div className="mb-4 sm:mb-6">
             <AddQuickTodoForm />
           </div>
 
