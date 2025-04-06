@@ -25,11 +25,6 @@ export const useAddTodoSubTask = () => {
         limit: 1,
       });
 
-      console.log({
-        previousSubTasks,
-        previousSubTaskCount,
-      });
-
       trpcUtils.todo.getCursorTodoSubTasks.setInfiniteData(
         {
           todoId: variables.todoId,
@@ -97,7 +92,10 @@ export const useAddTodoSubTask = () => {
         todoId: variables.todoId,
         limit: 1,
       });
-      trpcUtils.todo.getTodos.invalidate(); // Invalidate all todo queries to refresh any counts
+      trpcUtils.todo.getCursorTodoSubTasks.invalidate({
+        todoId: variables.todoId,
+        limit: 3,
+      });
     },
   });
 };
@@ -105,15 +103,66 @@ export const useAddTodoSubTask = () => {
 export const useUpdateTodoSubTask = () => {
   const trpcUtils = trpc.useUtils();
   return trpc.todo.updateSubTask.useMutation({
+    async onMutate(variables) {
+      await trpcUtils.todo.getCursorTodoSubTasks.cancel({
+        todoId: variables.todoId,
+        limit: 10,
+      });
+
+      const previousSubTasks =
+        trpcUtils.todo.getCursorTodoSubTasks.getInfiniteData({
+          todoId: variables.todoId,
+          limit: 10,
+        });
+
+      trpcUtils.todo.getCursorTodoSubTasks.setInfiniteData(
+        { todoId: variables.todoId, limit: 10 },
+        (old) => {
+          if (!old) return previousSubTasks;
+
+          return produce(old, (draft) => {
+            const index = draft.pages[0].data.findIndex(
+              (subTask) => subTask.id === variables.id
+            );
+
+            if (index !== -1) {
+              draft.pages[0].data[index] = {
+                ...draft.pages[0].data[index],
+                ...variables,
+              };
+            }
+
+            return draft;
+          });
+        }
+      );
+
+      return {
+        previousSubTasks,
+      };
+    },
+    onError(__, variables, context) {
+      if (context) {
+        trpcUtils.todo.getCursorTodoSubTasks.setInfiniteData(
+          { todoId: variables.todoId, limit: 10 },
+          context.previousSubTasks
+        );
+      }
+    },
     onSuccess: (_, variables) => {
       // Invalidate all todo queries to refresh the data
       trpcUtils.todo.getCursorTodoSubTasks.invalidate({
         todoId: variables.todoId,
+        limit: 10,
       });
       trpcUtils.todo.getTodoSubTaskCount.invalidate({
         todoId: variables.todoId,
+        limit: 1,
       });
-      trpcUtils.todo.getTodos.invalidate(); // Invalidate all todo queries to refresh any counts
+      trpcUtils.todo.getCursorTodoSubTasks.invalidate({
+        todoId: variables.todoId,
+        limit: 3,
+      });
     },
   });
 };
@@ -180,6 +229,11 @@ export const useRemoveTodoSubTask = () => {
           { todoId: variables.todoId, limit: 1 },
           context.previousSubTaskCount
         );
+
+        trpcUtils.todo.getCursorTodoSubTasks.setInfiniteData(
+          { todoId: variables.todoId, limit: 3 },
+          context.previousSubTasks
+        );
       }
     },
     onSuccess: (_, variables) => {
@@ -190,7 +244,10 @@ export const useRemoveTodoSubTask = () => {
       trpcUtils.todo.getTodoSubTaskCount.invalidate({
         todoId: variables.todoId,
       });
-      trpcUtils.todo.getTodos.invalidate(); // Invalidate all todo queries to refresh any counts
+      trpcUtils.todo.getCursorTodoSubTasks.invalidate({
+        todoId: variables.todoId,
+        limit: 3,
+      });
     },
   });
 };

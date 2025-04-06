@@ -639,7 +639,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
 
                     <div className="space-y-1 max-h-[150px] overflow-y-auto pr-2">
                       {subtasks &&
-                        subtasks.length &&
+                        subtasks.length > 0 &&
                         subtasks.map((subTask) => (
                           <div
                             key={subTask.id}
