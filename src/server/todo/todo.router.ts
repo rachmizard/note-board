@@ -1,4 +1,4 @@
-import { publicProcedure, router } from "../trpc-init";
+import { protectedProcedure, router } from "../trpc-init";
 import {
   addTodoComment,
   addTodoTag,
@@ -25,52 +25,52 @@ import {
 } from "./todo.validator";
 
 export const todoRouter = router({
-  createTodo: publicProcedure
+  createTodo: protectedProcedure
     .input(createTodoValidator)
     .mutation(async ({ input, ctx }) => {
       return await createTodo(input, ctx);
     }),
-  getTodos: publicProcedure
+  getTodos: protectedProcedure
     .input(getTodosValidator)
     .query(async ({ input, ctx }) => {
       return await getTodos(input, ctx);
     }),
-  deleteTodo: publicProcedure
+  deleteTodo: protectedProcedure
     .input(deleteTodoValidator)
     .mutation(async ({ input, ctx }) => {
       return await deleteTodo(input, ctx.db);
     }),
-  updateTodo: publicProcedure
+  updateTodo: protectedProcedure
     .input(updateTodoValidator)
     .mutation(async ({ input, ctx }) => {
       return await updateTodo(input, ctx.db);
     }),
-  getTodo: publicProcedure
+  getTodo: protectedProcedure
     .input(getTodoValidator)
     .query(async ({ input, ctx }) => {
       return await getTodo(input, ctx.db);
     }),
-  addTodoTag: publicProcedure
+  addTodoTag: protectedProcedure
     .input(addTodoTagValidator)
     .mutation(async ({ input, ctx }) => {
       return await addTodoTag(input, ctx.db);
     }),
-  removeTodoTag: publicProcedure
+  removeTodoTag: protectedProcedure
     .input(removeTodoTagValidator)
     .mutation(async ({ input, ctx }) => {
       return await removeTodoTag(input, ctx.db);
     }),
-  addTodoComment: publicProcedure
+  addTodoComment: protectedProcedure
     .input(addTodoCommentValidator)
     .mutation(async ({ input, ctx }) => {
       return await addTodoComment(input, ctx);
     }),
-  removeTodoComment: publicProcedure
+  removeTodoComment: protectedProcedure
     .input(removeTodoCommentValidator)
     .mutation(async ({ input, ctx }) => {
       return await removeTodoComment(input, ctx.db);
     }),
-  getTodoComments: publicProcedure
+  getTodoComments: protectedProcedure
     .input(getTodoCommentsValidator)
     .query(async ({ input, ctx }) => {
       return await getTodoComments(input, ctx.db);

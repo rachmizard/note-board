@@ -9,11 +9,6 @@ import { auth as clerkAuth } from "@clerk/nextjs/server";
 interface CreateInnerContextOptions
   extends Partial<FetchCreateContextFnOptions> {}
 
-interface CreateInnerContextReturn {
-  db: typeof db;
-  auth: Awaited<ReturnType<typeof clerkAuth>>;
-}
-
 /**
  * Inner context. Will always be available in your procedures, in contrast to the outer context.
  *
@@ -23,13 +18,10 @@ interface CreateInnerContextReturn {
  *
  * @see https://trpc.io/docs/v11/context#inner-and-outer-context
  */
-export async function createContextInner(
-  opts?: CreateInnerContextOptions
-): Promise<CreateInnerContextReturn> {
-  const auth = await clerkAuth();
+export async function createContextInner(opts?: CreateInnerContextOptions) {
   return {
     db,
-    auth,
+    auth: await clerkAuth(),
     ...opts,
   };
 }
