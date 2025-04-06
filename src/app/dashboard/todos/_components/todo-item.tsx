@@ -160,21 +160,11 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     ? new Date(todo.dueDate).toDateString() === new Date().toDateString()
     : false;
 
-  // Format date as "Month Day, Year" for display
-  const formattedDate = todo.dueDate
-    ? new Date(todo.dueDate).toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      })
-    : "";
-
   return (
     <Fragment>
       <div
         className={cn(
-          "border-b-1 dark:shadow-neutral-800 shadow-sm border-neutral-200 dark:border-neutral-800 px-2 py-3 rounded-xl group hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors duration-200",
-          todo.status === TodoStatusEnum.COMPLETED && "opacity-70",
+          "border-1 rounded-sm px-2 py-2.5 group hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors duration-200",
           !isEditing && "cursor-pointer" // Add cursor-pointer when not in edit mode
         )}
         onClick={!isEditing ? handleTodoItemClick : undefined} // Only enable click handler when not editing
@@ -192,19 +182,19 @@ export const TodoItem: React.FC<TodoItemProps> = ({
         ) : (
           <div>
             <div className="flex items-center justify-between">
-              <div className="flex items-center flex-1">
+              <div className="flex items-start flex-1">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button
                       className={cn(
-                        "p-1 rounded-md mr-3 mt-1 flex items-center justify-center h-5 w-5 border",
+                        "p-1 rounded-sm mr-3 flex items-center justify-center h-5 w-5 border outline-none",
                         todo.status === TodoStatusEnum.COMPLETED
-                          ? "bg-blue-500 border-blue-500 text-white"
+                          ? "bg-blue-400 border-none text-white"
                           : "border-gray-300"
                       )}
                     >
                       {todo.status === TodoStatusEnum.COMPLETED && (
-                        <Check className="h-3 w-3" />
+                        <Check className="h-4 w-4" />
                       )}
                     </button>
                   </DropdownMenuTrigger>
@@ -251,14 +241,12 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                         onChange={(e) => setInlineEditedTitle(e.target.value)}
                         onBlur={handleSaveInlineTitleEdit}
                         onKeyDown={handleTitleInputKeyDown}
-                        className="w-fit min-w-fit h-7 py-1 px-2"
+                        className="w-fit min-w-fit h-fit py-1 px-2"
                       />
                     ) : (
                       <h3
                         className={cn(
-                          "font-medium cursor-pointer",
-                          todo.status === TodoStatusEnum.COMPLETED &&
-                            "line-through"
+                          "font-semibold cursor-pointer text-sm leading-5"
                         )}
                         onDoubleClick={(e) => {
                           e.stopPropagation(); // Prevent triggering the container click
@@ -287,45 +275,42 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                     </button>
                   </div>
 
-                  {isToday && (
-                    <div className="mt-1 inline-block rounded-full bg-yellow-100 dark:bg-yellow-900 px-2 py-0.5 text-xs font-medium">
-                      Today
-                    </div>
-                  )}
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {isToday && (
+                      <div className="inline-block rounded-full bg-yellow-100 dark:bg-yellow-900 px-2 py-0.5 text-xs font-medium">
+                        Today
+                      </div>
+                    )}
 
-                  {!isToday && todo.dueDate && (
-                    <div className="mt-1 inline-block rounded-full bg-red-100 dark:bg-red-900 px-2 py-0.5 text-xs font-medium">
-                      {formattedDate}
-                    </div>
-                  )}
+                    {/* Optional: Additional tag example like "win" from the reference image */}
+                    {(todo.priority === TodoPriorityEnum.HIGH ||
+                      todo.priority === TodoPriorityEnum.CRITICAL) && (
+                      <div className="inline-block rounded-full bg-blue-100 dark:bg-blue-900 px-2 py-0.5 text-xs font-medium">
+                        win
+                      </div>
+                    )}
 
-                  {/* Optional: Additional tag example like "win" from the reference image */}
-                  {todo.priority === TodoPriorityEnum.HIGH && (
-                    <div className="mt-1 ml-2 inline-block rounded-full bg-blue-100 dark:bg-blue-900 px-2 py-0.5 text-xs font-medium">
-                      win
-                    </div>
-                  )}
-
-                  {/* Display tags if available */}
-                  {todo.tags && todo.tags.length > 0 && (
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      {todo.tags
-                        .slice(0, todo.tags.length > 3 ? 2 : 3)
-                        .map((tag, index) => (
-                          <div
-                            key={index}
-                            className="inline-block rounded-full bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 text-xs font-medium"
-                          >
-                            {tag.name}
+                    {/* Display tags if available */}
+                    {todo.tags && todo.tags.length > 0 && (
+                      <>
+                        {todo.tags
+                          .slice(0, todo.tags.length > 3 ? 2 : 3)
+                          .map((tag, index) => (
+                            <div
+                              key={index}
+                              className="inline-block rounded-full bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 text-xs font-medium"
+                            >
+                              {tag.name}
+                            </div>
+                          ))}
+                        {todo.tags.length > 3 && (
+                          <div className="inline-block rounded-full bg-neutral-100 dark:bg-neutral-900 px-2 py-0.5 text-xs font-medium">
+                            +{todo.tags.length - 2} More
                           </div>
-                        ))}
-                      {todo.tags.length > 3 && (
-                        <div className="inline-block rounded-full bg-neutral-100 dark:bg-neutral-900 px-2 py-0.5 text-xs font-medium">
-                          +{todo.tags.length - 2} More
-                        </div>
-                      )}
-                    </div>
-                  )}
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -371,8 +356,16 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                         handlePriorityChange(TodoPriorityEnum.HIGH)
                       }
                     >
-                      <Flag className="h-4 w-4 mr-2 text-red-500" />
+                      <Flag className="h-4 w-4 mr-2 text-orange-500" />
                       <span>High Priority</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        handlePriorityChange(TodoPriorityEnum.CRITICAL)
+                      }
+                    >
+                      <Flag className="h-4 w-4 mr-2 text-red-500" />
+                      <span>Critical Priority</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -511,10 +504,10 @@ export const TodoItem: React.FC<TodoItemProps> = ({
             </div>
 
             {isExpanded && (
-              <div className="mt-1 ml-9 space-y-2">
+              <div className="mt-3 ml-9 space-y-2">
                 <div className="flex items-center text-sm">
                   <Clock className="h-3 w-3 mr-1" />
-                  <span>
+                  <span className="text-xs">
                     Due:{" "}
                     {todo.dueDate ? formatDate(todo.dueDate) : "No due date"}
                   </span>
@@ -522,7 +515,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                 <div className="flex items-center text-sm">
                   <span
                     className={cn(
-                      "mr-2 inline-block px-2 py-0.5 rounded-full text-xs",
+                      "mr-2 inline-block px-2 py-0.5 rounded-full text-xs border-1",
                       getPriorityColor(todo.priority)
                     )}
                   >
@@ -530,7 +523,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                   </span>
                   <span
                     className={cn(
-                      "inline-block px-2 py-0.5 rounded-full text-xs",
+                      "inline-block px-2 py-0.5 rounded-full text-xs border-1",
                       getStatusColor(todo.status)
                     )}
                   >

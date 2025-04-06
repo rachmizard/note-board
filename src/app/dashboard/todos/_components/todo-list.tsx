@@ -7,13 +7,23 @@ import {
   TodoWithRelations,
 } from "@/server/database/drizzle/todo.schema";
 import { Button } from "@/shared/components/ui/button";
-import { ListFilter } from "lucide-react";
-import { useCallback, useMemo } from "react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/shared/components/ui/collapsible";
+import { useIsMobile } from "@/shared/hooks/use-mobile";
+import confetti from "canvas-confetti";
+import { ChevronDownIcon, ChevronUpIcon, ListFilter } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useFilterQueryState } from "../_hooks/use-filter-query-state";
 import { useDeleteTodo } from "../_mutations/use-delete-todo";
 import { useUpdateTodo } from "../_mutations/use-update-todo";
 import { useTodos } from "../_queries/use-todos";
-import { mapTodoStatusFromServer } from "../_utils/todo.utils";
+import {
+  calculateCompletionRate,
+  mapTodoStatusFromServer,
+} from "../_utils/todo.utils";
 import { AddQuickTodoForm } from "./add-quick-todo-form";
 import { TodoCompletionHistory } from "./todo-completion-history";
 import { TodoItem } from "./todo-item";
@@ -98,7 +108,7 @@ export const TodoList = () => {
       <div className="flex flex-col lg:flex-row lg:justify-between w-full gap-4 lg:gap-8">
         <div className="w-full lg:max-w-[60%]">
           {/* Task Input Area */}
-          <div className="mb-4 sm:mb-6 border-b pb-4">
+          <div className="mb-4 sm:mb-6">
             <AddQuickTodoForm />
           </div>
 
@@ -146,6 +156,17 @@ export const TodoList = () => {
             </Button>
           </div>
 
+          <TodoStatsWrapperMobile>
+            <TodoCollapsibleStats>
+              <TodoStats />
+              <TodoCompletionHistory />
+            </TodoCollapsibleStats>
+          </TodoStatsWrapperMobile>
+
+          <div className="my-4">
+            <h1 className="text-xl font-bold">To Do</h1>
+          </div>
+
           {todos.isLoading && !filteredTodos.length && (
             <div className="flex flex-col gap-2">
               {Array.from({ length: 5 }).map((_, index) => (
@@ -187,12 +208,117 @@ export const TodoList = () => {
           )}
         </div>
 
-        <div className="w-full mt-6 lg:mt-0 lg:max-w-[40%]">
+        <TodoStatsWrapper>
           <TodoStats />
-
           <TodoCompletionHistory />
-        </div>
+        </TodoStatsWrapper>
+
+        <TodoConfettiEffect />
       </div>
     </div>
   );
+};
+
+const TodoStatsWrapper = ({ children }: { children: React.ReactNode }) => {
+  const isMobile = useIsMobile();
+  if (isMobile) return null;
+
+  return (
+    <div className="w-full mt-6 lg:mt-0 lg:max-w-[40%] hidden lg:block">
+      {children}
+    </div>
+  );
+};
+
+const TodoStatsWrapperMobile = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const isMobile = useIsMobile();
+  if (!isMobile) return null;
+
+  return (
+    <div className="w-full my-6 lg:mt-0 lg:max-w-[40%] block lg:hidden">
+      {children}
+    </div>
+  );
+};
+
+const TodoCollapsibleStats = ({ children }: { children: React.ReactNode }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const Icon = isOpen ? ChevronUpIcon : ChevronDownIcon;
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <CollapsibleTrigger asChild>
+        <Button variant="outline" size="lg" className="w-full justify-between">
+          <span>View Stats</span>
+          <Icon className="w-4 h-4 ml-2" />
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className="mt-4">{children}</div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+};
+
+const TodoConfettiEffect = ({ children }: { children?: React.ReactNode }) => {
+  // Use the useTodos hook to fetch todos
+  const todosQuery = useTodos({
+    page: 1,
+    limit: 100,
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
+
+  // Convert server todos to frontend Todo format
+  const todos = useMemo(() => {
+    if (!todosQuery.data?.data) return [];
+
+    // Map server todo format to frontend Todo format
+    return todosQuery.data.data;
+  }, [todosQuery.data]);
+
+  const completionRate = calculateCompletionRate(todos);
+
+  const handle100PercentConfetti = async () => {
+    const end = Date.now() + 3 * 1000; // 3 seconds
+    const colors = ["#a786ff", "#fd8bbc", "#eca184", "#f8deb1"];
+
+    const frame = () => {
+      if (Date.now() > end) return;
+
+      confetti({
+        particleCount: 2,
+        angle: 60,
+        spread: 55,
+        startVelocity: 60,
+        origin: { x: 0, y: 0.5 },
+        colors: colors,
+      });
+      confetti({
+        particleCount: 2,
+        angle: 120,
+        spread: 55,
+        startVelocity: 60,
+        origin: { x: 1, y: 0.5 },
+        colors: colors,
+      });
+
+      requestAnimationFrame(frame);
+    };
+
+    frame();
+  };
+
+  useEffect(() => {
+    if (completionRate === 100) {
+      handle100PercentConfetti();
+    }
+  }, [completionRate]);
+
+  return <div>{children}</div>;
 };

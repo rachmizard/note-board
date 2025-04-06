@@ -52,11 +52,13 @@ export const isDueDateOverdue = (dueDate?: Date): boolean => {
 export const getPriorityColor = (priority: TodoPriorityEnum): string => {
   switch (priority) {
     case TodoPriorityEnum.LOW:
-      return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100";
+      return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 border-green-300";
     case TodoPriorityEnum.MEDIUM:
-      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100";
+      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100 border-yellow-300";
     case TodoPriorityEnum.HIGH:
-      return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100";
+      return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100 border-orange-300";
+    case TodoPriorityEnum.CRITICAL:
+      return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100 border-red-300";
     default:
       return "";
   }
@@ -69,6 +71,8 @@ export const getPriorityIconColor = (priority: TodoPriorityEnum): string => {
     case TodoPriorityEnum.MEDIUM:
       return "text-yellow-500";
     case TodoPriorityEnum.HIGH:
+      return "text-orange-500";
+    case TodoPriorityEnum.CRITICAL:
       return "text-red-500";
     default:
       return "";
@@ -78,13 +82,13 @@ export const getPriorityIconColor = (priority: TodoPriorityEnum): string => {
 export const getStatusColor = (status: TodoStatusEnum): string => {
   switch (status) {
     case TodoStatusEnum.IN_PROGRESS:
-      return "bg-blue-100 text-blue-800";
+      return "bg-blue-100 text-blue-800 border-blue-300";
     case TodoStatusEnum.COMPLETED:
-      return "bg-green-100 text-green-800";
+      return "bg-green-100 text-green-800 border-green-300";
     case TodoStatusEnum.BACKLOG:
-      return "bg-gray-100 text-gray-800";
+      return "bg-gray-100 text-gray-800 border-gray-300";
     case TodoStatusEnum.ARCHIVED:
-      return "bg-amber-100 text-amber-800";
+      return "bg-amber-100 text-amber-800 border-amber-300";
     default:
       return "";
   }
