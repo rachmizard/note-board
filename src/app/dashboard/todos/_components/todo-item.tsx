@@ -174,7 +174,8 @@ export const TodoItem: React.FC<TodoItemProps> = ({
       <div
         className={cn(
           "border-b-1 dark:shadow-neutral-800 shadow-sm border-neutral-200 dark:border-neutral-800 px-2 py-3 rounded-xl group hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors duration-200",
-          todo.status === TodoStatusEnum.COMPLETED && "opacity-70",
+          todo.status === TodoStatusEnum.COMPLETED &&
+            "opacity-70 dark:opacity-85",
           !isEditing && "cursor-pointer" // Add cursor-pointer when not in edit mode
         )}
         onClick={!isEditing ? handleTodoItemClick : undefined} // Only enable click handler when not editing

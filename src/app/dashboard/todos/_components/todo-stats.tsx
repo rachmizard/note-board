@@ -1,10 +1,9 @@
-import React, { useEffect, useRef, useMemo } from "react";
 import { TodoStatusEnum } from "@/server/database/drizzle/todo.schema";
 import { Card } from "@/shared/components/ui/card";
-import confetti from "canvas-confetti";
-import { useTodos } from "../_queries/use-todos";
-import { Skeleton } from "@/shared/components/ui/skeleton";
 import { Progress } from "@/shared/components/ui/progress";
+import { Skeleton } from "@/shared/components/ui/skeleton";
+import React, { useMemo, useRef } from "react";
+import { useTodos } from "../_queries/use-todos";
 import { calculateCompletionRate } from "../_utils/todo.utils";
 
 // Remove the empty interface since we don't need props anymore
@@ -27,7 +26,6 @@ export const TodoStats: React.FC = () => {
 
   const completionRate = calculateCompletionRate(todos);
   const progressRef = useRef<HTMLDivElement>(null);
-  const prevCompletedCountRef = useRef<number>(0);
   const completedCount = todos.filter(
     (todo) => todo.status === TodoStatusEnum.COMPLETED
   ).length;
@@ -40,70 +38,6 @@ export const TodoStats: React.FC = () => {
   const archivedCount = todos.filter(
     (todo) => todo.status === TodoStatusEnum.ARCHIVED
   ).length;
-
-  const handleProgressConfetti = async () => {
-    try {
-      const rect = progressRef.current?.getBoundingClientRect();
-      if (!rect) return;
-
-      const x = rect.left + rect.width;
-      const y = rect.top + rect.height;
-      await confetti({
-        origin: {
-          x: x / window.innerWidth,
-          y: y / window.innerHeight,
-        },
-      });
-    } catch (error) {
-      console.error("Confetti button error:", error);
-    }
-  };
-
-  const handle100PercentConfetti = async () => {
-    const end = Date.now() + 3 * 1000; // 3 seconds
-    const colors = ["#a786ff", "#fd8bbc", "#eca184", "#f8deb1"];
-
-    const frame = () => {
-      if (Date.now() > end) return;
-
-      confetti({
-        particleCount: 2,
-        angle: 60,
-        spread: 55,
-        startVelocity: 60,
-        origin: { x: 0, y: 0.5 },
-        colors: colors,
-      });
-      confetti({
-        particleCount: 2,
-        angle: 120,
-        spread: 55,
-        startVelocity: 60,
-        origin: { x: 1, y: 0.5 },
-        colors: colors,
-      });
-
-      requestAnimationFrame(frame);
-    };
-
-    frame();
-  };
-
-  useEffect(() => {
-    if (completionRate === 100) {
-      handle100PercentConfetti();
-    }
-  }, [completionRate]);
-
-  useEffect(() => {
-    // Only trigger confetti if the completed count has increased
-    if (completedCount > prevCompletedCountRef.current) {
-      handleProgressConfetti();
-    }
-
-    // Update the previous count reference
-    prevCompletedCountRef.current = completedCount;
-  }, [completedCount]);
 
   // Show loading state while fetching data
   if (todosQuery.isLoading) {
