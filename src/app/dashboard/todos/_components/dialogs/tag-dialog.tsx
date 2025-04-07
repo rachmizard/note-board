@@ -10,12 +10,13 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { Label } from "@/shared/components/ui/label";
+import { useTags } from "@/shared/hooks/queries";
 import { useDebounceValue } from "@/shared/hooks/use-debounce-value";
 import { PlusIcon, X } from "lucide-react";
 import React, { useState } from "react";
 import { useAddTodoTag } from "../../_mutations/use-add-todo-tag";
 import { useRemoveTodoTag } from "../../_mutations/use-remove-todo-tag";
-import { useTodoTags } from "../../_queries/use-todo-tags";
+import { useCreateTag } from "@/shared/hooks/mutations";
 
 interface TagDialogProps {
   open: boolean;
@@ -34,12 +35,21 @@ export const TagDialog: React.FC<TagDialogProps> = ({
 
   const addTodoTag = useAddTodoTag();
   const removeTodoTag = useRemoveTodoTag();
+
+  const createTag = useCreateTag();
+
   const debouncedInputValue = useDebounceValue(inputValue, 500);
-  const { data: tags } = useTodoTags(debouncedInputValue);
+
+  const tagsQuery = useTags({
+    type: "todo",
+    keyword: debouncedInputValue,
+  });
 
   const handleSubmitNewTag: React.FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
-    const newTag = tags?.find((tag) => tag.id === Number(selectedTag))?.name;
+    const newTag = tagsQuery.data?.find(
+      (tag) => tag.id === Number(selectedTag)
+    )?.name;
     if (!newTag) return;
 
     setSelectedTag(undefined);
@@ -62,9 +72,9 @@ export const TagDialog: React.FC<TagDialogProps> = ({
 
       setInputValue("");
 
-      addTodoTag.mutate({
-        todoId: todo.id,
+      createTag.mutate({
         name: newTag,
+        type: "todo",
       });
     }
   };
@@ -77,16 +87,16 @@ export const TagDialog: React.FC<TagDialogProps> = ({
   };
 
   const handleAddTagButtonClick = (value: string) => {
-    addTodoTag.mutate({
-      todoId: todo.id,
+    createTag.mutate({
       name: value,
+      type: "todo",
     });
 
     setInputValue("");
   };
 
   const tagOptions =
-    tags?.map((tag) => ({
+    tagsQuery.data?.map((tag) => ({
       value: tag.id.toString(),
       label: tag.name,
     })) ?? [];

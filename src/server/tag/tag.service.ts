@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, ilike } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { Context } from "../context";
 import { tags } from "../database";
@@ -42,6 +42,9 @@ export const getTags = async (request: GetTagsRequest, context: Context) => {
   }
 
   const whereClause = [eq(tags.userId, userId)];
+  if (request.keyword) {
+    whereClause.push(ilike(tags.name, `%${request.keyword}%`));
+  }
   if (request.type) {
     whereClause.push(eq(tags.type, request.type));
   }

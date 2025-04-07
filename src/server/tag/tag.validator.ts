@@ -7,6 +7,7 @@ export const createTagValidator = z.object({
 
 export const getTagsValidator = z.object({
   type: z.enum(["todo"]).nullish(),
+  keyword: z.string().nullish(),
 });
 
 export type CreateTagRequest = z.infer<typeof createTagValidator>;
