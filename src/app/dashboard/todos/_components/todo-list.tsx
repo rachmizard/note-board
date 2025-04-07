@@ -20,7 +20,6 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
-import { useIsMobile } from "@/shared/hooks/use-mobile";
 import { cn } from "@/shared/lib/utils";
 import confetti from "canvas-confetti";
 import { cva } from "class-variance-authority";
@@ -278,9 +277,6 @@ export const TodoList = () => {
 };
 
 const TodoStatsWrapper = ({ children }: { children: React.ReactNode }) => {
-  const isMobile = useIsMobile();
-  if (isMobile) return null;
-
   return (
     <div className="w-full mt-6 lg:mt-0 lg:max-w-[40%] hidden lg:block">
       {children}
@@ -293,11 +289,8 @@ const TodoStatsWrapperMobile = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const isMobile = useIsMobile();
-  if (!isMobile) return null;
-
   return (
-    <div className="w-full my-6 lg:mt-0 lg:max-w-[40%] block lg:hidden">
+    <div className="w-full my-6 lg:mt-0 block lg:max-w-[40%]  lg:hidden">
       {children}
     </div>
   );
