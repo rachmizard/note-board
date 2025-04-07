@@ -1,90 +1,134 @@
 "use client";
 
-import React, { useState, useEffect, KeyboardEvent } from "react";
-import { Todo, TodoStatus } from "@/types/todo";
-import { TodoItem } from "./todo-item";
-import { mockTodos } from "@/utils/mock-data";
+import { AnimatedList } from "@/components/magicui/animated-list";
+import {
+  TodoPriorityEnum,
+  TodoStatusEnum,
+  TodoSubTask,
+  TodoWithRelations,
+} from "@/server/database/drizzle/todo.schema";
 import { Button } from "@/shared/components/ui/button";
-import { Card } from "@/shared/components/ui/card";
-import { ListFilter } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/shared/components/ui/collapsible";
+import { useIsMobile } from "@/shared/hooks/use-mobile";
+import confetti from "canvas-confetti";
+import { ChevronDownIcon, ChevronUpIcon, ListFilter } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useFilterQueryState } from "../_hooks/use-filter-query-state";
+import { useDeleteTodo } from "../_mutations/use-delete-todo";
+import { useUpdateTodo } from "../_mutations/use-update-todo";
+import { useTodos } from "../_queries/use-todos";
+import {
+  calculateCompletionRate,
+  mapTodoStatusFromServer,
+} from "../_utils/todo.utils";
+import { AddQuickTodoForm } from "./add-quick-todo-form";
+import { TodoCompletionHistory } from "./todo-completion-history";
+import { TodoItem } from "./todo-item";
+import { TodoItemSkeleton } from "./todo-item-skeleton";
 import { TodoStats } from "./todo-stats";
-import { Input } from "@/shared/components/ui/input";
 
 export const TodoList = () => {
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [filter, setFilter] = useState<TodoStatus | "all">("all");
-  const [loading, setLoading] = useState(true);
-  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [filter, setFilter] = useFilterQueryState();
 
-  // Initialize with mock data for development purposes
-  useEffect(() => {
-    setTodos(mockTodos);
-    setLoading(false);
-  }, []);
-
-  const handleAddTodo = (
-    newTodoData: Omit<Todo, "id" | "createdAt" | "status" | "completedAt">
-  ) => {
-    const newTodo: Todo = {
-      ...newTodoData,
-      id: `todo-${Date.now()}`,
-      status: "backlog",
-      createdAt: new Date(),
-    };
-
-    setTodos((prevTodos) => [newTodo, ...prevTodos]);
-  };
-
-  const handleQuickAddTodo = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && newTaskTitle.trim()) {
-      handleAddTodo({
-        title: newTaskTitle.trim(),
-        priority: "medium", // Default priority
-      });
-      setNewTaskTitle("");
-    }
-  };
-
-  const handleUpdateTodo = (id: string, updates: Partial<Todo>) => {
-    setTodos((prevTodos) =>
-      prevTodos.map((todo) => (todo.id === id ? { ...todo, ...updates } : todo))
-    );
-  };
-
-  const handleDeleteTodo = (id: string) => {
-    setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
-  };
-
-  const filteredTodos = todos.filter((todo) => {
-    if (filter === "all") return true;
-    return todo.status === filter;
+  // Use the real data source with useTodos hook
+  const todos = useTodos({
+    page: 1,
+    limit: 100, // Fetch a reasonable number of todos
+    sortBy: "createdAt",
+    sortOrder: "desc",
+    status: filter === "all" ? undefined : (filter as TodoStatusEnum),
   });
 
-  const completionHistory = todos
-    .filter((todo) => todo.status === "completed" && todo.completedAt)
-    .sort((a, b) => {
-      const dateA = a.completedAt || new Date();
-      const dateB = b.completedAt || new Date();
-      return dateB.getTime() - dateA.getTime();
-    });
+  const deleteTodo = useDeleteTodo();
+  const updateTodo = useUpdateTodo();
 
-  if (loading) {
-    return <div>Loading todos...</div>;
-  }
+  // Convert server todos to frontend Todo format
+  const convertedTodos = useMemo(() => {
+    if (!todos.data?.data) return [];
+
+    // Map server todo format to frontend Todo format, ensuring subTasks is always in the expected array format
+    return todos.data.data.map((serverTodo) => {
+      // Handle the case where subTasks might be in the new format with data, total, and completed properties
+      let subTasksArray: TodoSubTask[] = [];
+
+      if (serverTodo.subTasks) {
+        // Check if subTasks has the data property (new format)
+        const subTasksObj = serverTodo.subTasks as { data?: TodoSubTask[] };
+        if (subTasksObj.data && Array.isArray(subTasksObj.data)) {
+          subTasksArray = subTasksObj.data;
+        }
+        // Otherwise assume it's already an array (old format)
+        else if (Array.isArray(serverTodo.subTasks)) {
+          subTasksArray = serverTodo.subTasks;
+        }
+      }
+
+      return {
+        id: serverTodo.id,
+        title: serverTodo.title,
+        dueDate: serverTodo.dueDate,
+        description: serverTodo.description,
+        priority: serverTodo.priority,
+        status: serverTodo.status,
+        createdAt: serverTodo.createdAt,
+        updatedAt: serverTodo.updatedAt,
+        completedAt: serverTodo.completedAt,
+        tags: serverTodo.tags || [],
+        comments: serverTodo.comments || [],
+        subTasks: subTasksArray,
+        userId: serverTodo.userId,
+      };
+    });
+  }, [todos.data]);
+
+  const handleUpdateTodo = useCallback(
+    (id: number, updates: Partial<TodoWithRelations>) => {
+      // Convert client types to server enum types before mutation
+      const serverUpdates: {
+        id: number;
+        title?: string;
+        dueDate?: Date;
+        priority?: TodoPriorityEnum;
+        status?: TodoStatusEnum;
+        description?: string;
+      } = { id: id };
+
+      if (updates.title) serverUpdates.title = updates.title;
+      if (updates.dueDate) serverUpdates.dueDate = updates.dueDate;
+      if (updates.priority) serverUpdates.priority = updates.priority;
+      if (updates.status) serverUpdates.status = updates.status;
+
+      updateTodo.mutate(serverUpdates);
+    },
+    [updateTodo]
+  );
+
+  const handleDeleteTodo = useCallback(
+    (id: number) => {
+      deleteTodo.mutate({ id });
+    },
+    [deleteTodo]
+  );
+
+  // Keep existing filtering logic
+  const filteredTodos = useMemo(() => {
+    return convertedTodos.filter((todo) => {
+      if (filter === "all") return true;
+      return mapTodoStatusFromServer(todo.status) === filter;
+    });
+  }, [convertedTodos, filter]);
 
   return (
-    <div className="w-full mx-auto px-4 sm:px-6 lg:max-w-6xl">
+    <div className="w-full mx-auto px-0 sm:px-6 lg:max-w-8xl">
       <div className="flex flex-col lg:flex-row lg:justify-between w-full gap-4 lg:gap-8">
         <div className="w-full lg:max-w-[60%]">
           {/* Task Input Area */}
-          <div className="mb-4 sm:mb-6 border-b pb-4">
-            <Input
-              value={newTaskTitle}
-              onChange={(e) => setNewTaskTitle(e.target.value)}
-              onKeyDown={handleQuickAddTodo}
-              placeholder="Type a new task and press Enter to add"
-              className="w-full"
-            />
+          <div className="mb-4 sm:mb-6">
+            <AddQuickTodoForm />
           </div>
 
           {/* Filter Buttons */}
@@ -98,9 +142,9 @@ export const TodoList = () => {
               All
             </Button>
             <Button
-              variant={filter === "in-progress" ? "default" : "outline"}
+              variant={filter === "inprogress" ? "default" : "outline"}
               size="sm"
-              onClick={() => setFilter("in-progress")}
+              onClick={() => setFilter("inprogress")}
               className="rounded-full text-xs sm:text-sm"
             >
               In Progress
@@ -131,9 +175,28 @@ export const TodoList = () => {
             </Button>
           </div>
 
+          <TodoStatsWrapperMobile>
+            <TodoCollapsibleStats>
+              <TodoStats />
+              <TodoCompletionHistory />
+            </TodoCollapsibleStats>
+          </TodoStatsWrapperMobile>
+
+          <div className="my-4">
+            <h1 className="text-xl font-bold">To Do</h1>
+          </div>
+
+          {todos.isLoading && !filteredTodos.length && (
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <TodoItemSkeleton key={index} />
+              ))}
+            </div>
+          )}
+
           {/* Todo List */}
-          {filteredTodos.length > 0 ? (
-            <div>
+          {filteredTodos.length > 0 && !todos.isLoading && (
+            <AnimatedList delay={200} className="gap-2">
               {filteredTodos.map((todo) => (
                 <TodoItem
                   key={todo.id}
@@ -142,11 +205,13 @@ export const TodoList = () => {
                   onDelete={handleDeleteTodo}
                 />
               ))}
-            </div>
-          ) : (
+            </AnimatedList>
+          )}
+
+          {!filteredTodos.length && !todos.isLoading && (
             <div className="text-center py-6 sm:py-8 border rounded-lg">
-              <ListFilter className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-gray-400 mb-2" />
-              <p className="text-sm sm:text-base text-gray-500">
+              <ListFilter className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-foreground mb-2" />
+              <p className="text-sm sm:text-base text-foreground">
                 No todos found for the selected filter
               </p>
               {filter !== "all" && (
@@ -162,39 +227,117 @@ export const TodoList = () => {
           )}
         </div>
 
-        <div className="w-full mt-6 lg:mt-0 lg:max-w-[40%]">
-          <TodoStats todos={todos} />
+        <TodoStatsWrapper>
+          <TodoStats />
+          <TodoCompletionHistory />
+        </TodoStatsWrapper>
 
-          {/* Completion History section can be moved to a separate tab or section if needed */}
-          {completionHistory.length > 0 && (
-            <Card className="p-3 sm:p-4 mt-4 sm:mt-6">
-              <h3 className="text-base sm:text-lg font-medium mb-2 sm:mb-3">
-                Completion History
-              </h3>
-              <div className="space-y-2 max-h-48 sm:max-h-60 overflow-y-auto">
-                {completionHistory.map((todo) => (
-                  <div
-                    key={`history-${todo.id}`}
-                    className="text-xs sm:text-sm border-b pb-2"
-                  >
-                    <p className="font-medium">{todo.title}</p>
-                    <p className="text-xs text-gray-500">
-                      Completed:{" "}
-                      {todo.completedAt?.toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
-        </div>
+        <TodoConfettiEffect />
       </div>
     </div>
   );
+};
+
+const TodoStatsWrapper = ({ children }: { children: React.ReactNode }) => {
+  const isMobile = useIsMobile();
+  if (isMobile) return null;
+
+  return (
+    <div className="w-full mt-6 lg:mt-0 lg:max-w-[40%] hidden lg:block">
+      {children}
+    </div>
+  );
+};
+
+const TodoStatsWrapperMobile = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const isMobile = useIsMobile();
+  if (!isMobile) return null;
+
+  return (
+    <div className="w-full my-6 lg:mt-0 lg:max-w-[40%] block lg:hidden">
+      {children}
+    </div>
+  );
+};
+
+const TodoCollapsibleStats = ({ children }: { children: React.ReactNode }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const Icon = isOpen ? ChevronUpIcon : ChevronDownIcon;
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <CollapsibleTrigger asChild>
+        <Button variant="outline" size="lg" className="w-full justify-between">
+          <span>View Stats</span>
+          <Icon className="w-4 h-4 ml-2" />
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className="mt-4">{children}</div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+};
+
+const TodoConfettiEffect = ({ children }: { children?: React.ReactNode }) => {
+  // Use the useTodos hook to fetch todos
+  const todosQuery = useTodos({
+    page: 1,
+    limit: 100,
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
+
+  // Convert server todos to frontend Todo format
+  const todos = useMemo(() => {
+    if (!todosQuery.data?.data) return [];
+
+    // Map server todo format to frontend Todo format
+    return todosQuery.data.data;
+  }, [todosQuery.data]);
+
+  const completionRate = calculateCompletionRate(todos);
+
+  const handle100PercentConfetti = async () => {
+    const end = Date.now() + 3 * 1000; // 3 seconds
+    const colors = ["#a786ff", "#fd8bbc", "#eca184", "#f8deb1"];
+
+    const frame = () => {
+      if (Date.now() > end) return;
+
+      confetti({
+        particleCount: 2,
+        angle: 60,
+        spread: 55,
+        startVelocity: 60,
+        origin: { x: 0, y: 0.5 },
+        colors: colors,
+      });
+      confetti({
+        particleCount: 2,
+        angle: 120,
+        spread: 55,
+        startVelocity: 60,
+        origin: { x: 1, y: 0.5 },
+        colors: colors,
+      });
+
+      requestAnimationFrame(frame);
+    };
+
+    frame();
+  };
+
+  useEffect(() => {
+    if (completionRate === 100) {
+      handle100PercentConfetti();
+    }
+  }, [completionRate]);
+
+  return <div>{children}</div>;
 };
