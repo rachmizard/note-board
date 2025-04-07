@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, SearchIcon } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/shared/components/ui/button";
@@ -120,8 +120,11 @@ export function Combobox({
             {...commantInputProps}
           />
           <CommandList>
-            <CommandEmpty className="flex flex-col gap-2 justify-center items-center py-4">
-              {emptyText}
+            <CommandEmpty className="flex flex-col gap-4 justify-center items-center py-4 text-muted-foreground text-sm">
+              <div className="flex items-center gap-2">
+                <SearchIcon className="w-4 h-4" />
+                {emptyText}
+              </div>
               {renderExtraEmptyComponent &&
                 renderExtraEmptyComponent(_inputValue ?? "")}
             </CommandEmpty>
