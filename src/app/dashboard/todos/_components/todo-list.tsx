@@ -148,7 +148,7 @@ export const TodoList = () => {
   }, [convertedTodos, filter]);
 
   return (
-    <div className="w-full mx-auto px-0 sm:px-6 lg:max-w-8xl">
+    <div className="w-full px-0">
       <div className="flex flex-col lg:flex-row lg:justify-between w-full gap-4 lg:gap-8">
         <div className="w-full lg:max-w-[60%]">
           {/* Task Input Area */}
@@ -388,20 +388,23 @@ const FilterPriorityDropdown = ({
     (option) => option.value === priority
   );
 
-  const buttonSortVariant = cva("text-foreground", {
-    variants: {
-      priority: {
-        [TodoPriorityEnum.LOW]:
-          "text-green-500 border-green-500 hover:bg-green-500 hover:text-white",
-        [TodoPriorityEnum.MEDIUM]:
-          "text-yellow-500 border-yellow-500 hover:bg-yellow-500 hover:text-white",
-        [TodoPriorityEnum.HIGH]:
-          "text-red-500 border-red-500 hover:bg-red-500 hover:text-white",
-        [TodoPriorityEnum.CRITICAL]:
-          "text-red-500 border-red-500 hover:bg-red-500 hover:text-white",
+  const buttonSortVariant = cva(
+    "text-foreground min-w-[8rem] justify-between",
+    {
+      variants: {
+        priority: {
+          [TodoPriorityEnum.LOW]:
+            "text-green-500 border-green-500 hover:bg-green-500 hover:text-white",
+          [TodoPriorityEnum.MEDIUM]:
+            "text-yellow-500 border-yellow-500 hover:bg-yellow-500 hover:text-white",
+          [TodoPriorityEnum.HIGH]:
+            "text-red-500 border-red-500 hover:bg-red-500 hover:text-white",
+          [TodoPriorityEnum.CRITICAL]:
+            "text-red-500 border-red-500 hover:bg-red-500 hover:text-white",
+        },
       },
-    },
-  });
+    }
+  );
 
   const handlePriorityChange = (value: string) => {
     if (value === priority) {
@@ -418,8 +421,8 @@ const FilterPriorityDropdown = ({
           variant="outline"
           className={cn(buttonSortVariant({ priority }))}
         >
-          <Icon className="w-4 h-4 mr-1/2" />
           <span>{foundLabel?.label || "Filter by priority"}</span>
+          <Icon className="w-4 h-4 mr-1/2" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

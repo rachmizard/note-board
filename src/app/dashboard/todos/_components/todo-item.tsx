@@ -239,7 +239,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
           />
         ) : (
           <div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <div className="flex items-start flex-1">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
