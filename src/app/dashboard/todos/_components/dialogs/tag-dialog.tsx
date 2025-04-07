@@ -166,8 +166,13 @@ export const TagDialog: React.FC<TagDialogProps> = ({
           >
             Cancel
           </Button>
-          <Button type="submit" size="sm" form="tag-form">
-            Add Tag
+          <Button
+            type="submit"
+            size="sm"
+            form="tag-form"
+            disabled={!selectedTag || addTodoTag.isPending}
+          >
+            {addTodoTag.isPending ? "Adding..." : "Add Tag"}
           </Button>
         </DialogFooter>
       </DialogContent>
