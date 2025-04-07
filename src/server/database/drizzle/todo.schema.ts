@@ -51,7 +51,6 @@ export const todoSchema = pgCore.pgTable("todos", {
 
 export const todoTags = pgCore.pgTable("todo_tags", {
   id: pgCore.serial("id").primaryKey(),
-  name: pgCore.text("name"),
   tagId: pgCore.integer("tag_id").references(() => tags.id, {
     onDelete: "cascade",
   }),
