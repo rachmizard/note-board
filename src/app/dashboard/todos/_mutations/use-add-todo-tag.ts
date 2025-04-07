@@ -26,7 +26,6 @@ export const useAddTodoTag = () => {
                 id: Date.now() * Math.random(),
                 tagId: Date.now() * Math.random(),
                 todoId: newTodoTag.todoId,
-                name: newTodoTag.name ?? "",
                 tag: {
                   id: Date.now() * Math.random(),
                   name: newTodoTag.name ?? "",

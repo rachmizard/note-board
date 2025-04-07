@@ -41,6 +41,7 @@ import { CommentDialog } from "./dialogs/comment-dialog";
 import { DeleteConfirmationDialog } from "./dialogs/delete-confirmation-dialog";
 import { SubTaskDialog } from "./dialogs/sub-task-dialog";
 import { TagDialog } from "./dialogs/tag-dialog";
+import { EstimatedTimeDialog } from "./dialogs/estimated-time-dialog";
 import { TodoForm } from "./todo-form";
 import { useTodoSubTasks } from "../_queries/use-infinite-todo-subtasks";
 import { getSubTaskCount } from "../_queries/use-todo-subtask-count";
@@ -59,6 +60,9 @@ interface TodoWithSubTaskCounts {
   userId: string | null;
   tags: TodoWithRelations["tags"];
   comments: TodoWithRelations["comments"];
+  estimatedHours: number;
+  estimatedMinutes: number;
+  estimatedSeconds: number;
   subTasks: {
     data: TodoSubTask[];
     total: number;
@@ -101,6 +105,9 @@ export const TodoItem: React.FC<TodoItemProps> = ({
 
   // Add state for SubTaskDialog
   const [showSubTaskDialog, setShowSubTaskDialog] = useState(false);
+
+  // Add state for EstimatedTimeDialog
+  const [showEstimatedTimeDialog, setEstimatedTimeDialog] = useState(false);
 
   // Get subtask count using the new helper function
   const { count: subtaskCount, completedCount: completedSubtaskCount } =
@@ -207,6 +214,19 @@ export const TodoItem: React.FC<TodoItemProps> = ({
   const isToday = todo.dueDate
     ? new Date(todo.dueDate).toDateString() === new Date().toDateString()
     : false;
+
+  // Add handler for time change
+  const handleTimeChange = (
+    hours: number,
+    minutes: number,
+    seconds: number
+  ) => {
+    onUpdate(todo.id, {
+      estimatedHours: hours,
+      estimatedMinutes: minutes,
+      estimatedSeconds: seconds,
+    });
+  };
 
   return (
     <Fragment>
@@ -386,6 +406,23 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                 )}
                 onClick={(e) => e.stopPropagation()} // Prevent triggering container click
               >
+                {/* Time dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Clock className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() => setEstimatedTimeDialog(true)}
+                    >
+                      <Clock className="h-4 w-4 mr-2" />
+                      <span>Set Estimated Time</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
                 {/* Priority dropdown using shadcn DropdownMenu */}
                 <DropdownMenu onOpenChange={setIsPriorityDropdownOpen}>
                   <DropdownMenuTrigger asChild>
@@ -560,6 +597,14 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                       <span>Manage Sub-Tasks</span>
                     </DropdownMenuItem>
 
+                    {/* Add time menu item to mobile menu */}
+                    <DropdownMenuItem
+                      onClick={() => setEstimatedTimeDialog(true)}
+                    >
+                      <Clock className="h-4 w-4 mr-2" />
+                      <span>Set Estimated Time</span>
+                    </DropdownMenuItem>
+
                     {/* Delete with confirmation (will trigger dialog) */}
                     <DropdownMenuItem
                       onClick={() => setShowDeleteDialog(true)}
@@ -707,6 +752,13 @@ export const TodoItem: React.FC<TodoItemProps> = ({
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
         onConfirm={() => onDelete(todo.id)}
+      />
+
+      <EstimatedTimeDialog
+        open={showEstimatedTimeDialog}
+        onOpenChange={setEstimatedTimeDialog}
+        todo={todo as TodoWithRelations}
+        onSave={handleTimeChange}
       />
     </Fragment>
   );

@@ -94,6 +94,9 @@ export const TodoList = () => {
         comments: serverTodo.comments || [],
         subTasks: subTasksArray,
         userId: serverTodo.userId,
+        estimatedHours: serverTodo.estimatedHours,
+        estimatedMinutes: serverTodo.estimatedMinutes,
+        estimatedSeconds: serverTodo.estimatedSeconds,
       };
     });
   }, [todos.data]);
@@ -108,12 +111,21 @@ export const TodoList = () => {
         priority?: TodoPriorityEnum;
         status?: TodoStatusEnum;
         description?: string;
+        estimatedHours?: number;
+        estimatedMinutes?: number;
+        estimatedSeconds?: number;
       } = { id: id };
 
       if (updates.title) serverUpdates.title = updates.title;
       if (updates.dueDate) serverUpdates.dueDate = updates.dueDate;
       if (updates.priority) serverUpdates.priority = updates.priority;
       if (updates.status) serverUpdates.status = updates.status;
+      if (updates.estimatedHours)
+        serverUpdates.estimatedHours = updates.estimatedHours;
+      if (updates.estimatedMinutes)
+        serverUpdates.estimatedMinutes = updates.estimatedMinutes;
+      if (updates.estimatedSeconds)
+        serverUpdates.estimatedSeconds = updates.estimatedSeconds;
 
       updateTodo.mutate(serverUpdates);
     },

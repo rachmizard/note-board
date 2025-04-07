@@ -62,6 +62,9 @@ export const updateTodoValidator = z.object({
   dueDate: z.date().optional(),
   priority: z.nativeEnum(TodoPriorityEnum).optional(),
   status: z.nativeEnum(TodoStatusEnum).optional(),
+  estimatedHours: z.coerce.number().optional(),
+  estimatedMinutes: z.coerce.number().optional(),
+  estimatedSeconds: z.coerce.number().optional(),
 });
 
 export const getTodoValidator = z.object({
