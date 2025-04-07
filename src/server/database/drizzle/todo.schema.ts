@@ -44,6 +44,7 @@ export const todoSchema = pgCore.pgTable("todos", {
       onDelete: "cascade",
     })
     .$default(() => ""),
+  estimatedTime: pgCore.time("estimated_time"),
   completedAt: pgCore.timestamp("completed_at"),
   createdAt: pgCore.timestamp("created_at").defaultNow().notNull(),
   updatedAt: pgCore.timestamp("updated_at").defaultNow().notNull(),
