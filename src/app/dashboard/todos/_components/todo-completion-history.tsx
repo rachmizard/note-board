@@ -40,7 +40,7 @@ export const TodoCompletionHistory = () => {
   }, [convertedTodos]);
 
   return (
-    <Card>
+    <Card className="shadow-none">
       <CardHeader>
         <CardTitle className="text-base sm:text-lg font-medium ">
           Completion History

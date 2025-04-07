@@ -9,10 +9,15 @@ import {
 } from "@/server/database/drizzle/todo.schema";
 import { Button } from "@/shared/components/ui/button";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/shared/components/ui/collapsible";
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/shared/components/ui/drawer";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,6 +45,7 @@ import { TodoCompletionHistory } from "./todo-completion-history";
 import { TodoItem } from "./todo-item";
 import { TodoItemSkeleton } from "./todo-item-skeleton";
 import { TodoStats } from "./todo-stats";
+import { ScrollArea } from "@/shared/components/ui/scroll-area";
 
 export const TodoList = () => {
   const [filter, setFilter] = useFilterQueryState();
@@ -207,10 +213,10 @@ export const TodoList = () => {
           </div>
 
           <TodoStatsWrapperMobile>
-            <TodoCollapsibleStats>
+            <TodoStatsDrawer>
               <TodoStats />
               <TodoCompletionHistory />
-            </TodoCollapsibleStats>
+            </TodoStatsDrawer>
           </TodoStatsWrapperMobile>
 
           <div className="my-4 flex justify-between items-start">
@@ -285,7 +291,7 @@ export const TodoList = () => {
 
 const TodoStatsWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="w-full mt-6 lg:mt-0 lg:max-w-[40%] hidden lg:block">
+    <div className="w-full mt-6 lg:mt-0 lg:max-w-[40%] hidden lg:block space-y-4">
       {children}
     </div>
   );
@@ -303,23 +309,36 @@ const TodoStatsWrapperMobile = ({
   );
 };
 
-const TodoCollapsibleStats = ({ children }: { children: React.ReactNode }) => {
+const TodoStatsDrawer = ({ children }: { children: React.ReactNode }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const Icon = isOpen ? ChevronUpIcon : ChevronDownIcon;
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <CollapsibleTrigger asChild>
+    <Drawer open={isOpen} onOpenChange={setIsOpen}>
+      <DrawerTrigger asChild>
         <Button variant="outline" size="lg" className="w-full justify-between">
           <span>View Stats</span>
-          <Icon className="w-4 h-4 ml-2" />
+          <Icon className="w-4 h-4" />
         </Button>
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <div className="mt-4">{children}</div>
-      </CollapsibleContent>
-    </Collapsible>
+      </DrawerTrigger>
+      <DrawerContent>
+        <ScrollArea className="h-[500px]">
+          <DrawerHeader>
+            <DrawerTitle>To Do Stats</DrawerTitle>
+            <DrawerDescription>
+              View the stats for your to do list
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="container mx-auto px-4 space-y-4">{children}</div>
+        </ScrollArea>
+        <DrawerFooter>
+          <DrawerClose asChild>
+            <Button variant="outline">Close</Button>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 };
 
