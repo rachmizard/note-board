@@ -203,6 +203,12 @@ const updateTodo = async (
     });
   }
 
+  if (request.status === TodoStatusEnum.COMPLETED) {
+    request.completedAt = new Date();
+  } else {
+    request.completedAt = undefined;
+  }
+
   await db
     .update(todoSchema)
     .set(request)

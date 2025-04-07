@@ -114,12 +114,18 @@ export const TodoList = () => {
         estimatedHours?: number;
         estimatedMinutes?: number;
         estimatedSeconds?: number;
+        completedAt?: Date;
       } = { id: id };
 
       if (updates.title) serverUpdates.title = updates.title;
       if (updates.dueDate) serverUpdates.dueDate = updates.dueDate;
       if (updates.priority) serverUpdates.priority = updates.priority;
       if (updates.status) serverUpdates.status = updates.status;
+      if (updates.status === TodoStatusEnum.COMPLETED)
+        serverUpdates.completedAt = new Date();
+      else if (updates.status === TodoStatusEnum.IN_PROGRESS)
+        serverUpdates.completedAt = undefined;
+
       if (updates.estimatedHours !== undefined)
         serverUpdates.estimatedHours = updates.estimatedHours ?? 0;
       if (updates.estimatedMinutes !== undefined)
@@ -239,6 +245,7 @@ export const TodoList = () => {
                 <TodoItem
                   key={todo.id}
                   todo={todo}
+                  filter={filter}
                   onUpdate={handleUpdateTodo}
                   onDelete={handleDeleteTodo}
                 />

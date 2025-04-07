@@ -78,12 +78,14 @@ interface TodoItemProps {
   todo: TodoItem;
   onUpdate: (id: number, updates: Partial<TodoWithRelations>) => void;
   onDelete: (id: number) => void;
+  filter: string | null;
 }
 
 export const TodoItem: React.FC<TodoItemProps> = ({
   todo,
   onUpdate,
   onDelete,
+  filter,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -257,42 +259,49 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start">
-                    <DropdownMenuItem
-                      onClick={() =>
-                        handleStatusChange(TodoStatusEnum.IN_PROGRESS)
-                      }
-                    >
-                      <Clock className="h-4 w-4 mr-2 text-green-500" />
-                      <span>In Progress</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() =>
-                        handleStatusChange(TodoStatusEnum.COMPLETED)
-                      }
-                    >
-                      <Check className="h-4 w-4 mr-2 text-blue-500" />
-                      <span>Completed</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => handleStatusChange(TodoStatusEnum.BACKLOG)}
-                    >
-                      <ListPlusIcon className="h-4 w-4 mr-2 text-purple-500" />
-                      <span>Backlog</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setShowSubTaskDialog(true)}
-                    >
-                      <ListCheck className="h-4 w-4 mr-2 text-blue-500" />
-                      <span>Manage Sub-Tasks</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() =>
-                        handleStatusChange(TodoStatusEnum.ARCHIVED)
-                      }
-                    >
-                      <Trash className="h-4 w-4 mr-2 text-neutral-500" />
-                      <span>Archived</span>
-                    </DropdownMenuItem>
+                    {filter !== TodoStatusEnum.IN_PROGRESS && (
+                      <DropdownMenuItem
+                        onClick={() =>
+                          handleStatusChange(TodoStatusEnum.IN_PROGRESS)
+                        }
+                      >
+                        <Clock className="h-4 w-4 mr-2 text-green-500" />
+                        <span>In Progress</span>
+                      </DropdownMenuItem>
+                    )}
+
+                    {filter !== TodoStatusEnum.COMPLETED && (
+                      <DropdownMenuItem
+                        onClick={() =>
+                          handleStatusChange(TodoStatusEnum.COMPLETED)
+                        }
+                      >
+                        <Check className="h-4 w-4 mr-2 text-blue-500" />
+                        <span>Completed</span>
+                      </DropdownMenuItem>
+                    )}
+
+                    {filter !== TodoStatusEnum.BACKLOG && (
+                      <DropdownMenuItem
+                        onClick={() =>
+                          handleStatusChange(TodoStatusEnum.BACKLOG)
+                        }
+                      >
+                        <ListPlusIcon className="h-4 w-4 mr-2 text-purple-500" />
+                        <span>Backlog</span>
+                      </DropdownMenuItem>
+                    )}
+
+                    {filter !== TodoStatusEnum.ARCHIVED && (
+                      <DropdownMenuItem
+                        onClick={() =>
+                          handleStatusChange(TodoStatusEnum.ARCHIVED)
+                        }
+                      >
+                        <Trash className="h-4 w-4 mr-2 text-neutral-500" />
+                        <span>Archived</span>
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
 
