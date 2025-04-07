@@ -362,7 +362,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                               key={index}
                               className="inline-block rounded-full bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 text-xs font-medium"
                             >
-                              {tag.name}
+                              {tag.tag?.name ?? "-"}
                             </div>
                           ))}
                         {todo.tags.length > 3 && (

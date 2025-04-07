@@ -2,7 +2,6 @@ import type {
   Database,
   TodoComment,
   TodoSubTask,
-  TodoTag,
   TodoWithRelations,
 } from "@/server/database";
 import {
@@ -18,7 +17,7 @@ import type {
   PaginationResponse,
 } from "@/server/types/response";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, ilike, inArray, SQL, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, SQL, sql } from "drizzle-orm";
 import type { Context } from "../context";
 import type {
   AddTodoCommentRequest,
@@ -30,7 +29,6 @@ import type {
   GetTodoRequest,
   GetTodosRequest,
   GetTodoSubTasksRequest,
-  GetTodoTagsRequest,
   RemoveTodoCommentRequest,
   RemoveTodoSubTaskRequest,
   RemoveTodoTagRequest,
@@ -112,7 +110,11 @@ const getTodos = async (
   const todos = await context.db.query.todoSchema.findMany({
     where: whereClauses.length > 0 ? and(...whereClauses) : undefined,
     with: {
-      tags: true,
+      tags: {
+        with: {
+          tag: true,
+        },
+      },
       comments: {
         orderBy: [desc(todoComments.createdAt)],
       },
@@ -535,33 +537,18 @@ const getTodoSubTaskCount = async (
   };
 };
 
-const getTodoTags = async (
-  request: GetTodoTagsRequest,
-  context: Context
-): Promise<TodoTag[]> => {
-  const whereClauses: SQL[] = [];
-
-  if (request.keyword) {
-    whereClauses.push(ilike(todoTags.name, `%${request.keyword}%`));
-  }
-
-  return await context.db.query.todoTags.findMany({
-    where: and(...whereClauses),
-  });
-};
 export {
   addTodoComment,
   addTodoSubTask,
   addTodoTag,
   createTodo,
   deleteTodo,
+  getCursorTodoSubTasks,
   getTodo,
   getTodoComments,
   getTodos,
   getTodosCount,
-  getCursorTodoSubTasks,
   getTodoSubTaskCount,
-  getTodoTags,
   removeTodoComment,
   removeTodoSubTask,
   removeTodoTag,

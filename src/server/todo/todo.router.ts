@@ -1,39 +1,37 @@
 import { protectedProcedure, router } from "../trpc-init";
 import {
   addTodoComment,
+  addTodoSubTask,
   addTodoTag,
   createTodo,
   deleteTodo,
+  getCursorTodoSubTasks,
   getTodo,
   getTodoComments,
   getTodos,
+  getTodosCount,
+  getTodoSubTaskCount,
   removeTodoComment,
+  removeTodoSubTask,
   removeTodoTag,
   updateTodo,
-  addTodoSubTask,
   updateTodoSubTask,
-  removeTodoSubTask,
-  getCursorTodoSubTasks,
-  getTodoSubTaskCount,
-  getTodosCount,
-  getTodoTags,
 } from "./todo.service";
 import {
   addTodoCommentValidator,
+  addTodoSubTaskValidator,
   addTodoTagValidator,
   createTodoValidator,
   deleteTodoValidator,
   getTodoCommentsValidator,
+  getTodoSubTasksValidator,
   getTodosValidator,
   getTodoValidator,
   removeTodoCommentValidator,
-  removeTodoTagValidator,
-  updateTodoValidator,
-  getTodoSubTasksValidator,
-  addTodoSubTaskValidator,
-  updateTodoSubTaskValidator,
   removeTodoSubTaskValidator,
-  getTodoTagsValidator,
+  removeTodoTagValidator,
+  updateTodoSubTaskValidator,
+  updateTodoValidator,
 } from "./todo.validator";
 
 export const todoRouter = router({
@@ -114,10 +112,5 @@ export const todoRouter = router({
     .input(removeTodoSubTaskValidator)
     .mutation(async ({ ctx, input }) => {
       return await removeTodoSubTask(input, ctx);
-    }),
-  getTodoTags: protectedProcedure
-    .input(getTodoTagsValidator)
-    .query(async ({ input, ctx }) => {
-      return await getTodoTags(input, ctx);
     }),
 });

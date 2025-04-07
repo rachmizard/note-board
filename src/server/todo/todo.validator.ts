@@ -70,7 +70,8 @@ export const getTodoValidator = z.object({
 
 export const addTodoTagValidator = z.object({
   todoId: z.number(),
-  name: z.string().min(1, { message: "What's your tag?" }),
+  name: z.string().nullish(),
+  tagId: z.number(),
 });
 
 export const removeTodoTagValidator = z.object({

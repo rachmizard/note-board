@@ -24,8 +24,17 @@ export const useAddTodoTag = () => {
             if (todo && todo.tags) {
               todo.tags.push({
                 id: Date.now() * Math.random(),
-                name: newTodoTag.name,
+                tagId: Date.now() * Math.random(),
                 todoId: newTodoTag.todoId,
+                name: newTodoTag.name ?? "",
+                tag: {
+                  id: Date.now() * Math.random(),
+                  name: newTodoTag.name ?? "",
+                  type: "todo",
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                  userId: null,
+                },
               });
             }
           });
@@ -36,7 +45,6 @@ export const useAddTodoTag = () => {
     },
     onSuccess: () => {
       utils.todo.getTodos.invalidate();
-      utils.todo.getTodoTags.invalidate();
     },
     onError: (_, __, context) => {
       utils.todo.getTodos.setData(
