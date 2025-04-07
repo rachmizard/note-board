@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/shared/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -85,17 +86,21 @@ export function AppSidebar() {
         >
           <CollapseButton />
           <SidebarHeader className="flex w-full justify-start items-center border-b p-3">
-            <div className="flex gap-2 justify-start w-full">
-              <Image
-                src="/logo.png"
-                className="w-6 h-6 shrink-0"
-                alt="Noteboard"
-                width={24}
-                height={24}
-                priority
-                loading={undefined}
-                quality={100}
-              />
+            <div
+              className={`flex gap-2 ${
+                !isCollapsed ? "justify-start" : "justify-center"
+              } w-full`}
+            >
+              <div className="w-6 h-6 relative shrink-0">
+                <Image
+                  src="/logo.png"
+                  alt="Noteboard"
+                  fill
+                  priority
+                  loading={undefined}
+                  quality={100}
+                />
+              </div>
               {!isCollapsed && (
                 <>
                   <p className="font-bold">Noteboard</p>
@@ -114,23 +119,6 @@ export function AppSidebar() {
                   </div>
                 </>
               )}
-          <SidebarHeader className="flex w-full justify-start items-center border-b p-4">
-            <div
-              className={`flex gap-2 ${
-                !isCollapsed ? "justify-start" : "justify-center"
-              } w-full`}
-            >
-              <div className="w-6 h-6 relative shrink-0">
-                <Image
-                  src="/logo.png"
-                  alt="Noteboard"
-                  fill
-                  priority
-                  loading={undefined}
-                  quality={100}
-                />
-              </div>
-              {!isCollapsed && <p>Noteboard</p>}
             </div>
           </SidebarHeader>
 
@@ -139,7 +127,6 @@ export function AppSidebar() {
               {data.navMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <Tooltip>
-                    <TooltipTrigger asChild className="w-full">
                     <TooltipTrigger className="w-full">
                       <SidebarMenuButton asChild>
                         <a
@@ -161,9 +148,6 @@ export function AppSidebar() {
                         <span>{item.title}</span>
                       </TooltipContent>
                     )}
-                    <TooltipContent side="right">
-                      <span>{item.title}</span>
-                    </TooltipContent>
                   </Tooltip>
                 </SidebarMenuItem>
               ))}
