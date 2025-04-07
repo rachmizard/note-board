@@ -28,7 +28,13 @@ import {
   Tag as TagIcon,
   Trash,
 } from "lucide-react";
-import React, { Fragment, useEffect, useRef, useState } from "react";
+import React, {
+  forwardRef,
+  Fragment,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { getSubTaskCount } from "../_queries/use-todo-subtask-count";
 import {
   formatDate,
@@ -44,6 +50,11 @@ import { SubTaskDialog } from "./dialogs/sub-task-dialog";
 import { TagDialog } from "./dialogs/tag-dialog";
 import { SubTaskList } from "./sub-task-list";
 import { TodoForm } from "./todo-form";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/shared/components/ui/tooltip";
 
 // Define interface for server responses with different subTasks format
 interface TodoWithSubTaskCounts {
@@ -121,6 +132,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     showDeleteDialog ||
     showTagDialog ||
     showSubTaskDialog ||
+    showEstimatedTimeDialog ||
     isPriorityDropdownOpen ||
     isMobileMenuOpen;
 
@@ -415,41 +427,37 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                 )}
                 onClick={(e) => e.stopPropagation()} // Prevent triggering container click
               >
-                {/* Time dropdown */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Clock className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => setEstimatedTimeDialog(true)}
-                    >
-                      <Clock className="h-4 w-4 mr-2" />
-                      <span>Set Estimated Time</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <TodoItemTooltip tooltipText="Set Estimated Time">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setEstimatedTimeDialog(true)}
+                  >
+                    <Clock className="h-4 w-4" />
+                  </Button>
+                </TodoItemTooltip>
 
                 {/* Priority dropdown using shadcn DropdownMenu */}
                 <DropdownMenu onOpenChange={setIsPriorityDropdownOpen}>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <FlagIcon
-                        className={cn(
-                          "h-4 w-4",
-                          getPriorityIconColor(todo.priority)
-                        )}
-                      />
-                    </Button>
+                    <TodoItemTooltip tooltipText="Set Priority">
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <FlagIcon
+                          className={cn(
+                            "h-4 w-4",
+                            getPriorityIconColor(todo.priority)
+                          )}
+                        />
+                      </Button>
+                    </TodoItemTooltip>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
                       onClick={() => handlePriorityChange(TodoPriorityEnum.LOW)}
                     >
                       <Flag className="h-4 w-4 mr-2 text-green-500" />
-                      <span>Low Priority</span>
+                      <span>Low</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() =>
@@ -457,7 +465,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                       }
                     >
                       <Flag className="h-4 w-4 mr-2 text-yellow-500" />
-                      <span>Medium Priority</span>
+                      <span>Medium</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() =>
@@ -465,7 +473,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                       }
                     >
                       <Flag className="h-4 w-4 mr-2 text-orange-500" />
-                      <span>High Priority</span>
+                      <span>High</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() =>
@@ -473,71 +481,81 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                       }
                     >
                       <Flag className="h-4 w-4 mr-2 text-red-500" />
-                      <span>Critical Priority</span>
+                      <span>Critical</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
 
                 {/* Other desktop action buttons */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent triggering the container click
-                    setShowCommentModal(true);
-                  }}
-                >
-                  <MessageSquare className="h-4 w-4" />
-                </Button>
+                <TodoItemTooltip tooltipText="Add Comment">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering the container click
+                      setShowCommentModal(true);
+                    }}
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                  </Button>
+                </TodoItemTooltip>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent triggering the container click
-                    setShowTagDialog(true);
-                  }}
-                >
-                  <TagIcon className="h-4 w-4" />
-                </Button>
+                <TodoItemTooltip tooltipText="Manage Tags">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering the container click
+                      setShowTagDialog(true);
+                    }}
+                  >
+                    <TagIcon className="h-4 w-4" />
+                  </Button>
+                </TodoItemTooltip>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent triggering the container click
-                    setShowSubTaskDialog(true);
-                  }}
-                >
-                  <ListCheck className="h-4 w-4" />
-                </Button>
+                <TodoItemTooltip tooltipText="Manage Sub-Tasks">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering the container click
+                      setShowSubTaskDialog(true);
+                    }}
+                  >
+                    <ListCheck className="h-4 w-4" />
+                  </Button>
+                </TodoItemTooltip>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent triggering the container click
-                    setIsEditing(true);
-                  }}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
+                <TodoItemTooltip tooltipText="Edit">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering the container click
+                      setIsEditing(true);
+                    }}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </TodoItemTooltip>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-red-500"
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent triggering the container click
-                    setShowDeleteDialog(true);
-                  }}
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
+                <TodoItemTooltip tooltipText="Delete">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-red-500"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering the container click
+                      setShowDeleteDialog(true);
+                    }}
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </TodoItemTooltip>
               </div>
 
               {/* Mobile action button - always visible */}
@@ -714,3 +732,23 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     </Fragment>
   );
 };
+
+type TodoItemTooltipProps = {
+  children: React.ReactNode;
+  tooltipText: string;
+} & React.ComponentProps<typeof TooltipTrigger>;
+
+const TodoItemTooltip = forwardRef<HTMLButtonElement, TodoItemTooltipProps>(
+  ({ children, tooltipText, ...props }, ref) => {
+    return (
+      <Tooltip delayDuration={200} {...props}>
+        <TooltipTrigger {...props} asChild ref={ref}>
+          {children}
+        </TooltipTrigger>
+        <TooltipContent>{tooltipText}</TooltipContent>
+      </Tooltip>
+    );
+  }
+);
+
+TodoItemTooltip.displayName = "TodoItemTooltip";
