@@ -15,6 +15,7 @@ import {
   removeTodoSubTask,
   getCursorTodoSubTasks,
   getTodoSubTaskCount,
+  getTodosCount,
 } from "./todo.service";
 import {
   addTodoCommentValidator,
@@ -44,6 +45,9 @@ export const todoRouter = router({
     .query(async ({ input, ctx }) => {
       return await getTodos(input, ctx);
     }),
+  getTodosCount: protectedProcedure.query(async ({ ctx }) => {
+    return await getTodosCount(ctx);
+  }),
   deleteTodo: protectedProcedure
     .input(deleteTodoValidator)
     .mutation(async ({ input, ctx }) => {

@@ -8,6 +8,7 @@ import {
   type Todo,
   todoComments,
   todoSchema,
+  TodoStatusEnum,
   todoSubTasks,
   todoTags,
 } from "@/server/database/drizzle/todo.schema";
@@ -16,7 +17,7 @@ import type {
   PaginationResponse,
 } from "@/server/types/response";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, SQL, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, SQL, sql } from "drizzle-orm";
 import type { Context } from "../context";
 import type {
   AddTodoCommentRequest,
@@ -149,6 +150,30 @@ const getTodos = async (
     page,
     limit,
   };
+};
+
+const getTodosCount = async (context: Context): Promise<number> => {
+  const { auth, db } = context;
+  if (!auth || !auth.userId) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Unauthorized",
+    });
+  }
+
+  const [{ count }] = await db
+    .select({
+      count: sql`count(*)`,
+    })
+    .from(todoSchema)
+    .where(
+      and(
+        eq(todoSchema.userId, auth.userId),
+        inArray(todoSchema.status, [TodoStatusEnum.IN_PROGRESS])
+      )
+    );
+
+  return Number(count);
 };
 
 const deleteTodo = async (
@@ -517,6 +542,7 @@ export {
   getTodo,
   getTodoComments,
   getTodos,
+  getTodosCount,
   getCursorTodoSubTasks,
   getTodoSubTaskCount,
   removeTodoComment,
