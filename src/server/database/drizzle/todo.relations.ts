@@ -6,6 +6,7 @@ import {
   todoSubTasks,
 } from "./todo.schema";
 import { users } from "./user.schema";
+import { tags } from "./tag.schema";
 
 export const todoRelations = relations(todoSchema, ({ many, one }) => ({
   tags: many(todoTags),
@@ -21,6 +22,10 @@ export const todoTagRelations = relations(todoTags, ({ one }) => ({
   todo: one(todoSchema, {
     fields: [todoTags.todoId],
     references: [todoSchema.id],
+  }),
+  tag: one(tags, {
+    fields: [todoTags.tagId],
+    references: [tags.id],
   }),
 }));
 

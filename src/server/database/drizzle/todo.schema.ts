@@ -1,5 +1,6 @@
 import * as pgCore from "drizzle-orm/pg-core";
 import { users } from "./user.schema";
+import { Tag, tags } from "./tag.schema";
 
 export enum TodoPriorityEnum {
   LOW = "low",
@@ -50,7 +51,10 @@ export const todoSchema = pgCore.pgTable("todos", {
 
 export const todoTags = pgCore.pgTable("todo_tags", {
   id: pgCore.serial("id").primaryKey(),
-  name: pgCore.text("name").notNull(),
+  name: pgCore.text("name"),
+  tagId: pgCore.integer("tag_id").references(() => tags.id, {
+    onDelete: "cascade",
+  }),
   todoId: pgCore.integer("todo_id").references(() => todoSchema.id, {
     onDelete: "cascade",
   }),
@@ -85,9 +89,13 @@ export const todoSubTasks = pgCore.pgTable("todo_sub_tasks", {
 
 export type Todo = typeof todoSchema.$inferSelect;
 export type TodoWithRelations = Todo & {
-  tags: TodoTag[] | null;
+  tags: TodoTagWithRelations[] | null;
   comments: TodoComment[] | null;
   subTasks: TodoSubTask[] | null;
+};
+
+export type TodoTagWithRelations = TodoTag & {
+  tag: Tag | null;
 };
 export type TodoTag = typeof todoTags.$inferSelect;
 export type TodoComment = typeof todoComments.$inferSelect;
