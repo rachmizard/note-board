@@ -20,7 +20,6 @@ import {
   Clock,
   Flag,
   FlagIcon,
-  FolderClosed,
   ListCheck,
   ListPlusIcon,
   MessageSquare,
@@ -565,7 +564,6 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                       <TagIcon className="h-4 w-4 mr-2" />
                       <span>Manage Tags</span>
                     </DropdownMenuItem>
-
                     {/* Priority submenu items */}
                     <DropdownMenuItem
                       onClick={() => handlePriorityChange(TodoPriorityEnum.LOW)}
@@ -589,24 +587,13 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                       <Flag className="h-4 w-4 mr-2 text-red-500" />
                       <span>High Priority</span>
                     </DropdownMenuItem>
-
-                    <DropdownMenuItem
-                      onClick={() => {
-                        /* Implement folder functionality */
-                      }}
-                    >
-                      <FolderClosed className="h-4 w-4 mr-2" />
-                      <span>Move to Folder</span>
-                    </DropdownMenuItem>
-
-                    {/* Add SubTask menu item to mobile menu */}
+                    Ø{/* Add SubTask menu item to mobile menu */}
                     <DropdownMenuItem
                       onClick={() => setShowSubTaskDialog(true)}
                     >
                       <ListCheck className="h-4 w-4 mr-2" />
                       <span>Manage Sub-Tasks</span>
                     </DropdownMenuItem>
-
                     {/* Add time menu item to mobile menu */}
                     <DropdownMenuItem
                       onClick={() => setEstimatedTimeDialog(true)}
@@ -614,7 +601,6 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                       <Clock className="h-4 w-4 mr-2" />
                       <span>Set Estimated Time</span>
                     </DropdownMenuItem>
-
                     {/* Delete with confirmation (will trigger dialog) */}
                     <DropdownMenuItem
                       onClick={() => setShowDeleteDialog(true)}
