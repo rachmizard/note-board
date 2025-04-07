@@ -321,7 +321,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                     ) : (
                       <h3
                         className={cn(
-                          "font-semibold cursor-pointer text-sm leading-5"
+                          "font-semibold cursor-pointer text-sm leading-5 truncate max-w-[200px] sm:max-w-[300px] md:max-w-[400px] lg:max-w-[400px]"
                         )}
                         onDoubleClick={(e) => {
                           e.stopPropagation(); // Prevent triggering the container click
@@ -331,6 +331,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                           e.stopPropagation(); // Prevent triggering the container click
                           setIsEditingTitle(true);
                         }}
+                        title={todo.title}
                       >
                         {todo.title}
                       </h3>
@@ -390,7 +391,8 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                           .map((tag, index) => (
                             <div
                               key={index}
-                              className="inline-block rounded-full bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 text-xs font-medium"
+                              className="inline-block rounded-full bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 text-xs font-medium truncate max-w-[100px]"
+                              title={tag.tag?.name ?? "-"}
                             >
                               {tag.tag?.name ?? "-"}
                             </div>
@@ -668,7 +670,9 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                         <div className="text-neutral-500 dark:text-neutral-400 text-xs">
                           {new Date(comment.createdAt).toLocaleString()}
                         </div>
-                        <div>{comment.comment}</div>
+                        <div className="line-clamp-2" title={comment.comment}>
+                          {comment.comment}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -706,7 +710,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                           >
                             <div
                               className={cn(
-                                "w-3 h-3 mr-2 rounded-sm border flex items-center justify-center",
+                                "w-3 h-3 mr-2 rounded-sm border flex items-center justify-center flex-shrink-0",
                                 subTask.completed
                                   ? "bg-blue-400 border-blue-400 text-white"
                                   : "border-gray-300"
@@ -718,8 +722,10 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                             </div>
                             <span
                               className={cn(
+                                "truncate",
                                 subTask.completed && "line-through"
                               )}
+                              title={subTask.title}
                             >
                               {subTask.title}
                             </span>
