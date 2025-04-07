@@ -13,7 +13,7 @@ export const createCallerFactory = t.createCallerFactory;
 
 // Register a middleware to check if the user is authenticated
 const isAuthenticated = t.middleware(({ ctx, next }) => {
-  if (!ctx.auth.userId) {
+  if (!ctx.auth || !ctx.auth.userId) {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
   }
   return next({ ctx });

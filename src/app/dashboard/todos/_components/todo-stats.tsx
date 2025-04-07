@@ -1,5 +1,10 @@
 import { TodoStatusEnum } from "@/server/database/drizzle/todo.schema";
-import { Card } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Progress } from "@/shared/components/ui/progress";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import React, { useMemo, useRef } from "react";
@@ -58,10 +63,13 @@ export const TodoStats: React.FC = () => {
   }
 
   return (
-    <div className="mb-6">
-      <Card className="p-4">
-        <h3 className="text-lg font-medium mb-3">Todo Statistics</h3>
-
+    <Card className="shadow-none">
+      <CardHeader>
+        <CardTitle className="text-base sm:text-lg font-medium ">
+          Todo Statistics
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
         <div className="mb-3">
           <div className="flex justify-between mb-1">
             <span className="text-sm">Completion Rate</span>
@@ -94,7 +102,7 @@ export const TodoStats: React.FC = () => {
             <p className="text-xs text-gray-500 dark:text-gray-400">Archived</p>
           </div>
         </div>
-      </Card>
-    </div>
+      </CardContent>
+    </Card>
   );
 };

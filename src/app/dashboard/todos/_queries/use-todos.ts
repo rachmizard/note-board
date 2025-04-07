@@ -7,5 +7,8 @@ export const useTodos = (request: GetTodosRequest) => {
 
 export const useInvalidateTodos = () => {
   const trpcUtils = trpc.useUtils();
-  return trpcUtils.todo.getTodos.invalidate;
+  return () => {
+    trpcUtils.todo.getTodos.invalidate();
+    trpcUtils.todo.getTodosCount.invalidate();
+  };
 };

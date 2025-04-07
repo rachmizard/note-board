@@ -5,6 +5,7 @@ import "./globals.css";
 import Providers from "./providers";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
+import { ReactScan } from "@/shared/components/misc/react-scan";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,6 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <ReactScan />
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

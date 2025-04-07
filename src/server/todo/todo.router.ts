@@ -1,35 +1,37 @@
 import { protectedProcedure, router } from "../trpc-init";
 import {
   addTodoComment,
+  addTodoSubTask,
   addTodoTag,
   createTodo,
   deleteTodo,
+  getCursorTodoSubTasks,
   getTodo,
   getTodoComments,
   getTodos,
+  getTodosCount,
+  getTodoSubTaskCount,
   removeTodoComment,
+  removeTodoSubTask,
   removeTodoTag,
   updateTodo,
-  getTodoSubTasks,
-  addTodoSubTask,
   updateTodoSubTask,
-  removeTodoSubTask,
 } from "./todo.service";
 import {
   addTodoCommentValidator,
+  addTodoSubTaskValidator,
   addTodoTagValidator,
   createTodoValidator,
   deleteTodoValidator,
   getTodoCommentsValidator,
+  getTodoSubTasksValidator,
   getTodosValidator,
   getTodoValidator,
   removeTodoCommentValidator,
-  removeTodoTagValidator,
-  updateTodoValidator,
-  getTodoSubTasksValidator,
-  addTodoSubTaskValidator,
-  updateTodoSubTaskValidator,
   removeTodoSubTaskValidator,
+  removeTodoTagValidator,
+  updateTodoSubTaskValidator,
+  updateTodoValidator,
 } from "./todo.validator";
 
 export const todoRouter = router({
@@ -43,6 +45,9 @@ export const todoRouter = router({
     .query(async ({ input, ctx }) => {
       return await getTodos(input, ctx);
     }),
+  getTodosCount: protectedProcedure.query(async ({ ctx }) => {
+    return await getTodosCount(ctx);
+  }),
   deleteTodo: protectedProcedure
     .input(deleteTodoValidator)
     .mutation(async ({ input, ctx }) => {
@@ -83,10 +88,15 @@ export const todoRouter = router({
     .query(async ({ input, ctx }) => {
       return await getTodoComments(input, ctx.db);
     }),
-  getSubTasks: protectedProcedure
+  getTodoSubTaskCount: protectedProcedure
     .input(getTodoSubTasksValidator)
     .query(async ({ input, ctx }) => {
-      return await getTodoSubTasks(input, ctx);
+      return await getTodoSubTaskCount(input, ctx);
+    }),
+  getCursorTodoSubTasks: protectedProcedure
+    .input(getTodoSubTasksValidator)
+    .query(async ({ input, ctx }) => {
+      return await getCursorTodoSubTasks(input, ctx);
     }),
   addSubTask: protectedProcedure
     .input(addTodoSubTaskValidator)

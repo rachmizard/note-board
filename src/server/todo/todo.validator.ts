@@ -26,6 +26,7 @@ export type UpdateTodoSubTaskRequest = z.infer<
 export type RemoveTodoSubTaskRequest = z.infer<
   typeof removeTodoSubTaskValidator
 >;
+export type GetTodoTagsRequest = z.infer<typeof getTodoTagsValidator>;
 
 export const createTodoValidator = z.object({
   title: z.string().min(1),
@@ -47,6 +48,7 @@ export const getTodosValidator = z.object({
   sortBy: z.string().optional().default("createdAt"),
   sortOrder: z.string().optional().default("desc"),
   status: z.nativeEnum(TodoStatusEnum).optional(),
+  priority: z.nativeEnum(TodoPriorityEnum).nullish(),
 });
 
 export const deleteTodoValidator = z.object({
@@ -60,6 +62,10 @@ export const updateTodoValidator = z.object({
   dueDate: z.date().optional(),
   priority: z.nativeEnum(TodoPriorityEnum).optional(),
   status: z.nativeEnum(TodoStatusEnum).optional(),
+  completedAt: z.date().optional(),
+  estimatedHours: z.coerce.number().optional(),
+  estimatedMinutes: z.coerce.number().optional(),
+  estimatedSeconds: z.coerce.number().optional(),
 });
 
 export const getTodoValidator = z.object({
@@ -68,7 +74,8 @@ export const getTodoValidator = z.object({
 
 export const addTodoTagValidator = z.object({
   todoId: z.number(),
-  name: z.string().min(1, { message: "What's your tag?" }),
+  name: z.string().nullish(),
+  tagId: z.number(),
 });
 
 export const removeTodoTagValidator = z.object({
@@ -92,8 +99,8 @@ export const removeTodoCommentValidator = z.object({
 
 export const getTodoSubTasksValidator = z.object({
   todoId: z.number().int().positive(),
-  page: z.number().int().min(1).default(1).optional(),
   limit: z.number().int().min(1).max(50).default(10).optional(),
+  cursor: z.number().int().positive().nullish(),
 });
 
 export const addTodoSubTaskValidator = z.object({
@@ -111,4 +118,8 @@ export const updateTodoSubTaskValidator = z.object({
 export const removeTodoSubTaskValidator = z.object({
   id: z.number().int().positive(),
   todoId: z.number().int().positive(),
+});
+
+export const getTodoTagsValidator = z.object({
+  keyword: z.string().nullish(),
 });

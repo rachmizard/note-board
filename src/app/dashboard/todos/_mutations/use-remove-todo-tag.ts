@@ -33,7 +33,9 @@ export const useRemoveTodoTag = () => {
 
       return { previousTodos };
     },
-    onSuccess: () => utils.todo.getTodos.invalidate(),
+    onSuccess: () => {
+      utils.todo.getTodos.invalidate();
+    },
     onError: (_, __, context) => {
       utils.todo.getTodos.setData(
         {

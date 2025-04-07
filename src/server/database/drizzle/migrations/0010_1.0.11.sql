@@ -1,0 +1,1 @@
+ALTER TABLE "todo_tags" DROP COLUMN "name";

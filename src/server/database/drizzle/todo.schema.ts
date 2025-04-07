@@ -1,5 +1,7 @@
 import * as pgCore from "drizzle-orm/pg-core";
 import { users } from "./user.schema";
+import { Tag, tags } from "./tag.schema";
+import { sql } from "drizzle-orm";
 
 export enum TodoPriorityEnum {
   LOW = "low",
@@ -43,6 +45,14 @@ export const todoSchema = pgCore.pgTable("todos", {
       onDelete: "cascade",
     })
     .$default(() => ""),
+  estimatedHours: pgCore.integer("estimated_hours").default(0),
+  estimatedMinutes: pgCore.integer("estimated_minutes").default(0),
+  estimatedSeconds: pgCore.integer("estimated_seconds").default(0),
+  estimatedTotalInSeconds: pgCore
+    .bigint("estimated_total_in_seconds", { mode: "bigint" })
+    .generatedAlwaysAs(
+      sql`"estimated_hours" * 3600 + "estimated_minutes" * 60 + "estimated_seconds"`
+    ),
   completedAt: pgCore.timestamp("completed_at"),
   createdAt: pgCore.timestamp("created_at").defaultNow().notNull(),
   updatedAt: pgCore.timestamp("updated_at").defaultNow().notNull(),
@@ -50,7 +60,9 @@ export const todoSchema = pgCore.pgTable("todos", {
 
 export const todoTags = pgCore.pgTable("todo_tags", {
   id: pgCore.serial("id").primaryKey(),
-  name: pgCore.text("name").notNull(),
+  tagId: pgCore.integer("tag_id").references(() => tags.id, {
+    onDelete: "cascade",
+  }),
   todoId: pgCore.integer("todo_id").references(() => todoSchema.id, {
     onDelete: "cascade",
   }),
@@ -85,9 +97,13 @@ export const todoSubTasks = pgCore.pgTable("todo_sub_tasks", {
 
 export type Todo = typeof todoSchema.$inferSelect;
 export type TodoWithRelations = Todo & {
-  tags: TodoTag[] | null;
+  tags: TodoTagWithRelations[] | null;
   comments: TodoComment[] | null;
   subTasks: TodoSubTask[] | null;
+};
+
+export type TodoTagWithRelations = TodoTag & {
+  tag: Tag | null;
 };
 export type TodoTag = typeof todoTags.$inferSelect;
 export type TodoComment = typeof todoComments.$inferSelect;
