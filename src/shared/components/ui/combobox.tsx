@@ -1,9 +1,8 @@
 "use client";
 
-import * as React from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
+import * as React from "react";
 
-import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/components/ui/button";
 import {
   Command,
@@ -18,6 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/shared/components/ui/popover";
+import { cn } from "@/shared/lib/utils";
 import { useControllableState } from "@radix-ui/react-use-controllable-state";
 
 export interface ComboboxOption {
@@ -25,9 +25,15 @@ export interface ComboboxOption {
   label: string;
 }
 
-export interface ComboboxProps {
+type OmmitedProps = "value" | "onChange" | "defaultValue";
+
+type ComboboxPropsWithoutOmmitedProps = Omit<
+  React.ComponentPropsWithoutRef<typeof Button>,
+  OmmitedProps
+>;
+export interface ComboboxProps extends ComboboxPropsWithoutOmmitedProps {
   value?: string;
-  onChange: (value: string) => void;
+  onChange?: (value: string) => void;
   placeholder?: string;
   defaultValue?: string;
   options: ComboboxOption[];
@@ -38,6 +44,10 @@ export interface ComboboxProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   emptyText?: string;
+  renderExtraEmptyComponent?: (inputValue: string) => React.ReactNode;
+  id?: string;
+  commantInputProps?: React.ComponentProps<typeof CommandInput>;
+  shouldFilter?: boolean;
 }
 
 export function Combobox({
@@ -53,6 +63,12 @@ export function Combobox({
   defaultOpen = false,
   onOpenChange,
   emptyText = "No options found",
+  id,
+  className,
+  renderExtraEmptyComponent,
+  commantInputProps,
+  shouldFilter = false,
+  ...props
 }: ComboboxProps) {
   const [_open, _setOpen] = useControllableState({
     defaultProp: defaultOpen,
@@ -73,30 +89,42 @@ export function Combobox({
   });
 
   return (
-    <Popover open={_open} onOpenChange={_setOpen}>
+    <Popover open={_open} onOpenChange={_setOpen} modal={true}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           role="combobox"
           aria-expanded={_open}
-          className="w-full justify-between"
+          className={cn(
+            "w-full justify-between",
+            !selectedValue && "text-muted-foreground",
+            className
+          )}
+          {...props}
         >
           {selectedValue
-            ? options.find((option) => option.value === selectedValue)?.label
+            ? options.find((option) => option.value === selectedValue)?.label ||
+              placeholder
             : placeholder}
           <ChevronsUpDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
-        <Command>
+      <PopoverContent className="w-[20rem] p-0" align="start">
+        <Command shouldFilter={shouldFilter}>
           <CommandInput
+            id={id}
             placeholder={placeholder}
             className="h-9"
             value={_inputValue}
             onValueChange={_setInputValue}
+            {...commantInputProps}
           />
           <CommandList>
-            <CommandEmpty>{emptyText}</CommandEmpty>
+            <CommandEmpty className="flex flex-col gap-2 justify-center items-center py-4">
+              {emptyText}
+              {renderExtraEmptyComponent &&
+                renderExtraEmptyComponent(_inputValue ?? "")}
+            </CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem

@@ -16,6 +16,7 @@ import {
   getCursorTodoSubTasks,
   getTodoSubTaskCount,
   getTodosCount,
+  getTodoTags,
 } from "./todo.service";
 import {
   addTodoCommentValidator,
@@ -32,6 +33,7 @@ import {
   addTodoSubTaskValidator,
   updateTodoSubTaskValidator,
   removeTodoSubTaskValidator,
+  getTodoTagsValidator,
 } from "./todo.validator";
 
 export const todoRouter = router({
@@ -112,5 +114,10 @@ export const todoRouter = router({
     .input(removeTodoSubTaskValidator)
     .mutation(async ({ ctx, input }) => {
       return await removeTodoSubTask(input, ctx);
+    }),
+  getTodoTags: protectedProcedure
+    .input(getTodoTagsValidator)
+    .query(async ({ input, ctx }) => {
+      return await getTodoTags(input, ctx);
     }),
 });

@@ -34,7 +34,10 @@ export const useAddTodoTag = () => {
 
       return { previousTodos };
     },
-    onSuccess: () => utils.todo.getTodos.invalidate(),
+    onSuccess: () => {
+      utils.todo.getTodos.invalidate();
+      utils.todo.getTodoTags.invalidate();
+    },
     onError: (_, __, context) => {
       utils.todo.getTodos.setData(
         {

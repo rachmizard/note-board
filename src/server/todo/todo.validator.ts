@@ -26,6 +26,7 @@ export type UpdateTodoSubTaskRequest = z.infer<
 export type RemoveTodoSubTaskRequest = z.infer<
   typeof removeTodoSubTaskValidator
 >;
+export type GetTodoTagsRequest = z.infer<typeof getTodoTagsValidator>;
 
 export const createTodoValidator = z.object({
   title: z.string().min(1),
@@ -112,4 +113,8 @@ export const updateTodoSubTaskValidator = z.object({
 export const removeTodoSubTaskValidator = z.object({
   id: z.number().int().positive(),
   todoId: z.number().int().positive(),
+});
+
+export const getTodoTagsValidator = z.object({
+  keyword: z.string().nullish(),
 });
