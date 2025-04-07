@@ -97,6 +97,7 @@ export const TodoList = () => {
         estimatedHours: serverTodo.estimatedHours,
         estimatedMinutes: serverTodo.estimatedMinutes,
         estimatedSeconds: serverTodo.estimatedSeconds,
+        estimatedTotalInSeconds: serverTodo.estimatedTotalInSeconds,
       };
     });
   }, [todos.data]);
@@ -120,12 +121,12 @@ export const TodoList = () => {
       if (updates.dueDate) serverUpdates.dueDate = updates.dueDate;
       if (updates.priority) serverUpdates.priority = updates.priority;
       if (updates.status) serverUpdates.status = updates.status;
-      if (updates.estimatedHours)
-        serverUpdates.estimatedHours = updates.estimatedHours;
-      if (updates.estimatedMinutes)
-        serverUpdates.estimatedMinutes = updates.estimatedMinutes;
-      if (updates.estimatedSeconds)
-        serverUpdates.estimatedSeconds = updates.estimatedSeconds;
+      if (updates.estimatedHours !== undefined)
+        serverUpdates.estimatedHours = updates.estimatedHours ?? 0;
+      if (updates.estimatedMinutes !== undefined)
+        serverUpdates.estimatedMinutes = updates.estimatedMinutes ?? 0;
+      if (updates.estimatedSeconds !== undefined)
+        serverUpdates.estimatedSeconds = updates.estimatedSeconds ?? 0;
 
       updateTodo.mutate(serverUpdates);
     },

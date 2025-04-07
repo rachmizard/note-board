@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
 import { Input } from "@/shared/components/ui/input";
-import { cn } from "@/shared/lib/utils";
+import { cn, formatTimeFromSeconds } from "@/shared/lib/utils";
 import {
   Check,
   ChevronDown,
@@ -63,6 +63,7 @@ interface TodoWithSubTaskCounts {
   estimatedHours: number;
   estimatedMinutes: number;
   estimatedSeconds: number;
+  estimatedTotalInSeconds: bigint;
   subTasks: {
     data: TodoSubTask[];
     total: number;
@@ -371,6 +372,15 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                         win
                       </div>
                     )}
+
+                    {todo.estimatedTotalInSeconds !== null &&
+                      todo.estimatedTotalInSeconds > 0 && (
+                        <div className="inline-block rounded-full bg-blue-100 dark:bg-blue-900 px-2 py-0.5 text-xs font-medium">
+                          {formatTimeFromSeconds(
+                            Number(todo.estimatedTotalInSeconds)
+                          )}
+                        </div>
+                      )}
 
                     {/* Display tags if available */}
                     {todo.tags && todo.tags.length > 0 && (
