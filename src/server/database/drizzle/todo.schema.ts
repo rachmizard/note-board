@@ -1,6 +1,7 @@
 import * as pgCore from "drizzle-orm/pg-core";
 import { users } from "./user.schema";
 import { Tag, tags } from "./tag.schema";
+import { sql } from "drizzle-orm";
 
 export enum TodoPriorityEnum {
   LOW = "low",
@@ -47,6 +48,11 @@ export const todoSchema = pgCore.pgTable("todos", {
   estimatedHours: pgCore.integer("estimated_hours").default(0),
   estimatedMinutes: pgCore.integer("estimated_minutes").default(0),
   estimatedSeconds: pgCore.integer("estimated_seconds").default(0),
+  estimatedTotalInSeconds: pgCore
+    .bigint("estimated_total_in_seconds", { mode: "bigint" })
+    .generatedAlwaysAs(
+      sql`"estimated_hours" * 3600 + "estimated_minutes" * 60 + "estimated_seconds"`
+    ),
   completedAt: pgCore.timestamp("completed_at"),
   createdAt: pgCore.timestamp("created_at").defaultNow().notNull(),
   updatedAt: pgCore.timestamp("updated_at").defaultNow().notNull(),
