@@ -9,15 +9,30 @@ import {
 } from "@/server/database/drizzle/todo.schema";
 import { Button } from "@/shared/components/ui/button";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/shared/components/ui/collapsible";
-import { useIsMobile } from "@/shared/hooks/use-mobile";
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/shared/components/ui/drawer";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu";
+import { cn } from "@/shared/lib/utils";
 import confetti from "canvas-confetti";
+import { cva } from "class-variance-authority";
 import { ChevronDownIcon, ChevronUpIcon, ListFilter } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
+import { priorityOptions } from "../_constants/todo.constant";
 import { useFilterQueryState } from "../_hooks/use-filter-query-state";
+import { usePriorityQueryState } from "../_hooks/use-priority-query-state";
 import { useDeleteTodo } from "../_mutations/use-delete-todo";
 import { useUpdateTodo } from "../_mutations/use-update-todo";
 import { useTodos } from "../_queries/use-todos";
@@ -30,9 +45,11 @@ import { TodoCompletionHistory } from "./todo-completion-history";
 import { TodoItem } from "./todo-item";
 import { TodoItemSkeleton } from "./todo-item-skeleton";
 import { TodoStats } from "./todo-stats";
+import { ScrollArea } from "@/shared/components/ui/scroll-area";
 
 export const TodoList = () => {
   const [filter, setFilter] = useFilterQueryState();
+  const [priority] = usePriorityQueryState();
 
   // Use the real data source with useTodos hook
   const todos = useTodos({
@@ -41,6 +58,7 @@ export const TodoList = () => {
     sortBy: "createdAt",
     sortOrder: "desc",
     status: filter === "all" ? undefined : (filter as TodoStatusEnum),
+    priority,
   });
 
   const deleteTodo = useDeleteTodo();
@@ -81,6 +99,10 @@ export const TodoList = () => {
         comments: serverTodo.comments || [],
         subTasks: subTasksArray,
         userId: serverTodo.userId,
+        estimatedHours: serverTodo.estimatedHours,
+        estimatedMinutes: serverTodo.estimatedMinutes,
+        estimatedSeconds: serverTodo.estimatedSeconds,
+        estimatedTotalInSeconds: serverTodo.estimatedTotalInSeconds,
       };
     });
   }, [todos.data]);
@@ -95,12 +117,27 @@ export const TodoList = () => {
         priority?: TodoPriorityEnum;
         status?: TodoStatusEnum;
         description?: string;
+        estimatedHours?: number;
+        estimatedMinutes?: number;
+        estimatedSeconds?: number;
+        completedAt?: Date;
       } = { id: id };
 
       if (updates.title) serverUpdates.title = updates.title;
       if (updates.dueDate) serverUpdates.dueDate = updates.dueDate;
       if (updates.priority) serverUpdates.priority = updates.priority;
       if (updates.status) serverUpdates.status = updates.status;
+      if (updates.status === TodoStatusEnum.COMPLETED)
+        serverUpdates.completedAt = new Date();
+      else if (updates.status === TodoStatusEnum.IN_PROGRESS)
+        serverUpdates.completedAt = undefined;
+
+      if (updates.estimatedHours !== undefined)
+        serverUpdates.estimatedHours = updates.estimatedHours ?? 0;
+      if (updates.estimatedMinutes !== undefined)
+        serverUpdates.estimatedMinutes = updates.estimatedMinutes ?? 0;
+      if (updates.estimatedSeconds !== undefined)
+        serverUpdates.estimatedSeconds = updates.estimatedSeconds ?? 0;
 
       updateTodo.mutate(serverUpdates);
     },
@@ -123,7 +160,7 @@ export const TodoList = () => {
   }, [convertedTodos, filter]);
 
   return (
-    <div className="w-full mx-auto px-0 sm:px-6 lg:max-w-8xl">
+    <div className="w-full px-0">
       <div className="flex flex-col lg:flex-row lg:justify-between w-full gap-4 lg:gap-8">
         <div className="w-full lg:max-w-[60%]">
           {/* Task Input Area */}
@@ -176,14 +213,27 @@ export const TodoList = () => {
           </div>
 
           <TodoStatsWrapperMobile>
-            <TodoCollapsibleStats>
+            <TodoStatsDrawer>
               <TodoStats />
               <TodoCompletionHistory />
-            </TodoCollapsibleStats>
+            </TodoStatsDrawer>
           </TodoStatsWrapperMobile>
 
-          <div className="my-4">
+          <div className="my-4 flex justify-between items-start">
             <h1 className="text-xl font-bold">To Do</h1>
+
+            <div>
+              <FilterPriorityDropdown>
+                {priorityOptions.map((option) => (
+                  <FilterPriorityDropdownItem
+                    key={option.value}
+                    value={option.value as TodoPriorityEnum}
+                  >
+                    {option.label}
+                  </FilterPriorityDropdownItem>
+                ))}
+              </FilterPriorityDropdown>
+            </div>
           </div>
 
           {todos.isLoading && !filteredTodos.length && (
@@ -201,6 +251,7 @@ export const TodoList = () => {
                 <TodoItem
                   key={todo.id}
                   todo={todo}
+                  filter={filter}
                   onUpdate={handleUpdateTodo}
                   onDelete={handleDeleteTodo}
                 />
@@ -239,11 +290,8 @@ export const TodoList = () => {
 };
 
 const TodoStatsWrapper = ({ children }: { children: React.ReactNode }) => {
-  const isMobile = useIsMobile();
-  if (isMobile) return null;
-
   return (
-    <div className="w-full mt-6 lg:mt-0 lg:max-w-[40%] hidden lg:block">
+    <div className="w-full mt-6 lg:mt-0 lg:max-w-[40%] hidden lg:block space-y-4">
       {children}
     </div>
   );
@@ -254,33 +302,43 @@ const TodoStatsWrapperMobile = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const isMobile = useIsMobile();
-  if (!isMobile) return null;
-
   return (
-    <div className="w-full my-6 lg:mt-0 lg:max-w-[40%] block lg:hidden">
+    <div className="w-full my-6 lg:mt-0 block lg:max-w-[40%]  lg:hidden">
       {children}
     </div>
   );
 };
 
-const TodoCollapsibleStats = ({ children }: { children: React.ReactNode }) => {
+const TodoStatsDrawer = ({ children }: { children: React.ReactNode }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const Icon = isOpen ? ChevronUpIcon : ChevronDownIcon;
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <CollapsibleTrigger asChild>
+    <Drawer open={isOpen} onOpenChange={setIsOpen}>
+      <DrawerTrigger asChild>
         <Button variant="outline" size="lg" className="w-full justify-between">
           <span>View Stats</span>
-          <Icon className="w-4 h-4 ml-2" />
+          <Icon className="w-4 h-4" />
         </Button>
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <div className="mt-4">{children}</div>
-      </CollapsibleContent>
-    </Collapsible>
+      </DrawerTrigger>
+      <DrawerContent>
+        <ScrollArea className="h-[500px]">
+          <DrawerHeader>
+            <DrawerTitle>To Do Stats</DrawerTitle>
+            <DrawerDescription>
+              View the stats for your to do list
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="container mx-auto px-4 space-y-4">{children}</div>
+        </ScrollArea>
+        <DrawerFooter>
+          <DrawerClose asChild>
+            <Button variant="outline">Close</Button>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 };
 
@@ -341,3 +399,81 @@ const TodoConfettiEffect = ({ children }: { children?: React.ReactNode }) => {
 
   return <div>{children}</div>;
 };
+
+const FilterPriorityDropdown = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const [open, setOpen] = useState(false);
+  const [priority, setPriority] = usePriorityQueryState();
+
+  const Icon = open ? ChevronUpIcon : ChevronDownIcon;
+
+  const foundLabel = priorityOptions.find(
+    (option) => option.value === priority
+  );
+
+  const buttonSortVariant = cva(
+    "text-foreground min-w-[8rem] justify-between",
+    {
+      variants: {
+        priority: {
+          [TodoPriorityEnum.LOW]:
+            "text-green-500 border-green-500 hover:bg-green-500 hover:text-white",
+          [TodoPriorityEnum.MEDIUM]:
+            "text-yellow-500 border-yellow-500 hover:bg-yellow-500 hover:text-white",
+          [TodoPriorityEnum.HIGH]:
+            "text-red-500 border-red-500 hover:bg-red-500 hover:text-white",
+          [TodoPriorityEnum.CRITICAL]:
+            "text-red-500 border-red-500 hover:bg-red-500 hover:text-white",
+        },
+      },
+    }
+  );
+
+  const handlePriorityChange = (value: string) => {
+    if (value === priority) {
+      setPriority(null);
+    } else {
+      setPriority(value as TodoPriorityEnum);
+    }
+  };
+
+  return (
+    <DropdownMenu open={open} onOpenChange={setOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(buttonSortVariant({ priority }))}
+        >
+          <span>{foundLabel?.label || "Filter by priority"}</span>
+          <Icon className="w-4 h-4 mr-1/2" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuRadioGroup
+          value={priority as string}
+          onValueChange={handlePriorityChange}
+        >
+          {children}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+const FilterPriorityDropdownItem = forwardRef<
+  HTMLDivElement,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuRadioItem> & {
+    value: TodoPriorityEnum;
+  }
+>(({ children, value, ...props }, ref) => {
+  return (
+    <DropdownMenuRadioItem ref={ref} {...props} value={value}>
+      {children}
+    </DropdownMenuRadioItem>
+  );
+});
+
+FilterPriorityDropdownItem.displayName = "FilterPriorityDropdownItem";

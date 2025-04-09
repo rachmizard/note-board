@@ -51,6 +51,18 @@ export const useUpdateTodo = () => {
                   draft.data[todoIndex].completedAt = new Date();
                 }
               }
+              if (updatedTodo.estimatedHours) {
+                draft.data[todoIndex].estimatedHours =
+                  updatedTodo.estimatedHours;
+              }
+              if (updatedTodo.estimatedMinutes) {
+                draft.data[todoIndex].estimatedMinutes =
+                  updatedTodo.estimatedMinutes;
+              }
+              if (updatedTodo.estimatedSeconds) {
+                draft.data[todoIndex].estimatedSeconds =
+                  updatedTodo.estimatedSeconds;
+              }
 
               // Always update the updatedAt timestamp
               draft.data[todoIndex].updatedAt = new Date();
@@ -75,6 +87,7 @@ export const useUpdateTodo = () => {
     },
     onSuccess: () => {
       trpcUtils.todo.getTodos.invalidate();
+      trpcUtils.todo.getTodosCount.invalidate();
     },
   });
 };

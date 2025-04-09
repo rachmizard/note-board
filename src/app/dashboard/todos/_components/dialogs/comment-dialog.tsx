@@ -47,6 +47,15 @@ export const CommentDialog: React.FC<CommentDialogProps> = ({
     });
   };
 
+  const handleKeyDownComment = (
+    e: React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleAddComment();
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -63,6 +72,7 @@ export const CommentDialog: React.FC<CommentDialogProps> = ({
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Add your comment here..."
+              onKeyDown={handleKeyDownComment}
             />
           </div>
 

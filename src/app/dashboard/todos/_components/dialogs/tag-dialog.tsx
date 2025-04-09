@@ -1,6 +1,7 @@
 import { TodoWithRelations } from "@/server/database/drizzle/todo.schema";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
+import { Combobox } from "@/shared/components/ui/combobox";
 import {
   Dialog,
   DialogContent,
@@ -8,12 +9,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
-import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import { X } from "lucide-react";
-import React, { useRef } from "react";
+import { useTags } from "@/shared/hooks/queries";
+import { useDebounceValue } from "@/shared/hooks/use-debounce-value";
+import { PlusIcon, X } from "lucide-react";
+import React, { useState } from "react";
 import { useAddTodoTag } from "../../_mutations/use-add-todo-tag";
 import { useRemoveTodoTag } from "../../_mutations/use-remove-todo-tag";
+import { useCreateTag } from "@/shared/hooks/mutations";
 
 interface TagDialogProps {
   open: boolean;
@@ -26,25 +29,55 @@ export const TagDialog: React.FC<TagDialogProps> = ({
   onOpenChange,
   todo,
 }) => {
-  const inputTagRef = useRef<HTMLInputElement>(null);
+  const [inputValue, setInputValue] = useState("");
+
+  const [selectedTag, setSelectedTag] = useState<string | undefined>(undefined);
 
   const addTodoTag = useAddTodoTag();
   const removeTodoTag = useRemoveTodoTag();
 
-  const handleAddTag: React.FormEventHandler<HTMLFormElement> = (e) => {
-    e.preventDefault();
-    const newTag = inputTagRef.current?.value ?? e.currentTarget.tag.value;
-    if (!newTag?.trim()) return;
+  const createTag = useCreateTag();
 
-    if (!inputTagRef.current) return;
-    inputTagRef.current.focus();
-    inputTagRef.current.select();
-    inputTagRef.current.value = "";
+  const debouncedInputValue = useDebounceValue(inputValue, 500);
+
+  const tagsQuery = useTags({
+    type: "todo",
+    keyword: debouncedInputValue,
+  });
+
+  const handleSubmitNewTag: React.FormEventHandler<HTMLFormElement> = (e) => {
+    e.preventDefault();
+    const newTag = tagsQuery.data?.find(
+      (tag) => tag.id === Number(selectedTag)
+    )?.name;
+    if (!newTag) return;
+
+    setSelectedTag(undefined);
 
     addTodoTag.mutate({
       todoId: todo.id,
+      tagId: Number(selectedTag),
       name: newTag,
     });
+  };
+
+  const handleSubmitNewTagKeyDown: React.KeyboardEventHandler<
+    HTMLInputElement
+  > = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const newTag = inputValue;
+      if (!newTag?.trim()) return;
+
+      setInputValue("");
+
+      createTag.mutate({
+        name: newTag,
+        type: "todo",
+      });
+    }
   };
 
   const handleRemoveTag = (tagId: number) => {
@@ -54,24 +87,59 @@ export const TagDialog: React.FC<TagDialogProps> = ({
     });
   };
 
+  const handleAddTagButtonClick = (value: string) => {
+    createTag.mutate({
+      name: value,
+      type: "todo",
+    });
+
+    setInputValue("");
+  };
+
+  const tagOptions =
+    tagsQuery.data?.map((tag) => ({
+      value: tag.id.toString(),
+      label: tag.name,
+    })) ?? [];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add Tag</DialogTitle>
         </DialogHeader>
-        <form id="tag-form" onSubmit={handleAddTag}>
+        <form id="tag-form" onSubmit={handleSubmitNewTag}>
           <div className="space-y-4">
             <div>
               <Label htmlFor="tag" className="block text-sm font-medium mb-1">
                 New Tag
               </Label>
-              <Input
+              <Combobox
                 id="tag"
-                ref={inputTagRef}
-                name="tag"
-                className="w-full"
-                placeholder="Enter tag name"
+                value={selectedTag}
+                onChange={setSelectedTag}
+                shouldFilter={false}
+                options={tagOptions}
+                emptyText="No tags found"
+                placeholder="Select tag name or create new"
+                inputValue={inputValue}
+                onInputValueChange={setInputValue}
+                commantInputProps={{
+                  onKeyDown: handleSubmitNewTagKeyDown,
+                }}
+                renderExtraEmptyComponent={(value) => {
+                  if (!value) return null;
+                  return (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAddTagButtonClick(value)}
+                    >
+                      <PlusIcon className="w-4 h-4" />
+                      Add &quot;{value}&quot;
+                    </Button>
+                  );
+                }}
               />
             </div>
 
@@ -82,7 +150,7 @@ export const TagDialog: React.FC<TagDialogProps> = ({
                 <div className="flex flex-wrap gap-2">
                   {todo.tags.map((tag, index) => (
                     <Badge key={index} variant="outline">
-                      {tag.name}
+                      {tag.tag?.name ?? "-"}
                       <button
                         type="button"
                         className="ml-1 text-gray-500 hover:text-gray-700"
@@ -109,8 +177,13 @@ export const TagDialog: React.FC<TagDialogProps> = ({
           >
             Cancel
           </Button>
-          <Button type="submit" size="sm" form="tag-form">
-            Add Tag
+          <Button
+            type="submit"
+            size="sm"
+            form="tag-form"
+            disabled={!selectedTag || addTodoTag.isPending}
+          >
+            {addTodoTag.isPending ? "Adding..." : "Add Tag"}
           </Button>
         </DialogFooter>
       </DialogContent>

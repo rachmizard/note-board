@@ -39,10 +39,8 @@ export const TodoCompletionHistory = () => {
       });
   }, [convertedTodos]);
 
-  if (completionHistory.length === 0) return null;
-
   return (
-    <Card>
+    <Card className="shadow-none">
       <CardHeader>
         <CardTitle className="text-base sm:text-lg font-medium ">
           Completion History
@@ -50,24 +48,26 @@ export const TodoCompletionHistory = () => {
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[200px]">
-          {completionHistory.map((todo) => (
-            <div
-              key={`history-${todo.id}`}
-              className="text-xs sm:text-sm border-b pb-2 dark:border-gray-700"
-            >
-              <p className="font-medium">{todo.title}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Completed:{" "}
-                {todo.completedAt?.toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </p>
-            </div>
-          ))}
+          <div className="space-y-2 w-full">
+            {completionHistory.map((todo) => (
+              <div
+                key={`history-${todo.id}`}
+                className="text-xs sm:text-sm border-b pb-2 dark:border-gray-700"
+              >
+                <p className="font-medium">{todo.title}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Completed:{" "}
+                  {todo.completedAt?.toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
+              </div>
+            ))}
+          </div>
         </ScrollArea>
       </CardContent>
     </Card>

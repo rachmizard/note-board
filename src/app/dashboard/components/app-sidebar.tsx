@@ -6,6 +6,7 @@ import {
   SidebarContent,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
@@ -25,9 +26,13 @@ import {
   LayoutDashboard,
   LogOut,
   RefreshCw,
+  Loader2Icon,
   Timer,
 } from "lucide-react";
 import Image from "next/image";
+import { TodoSidebarMenuBadge } from "./todo-sidebar-menu-badge";
+import Link from "next/link";
+import { Suspense } from "react";
 
 const data = {
   navMain: [
@@ -40,6 +45,11 @@ const data = {
       title: "To-Do",
       url: "/dashboard/todos",
       icon: CheckSquare,
+      badgeComponent: (
+        <Suspense fallback={<Loader2Icon className="w-4 h-4 animate-spin" />}>
+          <TodoSidebarMenuBadge />
+        </Suspense>
+      ),
     },
     {
       title: "Pomodoro",
@@ -127,9 +137,9 @@ export function AppSidebar() {
               {data.navMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <Tooltip>
-                    <TooltipTrigger className="w-full">
+                    <TooltipTrigger className="w-full" asChild>
                       <SidebarMenuButton asChild>
-                        <a
+                        <Link
                           href={item.url}
                           className={`flex items-center ${
                             isCollapsed ? "justify-center" : "justify-start"
@@ -139,7 +149,7 @@ export function AppSidebar() {
                           <span className={isCollapsed ? "hidden" : "block"}>
                             {item.title}
                           </span>
-                        </a>
+                        </Link>
                       </SidebarMenuButton>
                     </TooltipTrigger>
 
@@ -149,6 +159,10 @@ export function AppSidebar() {
                       </TooltipContent>
                     )}
                   </Tooltip>
+
+                  {item.badgeComponent && (
+                    <SidebarMenuBadge>{item.badgeComponent}</SidebarMenuBadge>
+                  )}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>

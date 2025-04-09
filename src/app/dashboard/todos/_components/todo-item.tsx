@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
 import { Input } from "@/shared/components/ui/input";
-import { cn } from "@/shared/lib/utils";
+import { cn, formatTimeFromSeconds } from "@/shared/lib/utils";
 import {
   Check,
   ChevronDown,
@@ -20,7 +20,6 @@ import {
   Clock,
   Flag,
   FlagIcon,
-  FolderClosed,
   ListCheck,
   ListPlusIcon,
   MessageSquare,
@@ -29,7 +28,14 @@ import {
   Tag as TagIcon,
   Trash,
 } from "lucide-react";
-import React, { Fragment, useEffect, useRef, useState } from "react";
+import React, {
+  forwardRef,
+  Fragment,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { getSubTaskCount } from "../_queries/use-todo-subtask-count";
 import {
   formatDate,
   getPriorityColor,
@@ -39,11 +45,16 @@ import {
 import { TodoFormValues } from "../_validators/todo-form.validator";
 import { CommentDialog } from "./dialogs/comment-dialog";
 import { DeleteConfirmationDialog } from "./dialogs/delete-confirmation-dialog";
+import { EstimatedTimeDialog } from "./dialogs/estimated-time-dialog";
 import { SubTaskDialog } from "./dialogs/sub-task-dialog";
 import { TagDialog } from "./dialogs/tag-dialog";
+import { SubTaskList } from "./sub-task-list";
 import { TodoForm } from "./todo-form";
-import { getSubTaskCount } from "../_hooks/use-todo-subtask-count";
-import { useTodoSubTasks } from "../_hooks/use-infinite-todo-subtasks";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/shared/components/ui/tooltip";
 
 // Define interface for server responses with different subTasks format
 interface TodoWithSubTaskCounts {
@@ -59,6 +70,10 @@ interface TodoWithSubTaskCounts {
   userId: string | null;
   tags: TodoWithRelations["tags"];
   comments: TodoWithRelations["comments"];
+  estimatedHours: number;
+  estimatedMinutes: number;
+  estimatedSeconds: number;
+  estimatedTotalInSeconds: bigint;
   subTasks: {
     data: TodoSubTask[];
     total: number;
@@ -73,12 +88,14 @@ interface TodoItemProps {
   todo: TodoItem;
   onUpdate: (id: number, updates: Partial<TodoWithRelations>) => void;
   onDelete: (id: number) => void;
+  filter: string | null;
 }
 
 export const TodoItem: React.FC<TodoItemProps> = ({
   todo,
   onUpdate,
   onDelete,
+  filter,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -102,16 +119,12 @@ export const TodoItem: React.FC<TodoItemProps> = ({
   // Add state for SubTaskDialog
   const [showSubTaskDialog, setShowSubTaskDialog] = useState(false);
 
+  // Add state for EstimatedTimeDialog
+  const [showEstimatedTimeDialog, setEstimatedTimeDialog] = useState(false);
+
   // Get subtask count using the new helper function
   const { count: subtaskCount, completedCount: completedSubtaskCount } =
     getSubTaskCount(todo);
-
-  // Fetch subtasks when expanded for preview
-  const { items: subtasks } = useTodoSubTasks({
-    todoId: todo.id,
-    limit: 3,
-    enabled: isExpanded,
-  });
 
   // Compute if any interaction is active
   const isInteracting =
@@ -119,6 +132,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     showDeleteDialog ||
     showTagDialog ||
     showSubTaskDialog ||
+    showEstimatedTimeDialog ||
     isPriorityDropdownOpen ||
     isMobileMenuOpen;
 
@@ -204,11 +218,24 @@ export const TodoItem: React.FC<TodoItemProps> = ({
     ? new Date(todo.dueDate).toDateString() === new Date().toDateString()
     : false;
 
+  // Add handler for time change
+  const handleTimeChange = (
+    hours: number,
+    minutes: number,
+    seconds: number
+  ) => {
+    onUpdate(todo.id, {
+      estimatedHours: hours,
+      estimatedMinutes: minutes,
+      estimatedSeconds: seconds,
+    });
+  };
+
   return (
     <Fragment>
       <div
         className={cn(
-          "border-1 rounded-sm px-2 py-2.5 group hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors duration-200",
+          "border-1 rounded-sm px-2 py-2.5 group transition-colors duration-200",
           !isEditing && "cursor-pointer" // Add cursor-pointer when not in edit mode
         )}
         onClick={!isEditing ? handleTodoItemClick : undefined} // Only enable click handler when not editing
@@ -225,7 +252,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
           />
         ) : (
           <div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <div className="flex items-start flex-1">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -243,42 +270,49 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start">
-                    <DropdownMenuItem
-                      onClick={() =>
-                        handleStatusChange(TodoStatusEnum.IN_PROGRESS)
-                      }
-                    >
-                      <Clock className="h-4 w-4 mr-2 text-green-500" />
-                      <span>In Progress</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() =>
-                        handleStatusChange(TodoStatusEnum.COMPLETED)
-                      }
-                    >
-                      <Check className="h-4 w-4 mr-2 text-blue-500" />
-                      <span>Completed</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => handleStatusChange(TodoStatusEnum.BACKLOG)}
-                    >
-                      <ListPlusIcon className="h-4 w-4 mr-2 text-purple-500" />
-                      <span>Backlog</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setShowSubTaskDialog(true)}
-                    >
-                      <ListCheck className="h-4 w-4 mr-2 text-blue-500" />
-                      <span>Manage Sub-Tasks</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() =>
-                        handleStatusChange(TodoStatusEnum.ARCHIVED)
-                      }
-                    >
-                      <Trash className="h-4 w-4 mr-2 text-neutral-500" />
-                      <span>Archived</span>
-                    </DropdownMenuItem>
+                    {filter !== TodoStatusEnum.IN_PROGRESS && (
+                      <DropdownMenuItem
+                        onClick={() =>
+                          handleStatusChange(TodoStatusEnum.IN_PROGRESS)
+                        }
+                      >
+                        <Clock className="h-4 w-4 mr-2 text-green-500" />
+                        <span>In Progress</span>
+                      </DropdownMenuItem>
+                    )}
+
+                    {filter !== TodoStatusEnum.COMPLETED && (
+                      <DropdownMenuItem
+                        onClick={() =>
+                          handleStatusChange(TodoStatusEnum.COMPLETED)
+                        }
+                      >
+                        <Check className="h-4 w-4 mr-2 text-blue-500" />
+                        <span>Completed</span>
+                      </DropdownMenuItem>
+                    )}
+
+                    {filter !== TodoStatusEnum.BACKLOG && (
+                      <DropdownMenuItem
+                        onClick={() =>
+                          handleStatusChange(TodoStatusEnum.BACKLOG)
+                        }
+                      >
+                        <ListPlusIcon className="h-4 w-4 mr-2 text-purple-500" />
+                        <span>Backlog</span>
+                      </DropdownMenuItem>
+                    )}
+
+                    {filter !== TodoStatusEnum.ARCHIVED && (
+                      <DropdownMenuItem
+                        onClick={() =>
+                          handleStatusChange(TodoStatusEnum.ARCHIVED)
+                        }
+                      >
+                        <Trash className="h-4 w-4 mr-2 text-neutral-500" />
+                        <span>Archived</span>
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
 
@@ -296,7 +330,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                     ) : (
                       <h3
                         className={cn(
-                          "font-semibold cursor-pointer text-sm leading-5"
+                          "font-semibold cursor-pointer text-sm leading-5 truncate max-w-[200px] sm:max-w-[300px] md:max-w-[400px] lg:max-w-[400px]"
                         )}
                         onDoubleClick={(e) => {
                           e.stopPropagation(); // Prevent triggering the container click
@@ -306,6 +340,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                           e.stopPropagation(); // Prevent triggering the container click
                           setIsEditingTitle(true);
                         }}
+                        title={todo.title}
                       >
                         {todo.title}
                       </h3>
@@ -348,6 +383,15 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                       </div>
                     )}
 
+                    {todo.estimatedTotalInSeconds !== null &&
+                      todo.estimatedTotalInSeconds > 0 && (
+                        <div className="inline-block rounded-full bg-blue-100 dark:bg-blue-900 px-2 py-0.5 text-xs font-medium">
+                          {formatTimeFromSeconds(
+                            Number(todo.estimatedTotalInSeconds)
+                          )}
+                        </div>
+                      )}
+
                     {/* Display tags if available */}
                     {todo.tags && todo.tags.length > 0 && (
                       <>
@@ -356,9 +400,10 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                           .map((tag, index) => (
                             <div
                               key={index}
-                              className="inline-block rounded-full bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 text-xs font-medium"
+                              className="inline-block rounded-full bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 text-xs font-medium truncate max-w-[100px]"
+                              title={tag.tag?.name ?? "-"}
                             >
-                              {tag.name}
+                              {tag.tag?.name ?? "-"}
                             </div>
                           ))}
                         {todo.tags.length > 3 && (
@@ -382,24 +427,37 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                 )}
                 onClick={(e) => e.stopPropagation()} // Prevent triggering container click
               >
+                <TodoItemTooltip tooltipText="Set Estimated Time">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setEstimatedTimeDialog(true)}
+                  >
+                    <Clock className="h-4 w-4" />
+                  </Button>
+                </TodoItemTooltip>
+
                 {/* Priority dropdown using shadcn DropdownMenu */}
                 <DropdownMenu onOpenChange={setIsPriorityDropdownOpen}>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <FlagIcon
-                        className={cn(
-                          "h-4 w-4",
-                          getPriorityIconColor(todo.priority)
-                        )}
-                      />
-                    </Button>
+                    <TodoItemTooltip tooltipText="Set Priority">
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <FlagIcon
+                          className={cn(
+                            "h-4 w-4",
+                            getPriorityIconColor(todo.priority)
+                          )}
+                        />
+                      </Button>
+                    </TodoItemTooltip>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
                       onClick={() => handlePriorityChange(TodoPriorityEnum.LOW)}
                     >
                       <Flag className="h-4 w-4 mr-2 text-green-500" />
-                      <span>Low Priority</span>
+                      <span>Low</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() =>
@@ -407,7 +465,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                       }
                     >
                       <Flag className="h-4 w-4 mr-2 text-yellow-500" />
-                      <span>Medium Priority</span>
+                      <span>Medium</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() =>
@@ -415,7 +473,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                       }
                     >
                       <Flag className="h-4 w-4 mr-2 text-orange-500" />
-                      <span>High Priority</span>
+                      <span>High</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() =>
@@ -423,71 +481,81 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                       }
                     >
                       <Flag className="h-4 w-4 mr-2 text-red-500" />
-                      <span>Critical Priority</span>
+                      <span>Critical</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
 
                 {/* Other desktop action buttons */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent triggering the container click
-                    setShowCommentModal(true);
-                  }}
-                >
-                  <MessageSquare className="h-4 w-4" />
-                </Button>
+                <TodoItemTooltip tooltipText="Add Comment">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering the container click
+                      setShowCommentModal(true);
+                    }}
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                  </Button>
+                </TodoItemTooltip>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent triggering the container click
-                    setShowTagDialog(true);
-                  }}
-                >
-                  <TagIcon className="h-4 w-4" />
-                </Button>
+                <TodoItemTooltip tooltipText="Manage Tags">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering the container click
+                      setShowTagDialog(true);
+                    }}
+                  >
+                    <TagIcon className="h-4 w-4" />
+                  </Button>
+                </TodoItemTooltip>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent triggering the container click
-                    setShowSubTaskDialog(true);
-                  }}
-                >
-                  <ListCheck className="h-4 w-4" />
-                </Button>
+                <TodoItemTooltip tooltipText="Manage Sub-Tasks">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering the container click
+                      setShowSubTaskDialog(true);
+                    }}
+                  >
+                    <ListCheck className="h-4 w-4" />
+                  </Button>
+                </TodoItemTooltip>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent triggering the container click
-                    setIsEditing(true);
-                  }}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
+                <TodoItemTooltip tooltipText="Edit">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering the container click
+                      setIsEditing(true);
+                    }}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </TodoItemTooltip>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-red-500"
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent triggering the container click
-                    setShowDeleteDialog(true);
-                  }}
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
+                <TodoItemTooltip tooltipText="Delete">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-red-500"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering the container click
+                      setShowDeleteDialog(true);
+                    }}
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </TodoItemTooltip>
               </div>
 
               {/* Mobile action button - always visible */}
@@ -514,7 +582,6 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                       <TagIcon className="h-4 w-4 mr-2" />
                       <span>Manage Tags</span>
                     </DropdownMenuItem>
-
                     {/* Priority submenu items */}
                     <DropdownMenuItem
                       onClick={() => handlePriorityChange(TodoPriorityEnum.LOW)}
@@ -538,24 +605,20 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                       <Flag className="h-4 w-4 mr-2 text-red-500" />
                       <span>High Priority</span>
                     </DropdownMenuItem>
-
-                    <DropdownMenuItem
-                      onClick={() => {
-                        /* Implement folder functionality */
-                      }}
-                    >
-                      <FolderClosed className="h-4 w-4 mr-2" />
-                      <span>Move to Folder</span>
-                    </DropdownMenuItem>
-
-                    {/* Add SubTask menu item to mobile menu */}
+                    Ø{/* Add SubTask menu item to mobile menu */}
                     <DropdownMenuItem
                       onClick={() => setShowSubTaskDialog(true)}
                     >
                       <ListCheck className="h-4 w-4 mr-2" />
                       <span>Manage Sub-Tasks</span>
                     </DropdownMenuItem>
-
+                    {/* Add time menu item to mobile menu */}
+                    <DropdownMenuItem
+                      onClick={() => setEstimatedTimeDialog(true)}
+                    >
+                      <Clock className="h-4 w-4 mr-2" />
+                      <span>Set Estimated Time</span>
+                    </DropdownMenuItem>
                     {/* Delete with confirmation (will trigger dialog) */}
                     <DropdownMenuItem
                       onClick={() => setShowDeleteDialog(true)}
@@ -609,7 +672,9 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                         <div className="text-neutral-500 dark:text-neutral-400 text-xs">
                           {new Date(comment.createdAt).toLocaleString()}
                         </div>
-                        <div>{comment.comment}</div>
+                        <div className="line-clamp-2" title={comment.comment}>
+                          {comment.comment}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -617,56 +682,15 @@ export const TodoItem: React.FC<TodoItemProps> = ({
 
                 {/* Display sub-tasks in expanded view if available */}
                 {subtaskCount > 0 && (
-                  <div className="mt-2 space-y-2">
-                    <div className="flex justify-between items-center">
-                      <h4 className="text-sm font-medium">Sub-Tasks</h4>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 text-xs"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowSubTaskDialog(true);
-                        }}
-                      >
-                        Manage
-                      </Button>
-                    </div>
-
-                    <div className="space-y-1 max-h-[150px] overflow-y-auto pr-2">
-                      {subtasks.map((subTask) => (
-                        <div
-                          key={subTask.id}
-                          className={cn(
-                            "flex items-center text-xs p-1.5 rounded-sm",
-                            "bg-neutral-50 dark:bg-neutral-800",
-                            subTask.completed && "text-neutral-400"
-                          )}
-                        >
-                          <div
-                            className={cn(
-                              "w-3 h-3 mr-2 rounded-sm border flex items-center justify-center",
-                              subTask.completed
-                                ? "bg-blue-400 border-blue-400 text-white"
-                                : "border-gray-300"
-                            )}
-                          >
-                            {subTask.completed && <Check className="h-2 w-2" />}
-                          </div>
-                          <span
-                            className={cn(subTask.completed && "line-through")}
-                          >
-                            {subTask.title}
-                          </span>
-                        </div>
-                      ))}
-                      {subtaskCount > 3 && (
-                        <div className="text-xs text-neutral-500 text-center">
-                          +{subtaskCount - 3} more sub-tasks
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <SubTaskList
+                    todoId={todo.id}
+                    isExpanded={isExpanded}
+                    subtaskCount={subtaskCount}
+                    onManage={(e) => {
+                      e.stopPropagation();
+                      setShowSubTaskDialog(true);
+                    }}
+                  />
                 )}
               </div>
             )}
@@ -698,6 +722,33 @@ export const TodoItem: React.FC<TodoItemProps> = ({
         onOpenChange={setShowDeleteDialog}
         onConfirm={() => onDelete(todo.id)}
       />
+
+      <EstimatedTimeDialog
+        open={showEstimatedTimeDialog}
+        onOpenChange={setEstimatedTimeDialog}
+        todo={todo as TodoWithRelations}
+        onSave={handleTimeChange}
+      />
     </Fragment>
   );
 };
+
+type TodoItemTooltipProps = {
+  children: React.ReactNode;
+  tooltipText: string;
+} & React.ComponentProps<typeof TooltipTrigger>;
+
+const TodoItemTooltip = forwardRef<HTMLButtonElement, TodoItemTooltipProps>(
+  ({ children, tooltipText, ...props }, ref) => {
+    return (
+      <Tooltip delayDuration={200} {...props}>
+        <TooltipTrigger {...props} asChild ref={ref}>
+          {children}
+        </TooltipTrigger>
+        <TooltipContent>{tooltipText}</TooltipContent>
+      </Tooltip>
+    );
+  }
+);
+
+TodoItemTooltip.displayName = "TodoItemTooltip";
