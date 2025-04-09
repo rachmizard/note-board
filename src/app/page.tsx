@@ -64,7 +64,7 @@ export default async function Home() {
 
       {/* Footer */}
       <p className="fixed bottom-4 text-sm text-muted-foreground">
-        Made by SixMav&apos;s Team with ❤️
+        Made by sixmav&apos;s team with ❤️
       </p>
     </div>
   );
