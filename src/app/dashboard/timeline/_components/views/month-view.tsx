@@ -128,7 +128,7 @@ export const MonthView: React.FC<MonthViewProps> = ({ currentDate }) => {
                         <div
                           key={`multi-${event.id}-${eventIndex}`}
                           className={cn(
-                            "text-xs p-1 truncate flex-shrink-0",
+                            "text-xs p-1 truncate flex-shrink-0 min-h-[24px]",
                             event.color || "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100",
                             isStart ? "rounded-l-sm border-l" : "border-l-0 pl-0",
                             isEnd ? "rounded-r-sm border-r" : "border-r-0 pr-0",
@@ -137,6 +137,7 @@ export const MonthView: React.FC<MonthViewProps> = ({ currentDate }) => {
                           title={event.title}
                         >
                           {isStart && event.title}
+                          {!isStart && <span className="opacity-0">{event.title}</span>}
                         </div>
                       );
                     })}
