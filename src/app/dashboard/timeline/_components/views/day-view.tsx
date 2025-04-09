@@ -122,7 +122,7 @@ export const DayView: React.FC<DayViewProps> = ({ currentDate }) => {
               </div>
 
               {/* Event space */}
-              <div className="flex-1 relative">
+              <div className="flex-1 relative grid grid-cols-1">
                 {/* Empty slot for content */}
               </div>
             </div>
@@ -158,8 +158,8 @@ export const DayView: React.FC<DayViewProps> = ({ currentDate }) => {
                 style={{
                   top: `${top}%`,
                   height: `${height}%`,
-                  left: "calc(16px + 8px)",
-                  right: "8px",
+                  left: "calc(4rem + 4px)", // 4rem (64px) for time gutter + 4px padding
+                  right: "4px",
                   minHeight: '25px'
                 }}
               >
