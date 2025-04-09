@@ -13,7 +13,8 @@ import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { cn } from "@/shared/lib/utils";
 import React, { useState } from "react";
 import { WIDGET_CATEGORIES } from "./widget-categories";
-import { Layout } from "lucide-react";
+import { Layout, Plus } from "lucide-react";
+import { useWidgets } from "../../context/widget-context";
 
 interface WidgetDialogProps {
   open: boolean;
@@ -25,9 +26,22 @@ export const WidgetDialog: React.FC<WidgetDialogProps> = ({
   onOpenChange,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const { addWidget } = useWidgets();
 
-  const handleAddWidget = (widgetId: string) => {
-    console.log("Adding widget:", widgetId);
+  const handleAddWidget = (widget: {
+    id: string;
+    name: string;
+    icon: React.ReactNode;
+    type: string;
+    category: string;
+  }) => {
+    addWidget({
+      id: `${widget.id}-${Date.now()}`,
+      name: widget.name,
+      icon: widget.icon,
+      type: widget.type || widget.id,
+      category: widget.category || selectedCategory,
+    });
     onOpenChange(false);
   };
 
@@ -91,8 +105,12 @@ export const WidgetDialog: React.FC<WidgetDialogProps> = ({
                       <Button
                         key={widget.id}
                         variant="outline"
-                        className="h-24 flex flex-col items-center justify-center gap-2 hover:border-primary group"
-                        onClick={() => handleAddWidget(widget.id)}
+                        className="h-24 flex flex-col items-center justify-center gap-2 hover:border-primary group relative overflow-hidden"
+                        onClick={() =>
+                          handleAddWidget({
+                            ...widget,
+                          })
+                        }
                       >
                         <div className="text-muted-foreground group-hover:text-primary transition-colors">
                           {widget.icon}
@@ -100,6 +118,16 @@ export const WidgetDialog: React.FC<WidgetDialogProps> = ({
                         <span className="text-sm font-medium">
                           {widget.name}
                         </span>
+
+                        {/* Hover Overlay */}
+                        <div className="absolute inset-0 backdrop-blur-sm bg-background/40 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-2 transition-all duration-200">
+                          <div className="bg-background rounded-full p-2">
+                            <Plus className="h-6 w-6 text-primary" />
+                          </div>
+                          <span className="text-xs font-medium text-primary">
+                            Add Widget
+                          </span>
+                        </div>
                       </Button>
                     ))}
                   </div>
