@@ -24,7 +24,6 @@ import {
   CheckSquare,
   ChevronLeft,
   LayoutDashboard,
-  LogOut,
   RefreshCw,
   Loader2Icon,
   Timer,
