@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/shared/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -23,6 +24,7 @@ import {
   CheckSquare,
   ChevronLeft,
   LayoutDashboard,
+  RefreshCw,
   Loader2Icon,
   Timer,
 } from "lucide-react";
@@ -55,7 +57,7 @@ const data = {
     },
     {
       title: "Timeline",
-      url: "/timeline",
+      url: "/dashboard/timeline",
       icon: Calendar,
     },
   ],
@@ -92,7 +94,7 @@ export function AppSidebar() {
           }`}
         >
           <CollapseButton />
-          <SidebarHeader className="flex w-full justify-start items-center border-b p-4">
+          <SidebarHeader className="flex w-full justify-start items-center border-b p-3">
             <div
               className={`flex gap-2 ${
                 !isCollapsed ? "justify-start" : "justify-center"
@@ -108,11 +110,28 @@ export function AppSidebar() {
                   quality={100}
                 />
               </div>
-              {!isCollapsed && <p>Noteboard</p>}
+              {!isCollapsed && (
+                <>
+                  <p className="font-bold">Noteboard</p>
+                  <div className="ml-auto">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="p-1 h-auto"
+                      onClick={() => {
+                        //reload page
+                        //animate the button?
+                      }}
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           </SidebarHeader>
 
-          <SidebarContent>
+          <SidebarContent className="p-3">
             <SidebarMenu>
               {data.navMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
@@ -132,9 +151,12 @@ export function AppSidebar() {
                         </Link>
                       </SidebarMenuButton>
                     </TooltipTrigger>
-                    <TooltipContent side="right">
-                      <span>{item.title}</span>
-                    </TooltipContent>
+
+                    {isCollapsed && (
+                      <TooltipContent side="right">
+                        <span>{item.title}</span>
+                      </TooltipContent>
+                    )}
                   </Tooltip>
 
                   {item.badgeComponent && (
