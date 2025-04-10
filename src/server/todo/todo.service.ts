@@ -25,6 +25,7 @@ import type {
   AddTodoTagRequest,
   CreateTodoRequest,
   DeleteTodoRequest,
+  GetInfiniteTodosRequest,
   GetTodoCommentsRequest,
   GetTodoRequest,
   GetTodosRequest,
@@ -153,6 +154,106 @@ const getTodos = async (
     total: Number(count),
     page,
     limit,
+  };
+};
+
+/**
+ * Get cursor todos with pagination
+ *
+ * @param db Database instance
+ * @param options Pagination options
+ * @returns Paginated todos
+ */
+const getCursorTodos = async (
+  request: GetInfiniteTodosRequest,
+  context: Context
+): Promise<CursorPaginationResponse<TodoWithSubTaskCounts>> => {
+  if (!context.auth || !context.auth.userId) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Unauthorized",
+    });
+  }
+
+  const { cursor, limit = 10 } = request;
+  const extraLimit = limit + 1;
+
+  const whereClauses: SQL[] = [eq(todoSchema.userId, context.auth.userId)];
+  // First sort by priority (ascending means higher priority numbers come first)
+  // Then sort by creation date (newest first)
+  const orderBy = [desc(todoSchema.id)];
+
+  // If a specific priority is requested, filter by it rather than sort
+  if (request.priority) {
+    whereClauses.push(eq(todoSchema.priority, request.priority));
+  }
+
+  if (request.status) {
+    whereClauses.push(eq(todoSchema.status, request.status));
+  }
+
+  if (cursor) {
+    whereClauses.push(sql`${todoSchema.id} < ${cursor}`);
+  }
+
+  // Execute the main query with pagination
+  const todos = await context.db.query.todoSchema.findMany({
+    where: whereClauses.length > 0 ? and(...whereClauses) : undefined,
+    with: {
+      tags: {
+        with: {
+          tag: true,
+        },
+      },
+      comments: {
+        orderBy: [desc(todoComments.createdAt)],
+      },
+      subTasks: true,
+    },
+    orderBy,
+    limit: extraLimit,
+  });
+
+  // Get total count for pagination
+  const [{ count }] = await context.db
+    .select({
+      count: sql`count(*)`,
+    })
+    .from(todoSchema);
+
+  // Process subtasks information for each todo
+  const todosWithSubTaskCounts = todos.map((todo) => {
+    const subTasksTotal = todo.subTasks?.length || 0;
+    const subTasksCompleted =
+      todo.subTasks?.filter((task) => task.completed).length || 0;
+
+    return {
+      ...todo,
+      subTasks: {
+        data: todo.subTasks || [],
+        total: subTasksTotal,
+        completed: subTasksCompleted,
+      },
+    };
+  });
+
+  let nextCursor: typeof cursor | undefined = undefined;
+
+  // Check if we fetched more items than requested limit
+  if (todos.length > limit) {
+    // Get the last item as next cursor
+    const nextItem = todos.pop();
+    nextCursor = nextItem?.id;
+  }
+
+  // Current page's first item becomes the cursor for previous page
+  const previousCursor = todos.length > 0 ? todos[0].id : undefined;
+
+  return {
+    data: todosWithSubTaskCounts,
+    total: Number(count),
+    nextCursor,
+    previousCursor,
   };
 };
 
@@ -550,6 +651,7 @@ export {
   createTodo,
   deleteTodo,
   getCursorTodoSubTasks,
+  getCursorTodos,
   getTodo,
   getTodoComments,
   getTodos,

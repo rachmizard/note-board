@@ -40,10 +40,13 @@ export const TagDialog: React.FC<TagDialogProps> = ({
 
   const debouncedInputValue = useDebounceValue(inputValue, 500);
 
-  const tagsQuery = useTags({
-    type: "todo",
-    keyword: debouncedInputValue,
-  });
+  const tagsQuery = useTags(
+    {
+      type: "todo",
+      keyword: debouncedInputValue,
+    },
+    !!open
+  );
 
   const handleSubmitNewTag: React.FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();

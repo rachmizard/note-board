@@ -6,6 +6,7 @@ import { z } from "zod";
 
 export type CreateTodoRequest = z.infer<typeof createTodoValidator>;
 export type GetTodosRequest = z.infer<typeof getTodosValidator>;
+export type GetInfiniteTodosRequest = z.infer<typeof getInfiniteTodosValidator>;
 export type DeleteTodoRequest = z.infer<typeof deleteTodoValidator>;
 export type UpdateTodoRequest = z.infer<typeof updateTodoValidator>;
 export type GetTodoRequest = z.infer<typeof getTodoValidator>;
@@ -44,6 +45,15 @@ export const createTodoValidator = z.object({
 
 export const getTodosValidator = z.object({
   page: z.number().optional().default(1),
+  limit: z.number().optional().default(10),
+  sortBy: z.string().optional().default("createdAt"),
+  sortOrder: z.string().optional().default("desc"),
+  status: z.nativeEnum(TodoStatusEnum).optional(),
+  priority: z.nativeEnum(TodoPriorityEnum).nullish(),
+});
+
+export const getInfiniteTodosValidator = z.object({
+  cursor: z.coerce.number().nullish(),
   limit: z.number().optional().default(10),
   sortBy: z.string().optional().default("createdAt"),
   sortOrder: z.string().optional().default("desc"),
