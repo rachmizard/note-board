@@ -19,12 +19,21 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/shared/components/ui/sheet";
 import { UserButton, useUser } from "@clerk/nextjs";
 import {
   Calendar,
   CheckSquare,
   ChevronLeft,
   LayoutDashboard,
+  Menu,
   RefreshCw,
   Loader2Icon,
   Timer,
@@ -64,6 +73,81 @@ const data = {
   ],
 };
 
+// Mobile Sidebar Trigger component using Sheet
+export function MobileSidebarTrigger() {
+  const [open, setOpen] = useState(false);
+  const { user } = useUser();
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="ghost" size="icon" className="md:hidden">
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Toggle menu</span>
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-[80%] max-w-sm p-0">
+        <SheetHeader className="p-4 border-b">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 relative shrink-0">
+              <Image
+                src="/logo.png"
+                alt="Noteboard"
+                fill
+                priority
+                loading={undefined}
+                quality={100}
+              />
+            </div>
+            <SheetTitle className="text-left">Noteboard</SheetTitle>
+          </div>
+          <SheetDescription className="text-left">
+            Your productivity dashboard
+          </SheetDescription>
+        </SheetHeader>
+        <div className="py-4">
+          <div className="space-y-1 px-2">
+            {data.navMain.map((item) => (
+              <Link
+                key={item.title}
+                href={item.url}
+                className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                onClick={() => setOpen(false)}
+              >
+                <item.icon className="h-5 w-5" />
+                <span>{item.title}</span>
+                {item.badgeComponent && (
+                  <div className="ml-auto">{item.badgeComponent}</div>
+                )}
+              </Link>
+            ))}
+          </div>
+        </div>
+        {user && (
+          <div className="mt-auto border-t p-4">
+            <div className="flex items-center gap-2">
+              <UserButton
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: "w-8 h-8",
+                  },
+                }}
+              />
+              <div className="flex flex-col">
+                <p className="text-sm font-medium">{user.fullName}</p>
+                <p className="text-xs text-muted-foreground">
+                  {user.primaryEmailAddress?.emailAddress}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
 export function AppSidebar() {
   const { state, toggleSidebar } = useSidebar();
   const { user } = useUser();
@@ -97,7 +181,7 @@ export function AppSidebar() {
           variant="floating"
           collapsible="icon"
           side="left"
-          className={`${sidebarFixedStyles} transition-all duration-300 ease-in-out shadow-md`}
+          className={`${sidebarFixedStyles} transition-all duration-300 ease-in-out shadow-md hidden md:block`}
           style={{
             width: isCollapsed ? "4rem" : "16rem",
             minWidth: isCollapsed ? "4rem" : "16rem",
