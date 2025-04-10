@@ -14,7 +14,7 @@ import {
   startOfWeek,
 } from "date-fns";
 import React from "react";
-import { Event, dummyEvents } from "../../page";
+import { Event, dummyEvents } from "../data";
 
 interface MonthViewProps {
   currentDate: Date;

@@ -4,7 +4,7 @@ import { cn } from "@/shared/lib/utils";
 import { addMinutes, format, isSameDay, isToday, startOfDay } from "date-fns";
 import { Clock } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
-import { Event, dummyEvents } from "../../page";
+import { Event, dummyEvents } from "../data";
 
 interface DayViewProps {
   currentDate: Date;

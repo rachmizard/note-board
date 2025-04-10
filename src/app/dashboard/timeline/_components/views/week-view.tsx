@@ -12,7 +12,7 @@ import {
   isToday,
 } from "date-fns";
 import { Clock } from "lucide-react";
-import { Event, dummyEvents } from "../../page";
+import { Event, dummyEvents } from "../data";
 
 interface WeekViewProps {
   currentDate: Date;
