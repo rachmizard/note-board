@@ -25,17 +25,25 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
+import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { cn } from "@/shared/lib/utils";
 import confetti from "canvas-confetti";
 import { cva } from "class-variance-authority";
 import { ChevronDownIcon, ChevronUpIcon, ListFilter } from "lucide-react";
-import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { priorityOptions } from "../_constants/todo.constant";
 import { useFilterQueryState } from "../_hooks/use-filter-query-state";
 import { usePriorityQueryState } from "../_hooks/use-priority-query-state";
 import { useDeleteTodo } from "../_mutations/use-delete-todo";
 import { useUpdateTodo } from "../_mutations/use-update-todo";
-import { useTodos } from "../_queries/use-todos";
+import { useInfiniteTodos, useTodos } from "../_queries/use-todos";
 import {
   calculateCompletionRate,
   mapTodoStatusFromServer,
@@ -45,16 +53,14 @@ import { TodoCompletionHistory } from "./todo-completion-history";
 import { TodoItem } from "./todo-item";
 import { TodoItemSkeleton } from "./todo-item-skeleton";
 import { TodoStats } from "./todo-stats";
-import { ScrollArea } from "@/shared/components/ui/scroll-area";
 
 export const TodoList = () => {
   const [filter, setFilter] = useFilterQueryState();
   const [priority] = usePriorityQueryState();
 
   // Use the real data source with useTodos hook
-  const todos = useTodos({
-    page: 1,
-    limit: 100, // Fetch a reasonable number of todos
+  const infiniteTodos = useInfiniteTodos({
+    limit: 10, // Fetch a reasonable number of todos
     sortBy: "createdAt",
     sortOrder: "desc",
     status: filter === "all" ? undefined : (filter as TodoStatusEnum),
@@ -66,10 +72,11 @@ export const TodoList = () => {
 
   // Convert server todos to frontend Todo format
   const convertedTodos = useMemo(() => {
-    if (!todos.data?.data) return [];
+    if (!infiniteTodos.data?.pages) return [];
+    const flatTodos = infiniteTodos.data.pages.flatMap((page) => page.data);
 
     // Map server todo format to frontend Todo format, ensuring subTasks is always in the expected array format
-    return todos.data.data.map((serverTodo) => {
+    return flatTodos.map((serverTodo) => {
       // Handle the case where subTasks might be in the new format with data, total, and completed properties
       let subTasksArray: TodoSubTask[] = [];
 
@@ -105,7 +112,7 @@ export const TodoList = () => {
         estimatedTotalInSeconds: serverTodo.estimatedTotalInSeconds,
       };
     });
-  }, [todos.data]);
+  }, [infiniteTodos.data?.pages]);
 
   const handleUpdateTodo = useCallback(
     (id: number, updates: Partial<TodoWithRelations>) => {
@@ -236,7 +243,7 @@ export const TodoList = () => {
             </div>
           </div>
 
-          {todos.isLoading && !filteredTodos.length && (
+          {infiniteTodos.isLoading && !filteredTodos.length && (
             <div className="flex flex-col gap-2">
               {Array.from({ length: 5 }).map((_, index) => (
                 <TodoItemSkeleton key={index} />
@@ -245,8 +252,18 @@ export const TodoList = () => {
           )}
 
           {/* Todo List */}
-          {filteredTodos.length > 0 && !todos.isLoading && (
-            <AnimatedList delay={200} className="gap-2">
+          {filteredTodos.length > 0 && !infiniteTodos.isLoading && (
+            <AnimatedInfiniteTodoList
+              onReachBottom={() => {
+                if (
+                  infiniteTodos.hasNextPage &&
+                  !infiniteTodos.isFetchingNextPage
+                ) {
+                  infiniteTodos.fetchNextPage();
+                }
+              }}
+              isFetchingNextPage={infiniteTodos.isFetchingNextPage}
+            >
               {filteredTodos.map((todo) => (
                 <TodoItem
                   key={todo.id}
@@ -256,10 +273,10 @@ export const TodoList = () => {
                   onDelete={handleDeleteTodo}
                 />
               ))}
-            </AnimatedList>
+            </AnimatedInfiniteTodoList>
           )}
 
-          {!filteredTodos.length && !todos.isLoading && (
+          {!filteredTodos.length && !infiniteTodos.isLoading && (
             <div className="text-center py-6 sm:py-8 border rounded-lg">
               <ListFilter className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-foreground mb-2" />
               <p className="text-sm sm:text-base text-foreground">
@@ -477,3 +494,51 @@ const FilterPriorityDropdownItem = forwardRef<
 });
 
 FilterPriorityDropdownItem.displayName = "FilterPriorityDropdownItem";
+
+const AnimatedInfiniteTodoList = ({
+  children,
+  onReachBottom,
+  isFetchingNextPage = false,
+}: {
+  children: React.ReactNode;
+  onReachBottom: () => void;
+  isFetchingNextPage?: boolean;
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isFetchingRef = useRef(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!containerRef.current || isFetchingRef.current) return;
+
+      // Check if we're near the bottom of the page
+      const scrollPosition = window.innerHeight + window.scrollY;
+      const bottomOfContainer =
+        containerRef.current.getBoundingClientRect().bottom + window.scrollY;
+      const buffer = 200; // pixels before bottom to trigger loading
+
+      if (scrollPosition >= bottomOfContainer - buffer) {
+        isFetchingRef.current = true;
+        onReachBottom();
+
+        // Reset the fetching flag after a delay to prevent multiple calls
+        setTimeout(() => {
+          isFetchingRef.current = false;
+        }, 500);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [onReachBottom]);
+
+  return (
+    <div ref={containerRef}>
+      <AnimatedList delay={200} className="gap-2">
+        {children}
+
+        {isFetchingNextPage && <TodoItemSkeleton />}
+      </AnimatedList>
+    </div>
+  );
+};

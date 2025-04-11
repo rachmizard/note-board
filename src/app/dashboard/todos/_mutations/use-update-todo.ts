@@ -86,6 +86,7 @@ export const useUpdateTodo = () => {
       );
     },
     onSuccess: () => {
+      trpcUtils.todo.getInfiniteTodos.invalidate();
       trpcUtils.todo.getTodos.invalidate();
       trpcUtils.todo.getTodosCount.invalidate();
     },

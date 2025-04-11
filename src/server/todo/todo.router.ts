@@ -5,6 +5,7 @@ import {
   addTodoTag,
   createTodo,
   deleteTodo,
+  getCursorTodos,
   getCursorTodoSubTasks,
   getTodo,
   getTodoComments,
@@ -23,6 +24,7 @@ import {
   addTodoTagValidator,
   createTodoValidator,
   deleteTodoValidator,
+  getInfiniteTodosValidator,
   getTodoCommentsValidator,
   getTodoSubTasksValidator,
   getTodosValidator,
@@ -44,6 +46,11 @@ export const todoRouter = router({
     .input(getTodosValidator)
     .query(async ({ input, ctx }) => {
       return await getTodos(input, ctx);
+    }),
+  getInfiniteTodos: protectedProcedure
+    .input(getInfiniteTodosValidator)
+    .query(async ({ input, ctx }) => {
+      return await getCursorTodos(input, ctx);
     }),
   getTodosCount: protectedProcedure.query(async ({ ctx }) => {
     return await getTodosCount(ctx);
