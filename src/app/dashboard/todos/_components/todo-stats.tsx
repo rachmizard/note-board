@@ -8,7 +8,7 @@ import {
 import { Progress } from "@/shared/components/ui/progress";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import React, { useMemo, useRef } from "react";
-import { useTodos } from "../_queries/use-todos";
+import { useTodos } from "../../../../shared/hooks/todo/use-todos";
 import { calculateCompletionRate } from "../_utils/todo.utils";
 
 // Remove the empty interface since we don't need props anymore

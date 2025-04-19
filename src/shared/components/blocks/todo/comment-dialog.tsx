@@ -12,8 +12,9 @@ import {
 } from "@/shared/components/ui/dialog";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { Trash } from "lucide-react";
-import { useAddTodoComment } from "../../../../../shared/hooks/todo/use-add-todo-comment";
-import { useRemoveTodoComment } from "../../../../../shared/hooks/todo/use-remove-todo-comment";
+// Keep mutation hooks import paths relative to their location in the app
+import { useRemoveTodoComment } from "../../../hooks/todo/use-remove-todo-comment";
+import { useAddTodoComment } from "../../../hooks/todo/use-add-todo-comment";
 
 interface CommentDialogProps {
   open: boolean;

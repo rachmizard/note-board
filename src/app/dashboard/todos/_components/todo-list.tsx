@@ -38,21 +38,24 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { priorityOptions } from "../_constants/todo.constant";
 import { useFilterQueryState } from "../_hooks/use-filter-query-state";
 import { usePriorityQueryState } from "../_hooks/use-priority-query-state";
-import { useDeleteTodo } from "../_mutations/use-delete-todo";
-import { useUpdateTodo } from "../_mutations/use-update-todo";
-import { useInfiniteTodos, useTodos } from "../_queries/use-todos";
+import {
+  useInfiniteTodos,
+  useTodos,
+} from "../../../../shared/hooks/todo/use-todos";
+import { useDeleteTodo } from "../../../../shared/hooks/todo/use-delete-todo";
+import { useUpdateTodo } from "../../../../shared/hooks/todo/use-update-todo";
 import {
   calculateCompletionRate,
   mapTodoStatusFromServer,
 } from "../_utils/todo.utils";
 import { AddQuickTodoForm } from "./add-quick-todo-form";
 import { TodoCompletionHistory } from "./todo-completion-history";
-import { TodoItem } from "./todo-item";
 import { TodoItemSkeleton } from "./todo-item-skeleton";
 import { TodoStats } from "./todo-stats";
+import { TodoItem } from "@/shared/components/blocks/todo/todo-item";
+import { priorityOptions } from "@/shared/components/blocks/todo/_constants/todo.constant";
 
 export const TodoList = () => {
   const [filter, setFilter] = useFilterQueryState();

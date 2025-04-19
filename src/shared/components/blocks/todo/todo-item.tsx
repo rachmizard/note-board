@@ -35,21 +35,21 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { getSubTaskCount } from "../_queries/use-todo-subtask-count";
+import { getSubTaskCount } from "@/shared/hooks/todo/use-todo-subtask-count";
 import {
   formatDate,
   getPriorityColor,
   getPriorityIconColor,
   getStatusColor,
-} from "../_utils/todo.utils";
-import { TodoFormValues } from "../_validators/todo-form.validator";
-import { CommentDialog } from "./dialogs/comment-dialog";
-import { DeleteConfirmationDialog } from "./dialogs/delete-confirmation-dialog";
-import { EstimatedTimeDialog } from "./dialogs/estimated-time-dialog";
-import { SubTaskDialog } from "./dialogs/sub-task-dialog";
-import { TagDialog } from "./dialogs/tag-dialog";
-import { SubTaskList } from "./sub-task-list";
-import { TodoForm } from "./todo-form";
+} from "@/shared/components/blocks/todo/_utils/todo.utils";
+import { TodoFormValues } from "@/shared/components/blocks/todo/_validators/todo-form.validator";
+import { CommentDialog } from "@/shared/components/blocks/todo/comment-dialog";
+import { DeleteConfirmationDialog } from "@/shared/components/blocks/todo/delete-confirmation-dialog";
+import { EstimatedTimeDialog } from "@/shared/components/blocks/todo/estimated-time-dialog";
+import { SubTaskDialog } from "@/shared/components/blocks/todo/sub-task-dialog";
+import { TagDialog } from "@/shared/components/blocks/todo/tag-dialog";
+import { SubTaskList } from "@/shared/components/blocks/todo/sub-task-list";
+import { TodoForm } from "@/shared/components/blocks/todo/todo-form";
 import {
   Tooltip,
   TooltipContent,
@@ -605,7 +605,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                       <Flag className="h-4 w-4 mr-2 text-red-500" />
                       <span>High Priority</span>
                     </DropdownMenuItem>
-                    Ø{/* Add SubTask menu item to mobile menu */}
+                    {/* Add SubTask menu item to mobile menu */}
                     <DropdownMenuItem
                       onClick={() => setShowSubTaskDialog(true)}
                     >
@@ -686,7 +686,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                     todoId={todo.id}
                     isExpanded={isExpanded}
                     subtaskCount={subtaskCount}
-                    onManage={(e) => {
+                    onManage={(e: React.MouseEvent) => {
                       e.stopPropagation();
                       setShowSubTaskDialog(true);
                     }}

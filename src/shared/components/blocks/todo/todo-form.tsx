@@ -1,4 +1,4 @@
-import { TodoPriorityEnum } from "@/server/database";
+import { TodoPriorityEnum } from "@/server/database/drizzle/todo.schema";
 import { Button } from "@/shared/components/ui/button";
 import { Combobox } from "@/shared/components/ui/combobox";
 import { DatePicker } from "@/shared/components/ui/datepicker";
@@ -14,12 +14,12 @@ import { Input } from "@/shared/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
+import { priorityOptions } from "./_constants/todo.constant";
 
 import {
   todoFormValidator,
   TodoFormValues,
-} from "../_validators/todo-form.validator";
-import { priorityOptions } from "@/shared/components/blocks/todo/_constants/todo.constant";
+} from "./_validators/todo-form.validator";
 
 interface AddTodoProps {
   onSubmit: (todo: TodoFormValues) => void;

@@ -14,9 +14,9 @@ import { useTags } from "@/shared/hooks/queries";
 import { useDebounceValue } from "@/shared/hooks/use-debounce-value";
 import { PlusIcon, X } from "lucide-react";
 import React, { useState } from "react";
-import { useAddTodoTag } from "../../../../../shared/hooks/todo/use-add-todo-tag";
-import { useRemoveTodoTag } from "../../../../../shared/hooks/todo/use-remove-todo-tag";
 import { useCreateTag } from "@/shared/hooks/mutations";
+import { useRemoveTodoTag } from "../../../hooks/todo/use-remove-todo-tag";
+import { useAddTodoTag } from "../../../hooks/todo/use-add-todo-tag";
 
 interface TagDialogProps {
   open: boolean;
