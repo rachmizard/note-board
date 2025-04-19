@@ -280,6 +280,24 @@ export function AddEditEventDialog({
 
             <FormField
               control={form.control}
+              name="description"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <FormLabel className="required">Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      placeholder="Enter a description"
+                      className={fieldState.invalid ? "border-red-500" : ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="startDate"
               render={({ field }) => (
                 <DateTimePicker
@@ -351,24 +369,6 @@ export function AddEditEventDialog({
                         isInvalid={fieldState.invalid}
                       />
                     </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormLabel className="required">Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder="Enter a description"
-                      className={fieldState.invalid ? "border-red-500" : ""}
-                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
