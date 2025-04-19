@@ -12,14 +12,14 @@ import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { cn } from "@/shared/lib/utils";
 import { Check, Plus, Trash } from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useTodoSubTasks } from "../../../hooks/todo/use-todo-subtasks";
+import { Skeleton } from "@/shared/components/ui/skeleton";
+import { useRemoveTodoSubTask } from "../../../hooks/todo/use-subtask-mutations";
 import {
   useAddTodoSubTask,
-  useRemoveTodoSubTask,
   useUpdateTodoSubTask,
-} from "../../_mutations/use-subtask-mutations";
-import { useTodoSubTasks } from "../../_queries/use-infinite-todo-subtasks";
-import { useTodoSubTaskCount } from "../../_queries/use-todo-subtask-count";
-import { Skeleton } from "@/shared/components/ui/skeleton";
+} from "../../../hooks/todo/use-subtask-mutations";
+import { useTodoSubTaskCount } from "../../../hooks/todo/use-todo-subtask-count";
 
 interface SubTaskDialogProps {
   open: boolean;
@@ -268,13 +268,6 @@ export const SubTaskDialog: React.FC<SubTaskDialogProps> = ({
                 </div>
               ))
             )}
-
-            {/* Loading indicator for pagination */}
-            {subtaskInfiniteQuery.isFetchingNextPage && subTasks.length > 0 && (
-              <div className="text-center py-2 text-sm text-muted-foreground">
-                Loading more...
-              </div>
-            )}
           </div>
         </SubTasksScrollArea>
       </DialogContent>
@@ -282,6 +275,7 @@ export const SubTaskDialog: React.FC<SubTaskDialogProps> = ({
   );
 };
 
+// Helper for scroll area with infinite loading
 const SubTasksScrollArea = ({
   className,
   onReachBottom,
@@ -289,38 +283,20 @@ const SubTasksScrollArea = ({
 }: React.ComponentProps<typeof ScrollArea> & {
   onReachBottom: () => void;
 }) => {
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const isFetchingRef = useRef(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      const scrollArea = scrollAreaRef.current;
-
-      const handleScroll = (e: Event) => {
-        const target = e.target as HTMLDivElement;
-        const isAtBottom =
-          target.scrollHeight - target.scrollTop <= target.clientHeight + 50;
-
-        if (isAtBottom && !isFetchingRef.current) {
-          isFetchingRef.current = true;
-          onReachBottom?.();
-
-          // Reset the fetching flag after a short delay
-          setTimeout(() => {
-            isFetchingRef.current = false;
-          }, 500);
-        }
-      };
-
-      scrollArea.addEventListener("scroll", handleScroll);
-
-      return () => {
-        scrollArea.removeEventListener("scroll", handleScroll);
-      };
-    }
+    const node = scrollRef.current;
+    if (!node) return;
+    const handleScroll = (e: Event) => {
+      const target = e.target as HTMLDivElement;
+      if (target.scrollTop + target.clientHeight >= target.scrollHeight - 10) {
+        onReachBottom();
+      }
+    };
+    node.addEventListener("scroll", handleScroll);
+    return () => node.removeEventListener("scroll", handleScroll);
   }, [onReachBottom]);
 
-  return (
-    <ScrollArea ref={scrollAreaRef} className={cn(className)} {...props} />
-  );
+  return <ScrollArea ref={scrollRef} className={className} {...props} />;
 };

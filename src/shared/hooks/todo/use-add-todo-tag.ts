@@ -1,10 +1,10 @@
 import { trpc } from "@/server/trpc";
 import { produce } from "immer";
 
-export const useRemoveTodoTag = () => {
+export const useAddTodoTag = () => {
   const utils = trpc.useUtils();
-  return trpc.todo.removeTodoTag.useMutation({
-    onMutate: async (removeTodoTag) => {
+  return trpc.todo.addTodoTag.useMutation({
+    onMutate: async (newTodoTag) => {
       await utils.todo.getTodos.cancel();
       const previousTodos = utils.todo.getTodos.getData();
 
@@ -19,14 +19,23 @@ export const useRemoveTodoTag = () => {
           if (!prev) return prev;
           return produce(prev, (draft) => {
             const todo = draft.data.find(
-              (todo) => todo.id === removeTodoTag.todoId
+              (todo) => todo.id === newTodoTag.todoId
             );
             if (todo && todo.tags) {
-              todo.tags = todo.tags.filter(
-                (tag) => tag.id !== removeTodoTag.tagId
-              );
+              todo.tags.push({
+                id: Date.now() * Math.random(),
+                tagId: Date.now() * Math.random(),
+                todoId: newTodoTag.todoId,
+                tag: {
+                  id: Date.now() * Math.random(),
+                  name: newTodoTag.name ?? "",
+                  type: "todo",
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                  userId: null,
+                },
+              });
             }
-            return draft;
           });
         }
       );
@@ -35,6 +44,10 @@ export const useRemoveTodoTag = () => {
     },
     onSuccess: () => {
       utils.todo.getTodos.invalidate();
+      utils.todo.getInfiniteTodos.invalidate();
+      utils.tag.getTags.invalidate({
+        type: "todo",
+      });
     },
     onError: (_, __, context) => {
       utils.todo.getTodos.setData(
@@ -46,6 +59,10 @@ export const useRemoveTodoTag = () => {
         },
         context?.previousTodos
       );
+      utils.todo.getInfiniteTodos.invalidate();
+      utils.tag.getTags.invalidate({
+        type: "todo",
+      });
     },
   });
 };

@@ -1,6 +1,6 @@
 import { Button } from "@/shared/components/ui/button";
 import React from "react";
-import { useTodoSubTasks } from "../../../../shared/hooks/todo/use-infinite-todo-subtasks";
+import { useTodoSubTasks } from "../../../hooks/todo/use-todo-subtasks";
 import { SubTaskItem } from "./sub-task-item";
 
 interface SubTaskListProps {

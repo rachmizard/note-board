@@ -7,7 +7,7 @@ import { cn } from "@/shared/lib/utils";
 import { Loader2Icon, PlusIcon } from "lucide-react";
 import { FormEventHandler, useRef } from "react";
 import { useSetFilterQueryState } from "../_hooks/use-filter-query-state";
-import { useCreateTodo } from "../_mutations/use-create-todo";
+import { useCreateTodo } from "../../../../shared/hooks/todo/use-create-todo";
 
 export const AddQuickTodoForm = () => {
   const inputRef = useRef<HTMLInputElement>(null);

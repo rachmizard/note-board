@@ -3,7 +3,7 @@ import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Label } from "@/shared/components/ui/label";
 import { cn } from "@/shared/lib/utils";
 import React, { useState } from "react";
-import { useUpdateTodoSubTask } from "../../../../shared/hooks/todo/use-subtask-mutations";
+import { useUpdateTodoSubTask } from "@/shared/hooks/todo/use-subtask-mutations";
 
 interface SubTaskItemProps {
   subTask: TodoSubTask;

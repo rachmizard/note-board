@@ -1,8 +1,6 @@
 import { trpc } from "@/server/trpc";
-import {
-  useInvalidateInfiniteTodos,
-  useInvalidateTodos,
-} from "../_queries/use-todos";
+import { useInvalidateInfiniteTodos } from "./use-todos";
+import { useInvalidateTodos } from "./use-todos";
 
 export const useCreateTodo = () => {
   const invalidateTodos = useInvalidateTodos();

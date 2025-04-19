@@ -5,9 +5,9 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { TodoStatusEnum } from "@/server/database/drizzle/todo.schema";
-import { useTodos } from "../_queries/use-todos";
 import { useMemo } from "react";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
+import { useTodos } from "../../../../shared/hooks/todo/use-todos";
 
 export const TodoCompletionHistory = () => {
   // Use the same hook as in TodoList

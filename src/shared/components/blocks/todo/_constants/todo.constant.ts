@@ -1,5 +1,5 @@
 import { ComboboxOption } from "@/shared/components/ui/combobox";
-import { TodoPriorityEnum } from "@/server/database";
+import { TodoPriorityEnum } from "@/server/database/drizzle/todo.schema";
 
 export const priorityOptions: ComboboxOption[] = [
   { value: TodoPriorityEnum.LOW, label: "Low" },
