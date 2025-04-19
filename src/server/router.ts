@@ -1,23 +1,17 @@
-import { initTRPC } from "@trpc/server";
+import { mergeRouters } from "@trpc/server/unstable-core-do-not-import";
+import { todoRouter } from "./todo/todo.router";
+import { router } from "./trpc-init";
+import { userRouter } from "./user/user.router";
+import { tagRouter } from "./tag/tag.router";
 
-// Create context type - using Record<string, unknown> to avoid empty object linter errors
-export type Context = Record<string, unknown>;
-
-// Initialize tRPC
-const t = initTRPC.context<Context>().create();
-
-// Export commonly used tRPC utilities
-export const router = t.router;
-export const publicProcedure = t.procedure;
-
-// Example router with a "hello" query
-export const appRouter = router({
-  hello: publicProcedure.query(() => {
-    return {
-      message: "Hello World!",
-    };
-  }),
+const moduleRouter = router({
+  todo: todoRouter,
+  user: userRouter,
+  tag: tagRouter,
 });
+
+// Create the appRouter instance
+export const appRouter = mergeRouters(moduleRouter);
 
 // Export router type
 export type AppRouter = typeof appRouter;

@@ -1,6 +1,9 @@
+import { ReactScan } from "@/shared/components/misc/react-scan";
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 import Providers from "./providers";
 
@@ -25,10 +28,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-    >
+    <html lang="en" suppressHydrationWarning>
+      <ReactScan />
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen w-full bg-gradient-to-b from-zinc-950 to-zinc-900 overflow-x-hidden`}
       >
@@ -38,7 +39,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Providers>{children}</Providers>
+          <ClerkProvider>
+            <Providers>
+              {children}
+              <Toaster richColors position="bottom-right" />
+            </Providers>
+          </ClerkProvider>
         </ThemeProvider>
       </body>
     </html>

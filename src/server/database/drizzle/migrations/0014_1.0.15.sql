@@ -1,0 +1,1 @@
+ALTER TABLE "todos" ADD COLUMN "estimated_total_in_seconds" bigint GENERATED ALWAYS AS ("estimated_hours" * 3600 + "estimated_minutes" * 60 + "estimated_seconds") STORED;
