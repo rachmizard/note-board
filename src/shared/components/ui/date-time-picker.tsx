@@ -22,9 +22,10 @@ import { useCalendar } from "@/app/dashboard/timeline/contexts/calendar-context"
 interface DatePickerProps {
   form: UseFormReturn<TEventFormData>;
   field: ControllerRenderProps<TEventFormData, "endDate" | "startDate">;
+  dateFormat?: string;
 }
 
-export function DateTimePicker({ form, field }: DatePickerProps) {
+export function DateTimePicker({ form, field, dateFormat }: DatePickerProps) {
   const { use24HourFormat } = useCalendar();
 
   function handleDateSelect(date: Date | undefined) {
@@ -65,16 +66,19 @@ export function DateTimePicker({ form, field }: DatePickerProps) {
               variant={"outline"}
               className={cn(
                 "w-full pl-3 text-left font-normal",
-                !field.value && "text-muted-foreground",
+                !field.value && "text-muted-foreground"
               )}
             >
               {field.value ? (
                 format(
                   field.value,
-                  use24HourFormat ? "MM/dd/yyyy HH:mm" : "MM/dd/yyyy hh:mm aa",
+                  dateFormat ||
+                    (use24HourFormat
+                      ? "MM/dd/yyyy HH:mm"
+                      : "MM/dd/yyyy hh:mm aa")
                 )
               ) : (
-                <span>MM/DD/YYYY hh:mm aa</span>
+                <span>Select date and time</span>
               )}
               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
             </Button>

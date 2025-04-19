@@ -14,13 +14,6 @@ import {
 } from "@/shared/components/ui/form";
 import { Input } from "@/shared/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/components/ui/select";
-import {
   Dialog,
   DialogClose,
   DialogContent,
@@ -40,6 +33,7 @@ import { COLORS } from "@/app/dashboard/timeline/constants";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DateTimePicker } from "@/shared/components/ui/date-time-picker";
+import { cn } from "@/shared/lib/utils";
 
 interface IProps {
   children: ReactNode;
@@ -47,6 +41,43 @@ interface IProps {
   startTime?: { hour: number; minute: number };
   event?: IEvent;
 }
+
+// Color mapping for background and border styles
+const colorStyles: Record<
+  string,
+  { bg: string; border: string; text: string }
+> = {
+  blue: {
+    bg: "bg-blue-100 dark:bg-blue-900/30",
+    border: "border-blue-500",
+    text: "text-blue-600 dark:text-blue-400",
+  },
+  green: {
+    bg: "bg-green-100 dark:bg-green-900/30",
+    border: "border-green-500",
+    text: "text-green-600 dark:text-green-400",
+  },
+  red: {
+    bg: "bg-red-100 dark:bg-red-900/30",
+    border: "border-red-500",
+    text: "text-red-600 dark:text-red-400",
+  },
+  yellow: {
+    bg: "bg-yellow-100 dark:bg-yellow-900/30",
+    border: "border-yellow-500",
+    text: "text-yellow-600 dark:text-yellow-400",
+  },
+  purple: {
+    bg: "bg-purple-100 dark:bg-purple-900/30",
+    border: "border-purple-500",
+    text: "text-purple-600 dark:text-purple-400",
+  },
+  orange: {
+    bg: "bg-orange-100 dark:bg-orange-900/30",
+    border: "border-orange-500",
+    text: "text-orange-600 dark:text-orange-400",
+  },
+};
 
 export function AddEditEventDialog({
   children,
@@ -173,7 +204,11 @@ export function AddEditEventDialog({
               control={form.control}
               name="startDate"
               render={({ field }) => (
-                <DateTimePicker form={form} field={field} />
+                <DateTimePicker
+                  form={form}
+                  field={field}
+                  dateFormat="MMM d, yyyy HH:mm"
+                />
               )}
             />
 
@@ -181,7 +216,11 @@ export function AddEditEventDialog({
               control={form.control}
               name="endDate"
               render={({ field }) => (
-                <DateTimePicker form={form} field={field} />
+                <DateTimePicker
+                  form={form}
+                  field={field}
+                  dateFormat="MMM d, yyyy HH:mm"
+                />
               )}
             />
 
@@ -192,25 +231,33 @@ export function AddEditEventDialog({
                 <FormItem>
                   <FormLabel className="required">Variant</FormLabel>
                   <FormControl>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger
-                        className={`w-full ${fieldState.invalid ? "border-red-500" : ""}`}
-                      >
-                        <SelectValue placeholder="Select a variant" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {COLORS.map((color) => (
-                          <SelectItem value={color} key={color}>
-                            <div className="flex items-center gap-2">
-                              <div
-                                className={`size-3.5 rounded-full bg-${color}-600 dark:bg-${color}-700`}
-                              />
-                              {color}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex flex-wrap gap-2">
+                      {COLORS.map((color) => {
+                        const isSelected = field.value === color;
+                        const styles = colorStyles[color];
+
+                        return (
+                          <Button
+                            key={color}
+                            type="button"
+                            variant="outline"
+                            className={cn(
+                              "gap-1.5 py-1.5 px-3 border capitalize",
+                              isSelected &&
+                                `${styles.bg} ${styles.border} ${styles.text}`,
+                              !isSelected && "hover:bg-muted",
+                              fieldState.invalid && "border-red-500"
+                            )}
+                            onClick={() => field.onChange(color)}
+                          >
+                            <div
+                              className={`size-3 rounded-full bg-${color}-500`}
+                            />
+                            {color}
+                          </Button>
+                        );
+                      })}
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
