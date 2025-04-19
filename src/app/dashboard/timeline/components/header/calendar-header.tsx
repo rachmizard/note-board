@@ -2,7 +2,6 @@
 
 import {
   CalendarRange,
-  Clock,
   Columns,
   Grid2X2,
   Grid3X3,
@@ -21,8 +20,6 @@ import {
   transition,
 } from "@/app/dashboard/timeline/animations";
 
-import { UserSelect } from "@/app/dashboard/timeline/components/header/user-select";
-import { TodayButton } from "@/app/dashboard/timeline/components/header/today-button";
 import { DateNavigator } from "@/app/dashboard/timeline/components/header/date-navigator";
 import { AddEditEventDialog } from "@/app/dashboard/timeline/components/dialogs/add-edit-event-dialog";
 import FilterEvents from "@/app/dashboard/timeline/components/header/filter";
@@ -32,7 +29,6 @@ import { useCalendar } from "@/app/dashboard/timeline/contexts/calendar-context"
 import { Toggle } from "@/shared/components/ui/toggle";
 import { ModeToggle } from "@/shared/components/mode-toggle";
 import { useFilteredEvents } from "@/app/dashboard/timeline/hooks";
-import { ChangeBadgeVariantInput } from "@/app/dashboard/timeline/components/change-badge-variant-input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,7 +56,7 @@ export function CalendarHeader() {
   const events = useFilteredEvents();
 
   return (
-    <div className="flex flex-col gap-4 border-b p-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="relative flex flex-col gap-4 border-b bg-gradient-to-r from-background to-muted/30 p-4 lg:flex-row lg:items-center lg:justify-between">
       <motion.div
         className="flex items-center gap-3"
         variants={slideFromLeft}
@@ -68,7 +64,6 @@ export function CalendarHeader() {
         animate="animate"
         transition={transition}
       >
-        <TodayButton />
         <DateNavigator view={view} events={events} />
       </motion.div>
 
@@ -79,44 +74,49 @@ export function CalendarHeader() {
         animate="animate"
         transition={transition}
       >
-        <div className="options flex-wrap flex items-center gap-4 md:gap-2">
+        <div className="options flex flex-wrap items-center gap-2 rounded-lg bg-background/50 p-1.5 backdrop-blur-sm">
           <FilterEvents />
           <MotionButton
-            variant="outline"
+            variant="ghost"
             onClick={toggleTimeFormat}
             asChild
+            className="rounded-md px-3 text-sm"
+            variants={buttonHover}
+            whileHover="hover"
+            whileTap="tap"
+          >
+            <Toggle>{use24HourFormat ? "24h" : "12h"}</Toggle>
+          </MotionButton>
+          <MotionButton
+            variant="ghost"
+            onClick={() => toggleAgendaMode(!isAgendaMode)}
+            asChild
+            className="rounded-md px-3 relative text-sm"
             variants={buttonHover}
             whileHover="hover"
             whileTap="tap"
           >
             <Toggle>
-              {use24HourFormat ? "24" : "12"} <Clock />
-            </Toggle>
-          </MotionButton>
-          <MotionButton
-            variant="outline"
-            onClick={() => toggleAgendaMode(!isAgendaMode)}
-            asChild
-            variants={buttonHover}
-            whileHover="hover"
-            whileTap="tap"
-          >
-            <Toggle className="relative">
               {isAgendaMode ? (
                 <>
-                  <CalendarRange />
-                  <span className="absolute -top-1 -right-1 size-3 rounded-full bg-green-400"></span>
+                  <CalendarRange className="h-4 w-4 mr-1" />
+                  <span>Agenda</span>
+                  <span className="absolute -top-1 -right-1 size-2 rounded-full bg-green-400"></span>
                 </>
               ) : (
-                <LayoutList />
+                <>
+                  <LayoutList className="h-4 w-4 mr-1" />
+                  <span>Calendar</span>
+                </>
               )}
             </Toggle>
           </MotionButton>
           {isAgendaMode && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline">
-                  <GroupIcon />
+                <Button variant="ghost" size="sm" className="h-8">
+                  <GroupIcon className="h-4 w-4 mr-1" />
+                  <span>Group</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56">
@@ -138,9 +138,10 @@ export function CalendarHeader() {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          <ButtonGroup className="flex">
+          <ButtonGroup className="bg-muted/50 rounded-md overflow-hidden">
             <MotionButton
-              variant={view === "day" ? "default" : "outline"}
+              variant={view === "day" ? "default" : "ghost"}
+              size="sm"
               aria-label="View by day"
               onClick={() => {
                 setView("day");
@@ -153,7 +154,8 @@ export function CalendarHeader() {
             </MotionButton>
 
             <MotionButton
-              variant={view === "week" ? "default" : "outline"}
+              variant={view === "week" ? "default" : "ghost"}
+              size="sm"
               aria-label="View by week"
               onClick={() => setView("week")}
               variants={buttonHover}
@@ -164,7 +166,8 @@ export function CalendarHeader() {
             </MotionButton>
 
             <MotionButton
-              variant={view === "month" ? "default" : "outline"}
+              variant={view === "month" ? "default" : "ghost"}
+              size="sm"
               aria-label="View by month"
               onClick={() => setView("month")}
               variants={buttonHover}
@@ -174,7 +177,8 @@ export function CalendarHeader() {
               <Grid3X3 className="h-4 w-4" />
             </MotionButton>
             <MotionButton
-              variant={view === "year" ? "default" : "outline"}
+              variant={view === "year" ? "default" : "ghost"}
+              size="sm"
               aria-label="View by year"
               onClick={() => setView("year")}
               variants={buttonHover}
@@ -185,20 +189,23 @@ export function CalendarHeader() {
             </MotionButton>
           </ButtonGroup>
 
-          <ChangeBadgeVariantInput />
+          {/* Disabled components */}
+          {/* <ChangeBadgeVariantInput /> */}
           <ModeToggle />
         </div>
 
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-1.5">
-          <UserSelect />
+          {/* Disabled UserSelect */}
+          {/* <UserSelect /> */}
 
           <AddEditEventDialog>
             <MotionButton
               variants={buttonHover}
               whileHover="hover"
               whileTap="tap"
+              className="bg-primary/90 hover:bg-primary transition-colors"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4 mr-1" />
               Add Event
             </MotionButton>
           </AddEditEventDialog>
