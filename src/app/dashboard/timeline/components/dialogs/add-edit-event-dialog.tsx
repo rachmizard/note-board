@@ -117,10 +117,10 @@ function ColorButton({
       type="button"
       variant="outline"
       className={cn(
-        "gap-1.5 py-1.5 px-3 border capitalize h-11 w-full justify-center",
+        "gap-1.5 py-1 px-2 border capitalize h-10 w-full justify-center",
         isSelected && `${styles.bg} ${styles.border} ${styles.text}`,
         !isSelected && "hover:bg-muted",
-        isInvalid && "border-red-500"
+        isInvalid && "border-red-500",
       )}
       onClick={() => onChange(color)}
     >

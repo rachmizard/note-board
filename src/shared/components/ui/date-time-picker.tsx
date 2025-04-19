@@ -1,6 +1,4 @@
-import { format, differenceInMinutes, addMinutes } from "date-fns";
-import type { ControllerRenderProps, UseFormReturn } from "react-hook-form";
-import { cn } from "@/shared/lib/utils";
+import type { TEventFormData } from "@/app/dashboard/timeline/schemas";
 import { Button } from "@/shared/components/ui/button";
 import { Calendar } from "@/shared/components/ui/calendar";
 import {
@@ -9,14 +7,16 @@ import {
   FormLabel,
   FormMessage,
 } from "@/shared/components/ui/form";
+import { Input } from "@/shared/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/shared/components/ui/popover";
-import { Input } from "@/shared/components/ui/input";
+import { cn } from "@/shared/lib/utils";
+import { addMinutes, differenceInMinutes, format } from "date-fns";
 import { CalendarIcon, CheckIcon } from "lucide-react";
-import type { TEventFormData } from "@/app/dashboard/timeline/schemas";
+import type { ControllerRenderProps, UseFormReturn } from "react-hook-form";
 
 interface DatePickerProps {
   form: UseFormReturn<TEventFormData>;
@@ -84,53 +84,43 @@ export function DateTimePicker({ form, field, minDate }: DatePickerProps) {
   }
 
   function handleHourChange(e: React.ChangeEvent<HTMLInputElement>) {
-    let value = e.target.value;
-
-    // Only allow numeric input
-    if (!/^\d+$/.test(value) && value !== "") return;
+    const value = e.target.value;
 
     // Handle backspace to empty state
     if (value === "") {
-      e.target.value = "00";
       updateTime(0, field.value?.getMinutes() || 0);
       return;
     }
 
+    // Only allow numeric input
+    if (!/^\d*$/.test(value)) return;
+
+    // For single digits or valid two-digit hours
     const numValue = parseInt(value, 10);
 
-    // Validate hour range (00-23)
+    // Only update if it's a valid hour (0-23)
     if (numValue >= 0 && numValue <= 23) {
-      // Pad single digit with leading zero
-      if (value.length === 1) {
-        value = value.padStart(2, "0");
-        e.target.value = value;
-      }
       updateTime(numValue, field.value?.getMinutes() || 0);
     }
   }
 
   function handleMinuteChange(e: React.ChangeEvent<HTMLInputElement>) {
-    let value = e.target.value;
-
-    // Only allow numeric input
-    if (!/^\d+$/.test(value) && value !== "") return;
+    const value = e.target.value;
 
     // Handle backspace to empty state
     if (value === "") {
-      e.target.value = "00";
       updateTime(field.value?.getHours() || 0, 0);
       return;
     }
 
+    // Only allow numeric input
+    if (!/^\d*$/.test(value)) return;
+
+    // For single digits or valid two-digit minutes
     const numValue = parseInt(value, 10);
 
-    // Validate minute range (00-59)
+    // Only update if it's a valid minute (0-59)
     if (numValue >= 0 && numValue <= 59) {
-      // Pad single digit with leading zero
-      if (value.length === 1) {
-        value = value.padStart(2, "0");
-        e.target.value = value;
-      }
       updateTime(field.value?.getHours() || 0, numValue);
     }
   }
@@ -189,7 +179,7 @@ export function DateTimePicker({ form, field, minDate }: DatePickerProps) {
                   variant={"outline"}
                   className={cn(
                     "w-full pl-3 text-left font-normal",
-                    !field.value && "text-muted-foreground"
+                    !field.value && "text-muted-foreground",
                   )}
                 >
                   {field.value ? (
@@ -215,11 +205,14 @@ export function DateTimePicker({ form, field, minDate }: DatePickerProps) {
 
         {/* Time Picker */}
         <div className="flex-1 relative">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             {/* Hours */}
             <div className="relative flex-1 flex items-center">
               <Input
-                className="text-center"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                className="text-center font-medium"
                 value={getHours()}
                 onChange={handleHourChange}
                 maxLength={2}
@@ -233,6 +226,9 @@ export function DateTimePicker({ form, field, minDate }: DatePickerProps) {
                   }
                 }}
               />
+              <span className="absolute right-2 text-xs text-muted-foreground">
+                h
+              </span>
             </div>
 
             <span className="text-lg font-medium">:</span>
@@ -240,7 +236,10 @@ export function DateTimePicker({ form, field, minDate }: DatePickerProps) {
             {/* Minutes */}
             <div className="relative flex-1 flex items-center">
               <Input
-                className="text-center"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                className="text-center font-medium"
                 value={getMinutes()}
                 onChange={handleMinuteChange}
                 maxLength={2}
@@ -254,51 +253,65 @@ export function DateTimePicker({ form, field, minDate }: DatePickerProps) {
                   }
                 }}
               />
+              <span className="absolute right-2 text-xs text-muted-foreground">
+                m
+              </span>
             </div>
           </div>
 
           {/* Duration selection for end time */}
           {isEndDate && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="mt-1 w-full justify-start text-xs"
-                  size="sm"
-                >
-                  {getDuration() || "Select duration"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-56 p-0" align="start">
-                <div className="flex flex-col py-1.5">
-                  {durationOptions.map((option) => {
-                    const startDate = form.getValues("startDate");
-                    const endTime = startDate
-                      ? format(
-                          addMinutes(new Date(startDate), option.minutes),
-                          "HH.mm"
-                        )
-                      : "";
+            <div className="mt-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-between text-xs"
+                    size="sm"
+                  >
+                    <span>{getDuration() || "Select duration"}</span>
+                    <span className="text-muted-foreground">⏱️</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-60 p-2" align="start">
+                  <div className="grid grid-cols-2 gap-1">
+                    {durationOptions.map((option) => {
+                      const startDate = form.getValues("startDate");
+                      const endTime = startDate
+                        ? format(
+                            addMinutes(new Date(startDate), option.minutes),
+                            "HH:mm",
+                          )
+                        : "";
+                      const isSelected = getDuration() === option.label;
 
-                    return (
-                      <Button
-                        key={option.minutes}
-                        variant="ghost"
-                        className="flex w-full justify-between px-3 py-1.5 text-left"
-                        onClick={() => selectDuration(option.minutes)}
-                      >
-                        <div className="flex items-center">
-                          {endTime} {option.label}
-                        </div>
-                        {getDuration() === option.label && (
-                          <CheckIcon className="h-4 w-4" />
-                        )}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </PopoverContent>
-            </Popover>
+                      return (
+                        <Button
+                          key={option.minutes}
+                          variant={isSelected ? "default" : "outline"}
+                          size="sm"
+                          className={cn(
+                            "justify-start px-3 py-2",
+                            isSelected && "font-medium",
+                          )}
+                          onClick={() => selectDuration(option.minutes)}
+                        >
+                          <div className="flex flex-col items-start text-left">
+                            <span className="text-xs">{option.label}</span>
+                            <span className="text-[10px] text-muted-foreground">
+                              ends at {endTime}
+                            </span>
+                          </div>
+                          {isSelected && (
+                            <CheckIcon className="ml-auto h-3 w-3" />
+                          )}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
           )}
         </div>
       </div>
