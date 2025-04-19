@@ -44,6 +44,10 @@ export const useAddTodoTag = () => {
     },
     onSuccess: () => {
       utils.todo.getTodos.invalidate();
+      utils.todo.getInfiniteTodos.invalidate();
+      utils.tag.getTags.invalidate({
+        type: "todo",
+      });
     },
     onError: (_, __, context) => {
       utils.todo.getTodos.setData(
@@ -55,6 +59,10 @@ export const useAddTodoTag = () => {
         },
         context?.previousTodos
       );
+      utils.todo.getInfiniteTodos.invalidate();
+      utils.tag.getTags.invalidate({
+        type: "todo",
+      });
     },
   });
 };
