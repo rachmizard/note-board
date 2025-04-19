@@ -84,29 +84,53 @@ export function DateTimePicker({ form, field, minDate }: DatePickerProps) {
   }
 
   function handleHourChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const value = e.target.value;
-    // Allow empty input or valid numbers
+    let value = e.target.value;
+
+    // Only allow numeric input
+    if (!/^\d+$/.test(value) && value !== "") return;
+
+    // Handle backspace to empty state
     if (value === "") {
-      form.setValue(field.name, field.value || new Date());
+      e.target.value = "00";
+      updateTime(0, field.value?.getMinutes() || 0);
       return;
     }
+
     const numValue = parseInt(value, 10);
-    // Only update if it's a valid hour (0-23)
-    if (!isNaN(numValue) && numValue >= 0 && numValue <= 23) {
+
+    // Validate hour range (00-23)
+    if (numValue >= 0 && numValue <= 23) {
+      // Pad single digit with leading zero
+      if (value.length === 1) {
+        value = value.padStart(2, "0");
+        e.target.value = value;
+      }
       updateTime(numValue, field.value?.getMinutes() || 0);
     }
   }
 
   function handleMinuteChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const value = e.target.value;
-    // Allow empty input or valid numbers
+    let value = e.target.value;
+
+    // Only allow numeric input
+    if (!/^\d+$/.test(value) && value !== "") return;
+
+    // Handle backspace to empty state
     if (value === "") {
-      form.setValue(field.name, field.value || new Date());
+      e.target.value = "00";
+      updateTime(field.value?.getHours() || 0, 0);
       return;
     }
+
     const numValue = parseInt(value, 10);
-    // Only update if it's a valid minute (0-59)
-    if (!isNaN(numValue) && numValue >= 0 && numValue <= 59) {
+
+    // Validate minute range (00-59)
+    if (numValue >= 0 && numValue <= 59) {
+      // Pad single digit with leading zero
+      if (value.length === 1) {
+        value = value.padStart(2, "0");
+        e.target.value = value;
+      }
       updateTime(field.value?.getHours() || 0, numValue);
     }
   }
