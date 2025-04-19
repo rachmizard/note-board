@@ -29,7 +29,6 @@ import { eventSchema, TEventFormData } from "@/app/dashboard/timeline/schemas";
 import { useCalendar } from "@/app/dashboard/timeline/contexts/calendar-context";
 import { ReactNode } from "react";
 import { IEvent } from "@/app/dashboard/timeline/interfaces";
-import { COLORS } from "@/app/dashboard/timeline/constants";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DateTimePicker } from "@/shared/components/ui/date-time-picker";
@@ -78,6 +77,54 @@ const colorStyles: Record<
     text: "text-orange-600 dark:text-orange-400",
   },
 };
+
+// Color dot style mapping
+const colorDotStyles: Record<string, string> = {
+  blue: "#3b82f6",
+  green: "#22c55e",
+  red: "#ef4444",
+  yellow: "#eab308",
+  purple: "#a855f7",
+  orange: "#f97316",
+};
+
+// Color button component
+interface ColorButtonProps {
+  color: string;
+  fieldValue: string;
+  onChange: (value: string) => void;
+  isInvalid?: boolean;
+}
+
+function ColorButton({
+  color,
+  fieldValue,
+  onChange,
+  isInvalid,
+}: ColorButtonProps) {
+  const isSelected = fieldValue === color;
+  const styles = colorStyles[color];
+
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      className={cn(
+        "gap-1.5 py-1.5 px-3 border capitalize h-11 w-full justify-center",
+        isSelected && `${styles.bg} ${styles.border} ${styles.text}`,
+        !isSelected && "hover:bg-muted",
+        isInvalid && "border-red-500"
+      )}
+      onClick={() => onChange(color)}
+    >
+      <div
+        className="size-3 rounded-full mr-1.5"
+        style={{ backgroundColor: colorDotStyles[color] }}
+      />
+      {color}
+    </Button>
+  );
+}
 
 export function AddEditEventDialog({
   children,
@@ -231,32 +278,46 @@ export function AddEditEventDialog({
                 <FormItem>
                   <FormLabel className="required">Variant</FormLabel>
                   <FormControl>
-                    <div className="flex flex-wrap gap-2">
-                      {COLORS.map((color) => {
-                        const isSelected = field.value === color;
-                        const styles = colorStyles[color];
+                    <div className="grid grid-cols-3 gap-2 mx-auto w-full max-w-md">
+                      {/* First row */}
+                      <ColorButton
+                        color="blue"
+                        fieldValue={field.value}
+                        onChange={field.onChange}
+                        isInvalid={fieldState.invalid}
+                      />
+                      <ColorButton
+                        color="green"
+                        fieldValue={field.value}
+                        onChange={field.onChange}
+                        isInvalid={fieldState.invalid}
+                      />
+                      <ColorButton
+                        color="red"
+                        fieldValue={field.value}
+                        onChange={field.onChange}
+                        isInvalid={fieldState.invalid}
+                      />
 
-                        return (
-                          <Button
-                            key={color}
-                            type="button"
-                            variant="outline"
-                            className={cn(
-                              "gap-1.5 py-1.5 px-3 border capitalize",
-                              isSelected &&
-                                `${styles.bg} ${styles.border} ${styles.text}`,
-                              !isSelected && "hover:bg-muted",
-                              fieldState.invalid && "border-red-500"
-                            )}
-                            onClick={() => field.onChange(color)}
-                          >
-                            <div
-                              className={`size-3 rounded-full bg-${color}-500`}
-                            />
-                            {color}
-                          </Button>
-                        );
-                      })}
+                      {/* Second row */}
+                      <ColorButton
+                        color="yellow"
+                        fieldValue={field.value}
+                        onChange={field.onChange}
+                        isInvalid={fieldState.invalid}
+                      />
+                      <ColorButton
+                        color="orange"
+                        fieldValue={field.value}
+                        onChange={field.onChange}
+                        isInvalid={fieldState.invalid}
+                      />
+                      <ColorButton
+                        color="purple"
+                        fieldValue={field.value}
+                        onChange={field.onChange}
+                        isInvalid={fieldState.invalid}
+                      />
                     </div>
                   </FormControl>
                   <FormMessage />
