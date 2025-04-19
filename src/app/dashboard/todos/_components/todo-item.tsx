@@ -252,13 +252,13 @@ export const TodoItem: React.FC<TodoItemProps> = ({
           />
         ) : (
           <div>
-            <div className="flex items-start justify-between">
-              <div className="flex items-start flex-1">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center flex-1">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button
                       className={cn(
-                        "p-1 rounded-sm mr-3 flex items-center justify-center h-5 w-5 border outline-none",
+                        "p-1 rounded-sm mr-3 flex items-center justify-center h-5 w-5 border outline-none my-auto",
                         todo.status === TodoStatusEnum.COMPLETED
                           ? "bg-blue-400 border-none text-white"
                           : "border-gray-300"
@@ -330,7 +330,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                     ) : (
                       <h3
                         className={cn(
-                          "font-semibold cursor-pointer text-sm leading-5 truncate max-w-[200px] sm:max-w-[300px] md:max-w-[400px] lg:max-w-[400px]"
+                          "font-semibold cursor-pointer text-sm leading-5 truncate max-w-[200px] sm:max-w-[300px] md:max-w-[400px] lg:max-w-[400px] flex items-center my-auto"
                         )}
                         onDoubleClick={(e) => {
                           e.stopPropagation(); // Prevent triggering the container click
