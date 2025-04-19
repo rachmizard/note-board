@@ -1,7 +1,14 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { format, getHours, getMinutes, set } from "date-fns";
+import {
+  format,
+  getHours,
+  getMinutes,
+  set,
+  isBefore,
+  addHours,
+} from "date-fns";
 
 import { useDisclosure } from "@/app/dashboard/timeline/hooks";
 import {
@@ -27,7 +34,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { eventSchema, TEventFormData } from "@/app/dashboard/timeline/schemas";
 import { useCalendar } from "@/app/dashboard/timeline/contexts/calendar-context";
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { IEvent } from "@/app/dashboard/timeline/interfaces";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -172,8 +179,32 @@ export function AddEditEventDialog({
         },
   });
 
+  // Watch for changes to startDate to adjust endDate if needed
+  const currentStartDate = form.watch("startDate");
+  const currentEndDate = form.watch("endDate");
+
+  useEffect(() => {
+    // If end date is before start date, automatically set it to 1 hour after start
+    if (
+      currentEndDate &&
+      currentStartDate &&
+      isBefore(currentEndDate, currentStartDate)
+    ) {
+      form.setValue("endDate", addHours(new Date(currentStartDate), 1));
+    }
+  }, [currentStartDate, currentEndDate, form]);
+
   const onSubmit = (values: TEventFormData) => {
     try {
+      // Additional validation to ensure end date is after start date
+      if (isBefore(values.endDate, values.startDate)) {
+        form.setError("endDate", {
+          type: "manual",
+          message: "End date must be after start date",
+        });
+        return;
+      }
+
       const formattedEvent: IEvent = {
         ...values,
         startDate: format(values.startDate, "yyyy-MM-dd'T'HH:mm:ss"),
@@ -267,6 +298,7 @@ export function AddEditEventDialog({
                   form={form}
                   field={field}
                   dateFormat="MMM d, yyyy HH:mm"
+                  minDate={form.getValues("startDate")}
                 />
               )}
             />

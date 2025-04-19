@@ -23,14 +23,26 @@ interface DatePickerProps {
   form: UseFormReturn<TEventFormData>;
   field: ControllerRenderProps<TEventFormData, "endDate" | "startDate">;
   dateFormat?: string;
+  minDate?: Date;
 }
 
-export function DateTimePicker({ form, field, dateFormat }: DatePickerProps) {
+export function DateTimePicker({
+  form,
+  field,
+  dateFormat,
+  minDate,
+}: DatePickerProps) {
   const { use24HourFormat } = useCalendar();
 
   function handleDateSelect(date: Date | undefined) {
     if (date) {
-      form.setValue(field.name, date);
+      // When selecting a date, preserve the current time
+      const currentValue = field.value || new Date();
+      const newDate = new Date(date);
+      newDate.setHours(currentValue.getHours());
+      newDate.setMinutes(currentValue.getMinutes());
+
+      form.setValue(field.name, newDate);
     }
   }
 
@@ -54,6 +66,7 @@ export function DateTimePicker({ form, field, dateFormat }: DatePickerProps) {
 
     form.setValue(field.name, newDate);
   }
+
   return (
     <FormItem className="flex flex-col">
       <FormLabel>
@@ -90,6 +103,7 @@ export function DateTimePicker({ form, field, dateFormat }: DatePickerProps) {
               mode="single"
               selected={field.value}
               onSelect={handleDateSelect}
+              disabled={minDate ? { before: minDate } : undefined}
               initialFocus
             />
             <div className="flex flex-col sm:flex-row sm:h-[300px] divide-y sm:divide-y-0 sm:divide-x">
