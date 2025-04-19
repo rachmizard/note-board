@@ -300,11 +300,7 @@ export function AddEditEventDialog({
               control={form.control}
               name="startDate"
               render={({ field }) => (
-                <DateTimePicker
-                  form={form}
-                  field={field}
-                  dateFormat="MMM d, yyyy HH:mm"
-                />
+                <DateTimePicker form={form} field={field} />
               )}
             />
 
@@ -315,7 +311,6 @@ export function AddEditEventDialog({
                 <DateTimePicker
                   form={form}
                   field={field}
-                  dateFormat="MMM d, yyyy HH:mm"
                   minDate={form.getValues("startDate")}
                 />
               )}
