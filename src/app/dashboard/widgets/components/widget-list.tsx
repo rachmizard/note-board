@@ -2,75 +2,99 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import {
-  LayoutDashboard,
-  GripHorizontal,
-  ChevronDown,
-  Plus,
-  PencilRuler,
-} from "lucide-react";
+import { LayoutDashboard, ChevronDown, Plus, PencilRuler } from "lucide-react";
 import { useWidgets, WidgetType } from "../context/widget-context";
-import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
-import {
-  SortableContext,
-  useSortable,
-  rectSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/shared/components/ui/button";
 import { WidgetDialog } from "./dialogs/widget-dialog";
+import { DashboardDialog } from "./dialogs/dashboard-dialog";
+import "../styles/react-grid.css";
+import { WidgetGrid } from "@/shared/components/widget-grid";
+import { WidgetItem } from "@/shared/components/widget-item";
 
-const SortableWidget: React.FC<WidgetType> = (widget) => {
-  const { isEditing } = useWidgets();
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: widget.id });
+interface Dashboard {
+  id: string;
+  name: string;
+  emoji?: string;
+}
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+// Sample dashboards data - in a real app, this would come from your backend or context
+const WidgetList: React.FC = () => {
+  const { widgets, isEditing, setIsEditing, updateWidgetLayout, deleteWidget } =
+    useWidgets();
+  const [widgetDialogOpen, setWidgetDialogOpen] = useState(false);
+  const [dashboardDialogOpen, setDashboardDialogOpen] = useState(false);
+  const [selectedDashboard, setSelectedDashboard] = useState("dashboard-1");
+  const [currentDashboardName, setCurrentDashboardName] =
+    useState("Main Dashboard");
+  const [currentDashboardEmoji, setCurrentDashboardEmoji] = useState<
+    string | undefined
+  >("📊");
+  const [dashboards, setDashboards] = useState<Dashboard[]>([
+    { id: "dashboard-1", name: "Main Dashboard", emoji: "📊" },
+    { id: "dashboard-2", name: "Project Timeline", emoji: "📅" },
+    { id: "dashboard-3", name: "Analytics Overview", emoji: "📈" },
+  ]);
+
+  const handleLayoutChange = (newLayout: any) => {
+    updateWidgetLayout(newLayout);
   };
 
-  return (
-    <motion.div
-      ref={setNodeRef}
-      style={style}
-      layout
-      className="h-48 border rounded-lg p-4 flex flex-col items-center justify-center gap-2 relative group"
-    >
-      <div className="text-muted-foreground">{widget.icon}</div>
-      <span className="text-sm font-medium">{widget.name}</span>
+  const renderWidget = (widget: WidgetType) => {
+    return (
+      <WidgetItem
+        id={widget.id}
+        name={widget.name}
+        icon={widget.icon}
+        isEditing={isEditing}
+        onDelete={deleteWidget}
+      />
+    );
+  };
 
-      {isEditing && (
-        <div
-          className="absolute inset-0 bg-background/40 backdrop-blur-sm opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-move"
-          {...attributes}
-          {...listeners}
-        >
-          <GripHorizontal className="h-6 w-6 text-primary" />
-        </div>
-      )}
-    </motion.div>
-  );
-};
-
-const WidgetList: React.FC = () => {
-  const { widgets, isEditing, setIsEditing, updateWidgetOrder } = useWidgets();
-  const [widgetDialogOpen, setWidgetDialogOpen] = useState(false);
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const oldIndex = widgets.findIndex((w) => w.id === active.id);
-      const newIndex = widgets.findIndex((w) => w.id === over.id);
-      updateWidgetOrder(oldIndex, newIndex);
+  const handleDashboardSelect = (dashboardId: string) => {
+    setSelectedDashboard(dashboardId);
+    const selectedDash = dashboards.find((d) => d.id === dashboardId);
+    if (selectedDash) {
+      setCurrentDashboardName(selectedDash.name);
+      setCurrentDashboardEmoji(selectedDash.emoji);
     }
+    // In a real app, you would fetch widgets for the selected dashboard here
+  };
+
+  const handleCreateNewDashboard = (title: string, emoji?: string) => {
+    // Generate a new ID for the dashboard
+    const newId = `dashboard-${Date.now()}`;
+
+    // Create a new dashboard object
+    const newDashboard: Dashboard = {
+      id: newId,
+      name: title,
+      emoji: emoji,
+    };
+
+    // Update dashboards list
+    setDashboards([...dashboards, newDashboard]);
+
+    // Select the new dashboard
+    setSelectedDashboard(newId);
+    setCurrentDashboardName(title);
+    setCurrentDashboardEmoji(emoji);
+
+    // In a real app, you would save this to your backend
   };
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-between items-center">
-        <Button variant="ghost" className="text-xl font-bold px-2 gap-2">
-          Main Dashboard
+        <Button
+          variant="ghost"
+          className="text-xl font-bold px-2 gap-2"
+          onClick={() => setDashboardDialogOpen(true)}
+        >
+          {currentDashboardEmoji && (
+            <span className="text-xl mr-1">{currentDashboardEmoji}</span>
+          )}
+          {currentDashboardName}
           <ChevronDown className="h-5 w-5" />
         </Button>
         <div className="flex items-center gap-2">
@@ -90,36 +114,35 @@ const WidgetList: React.FC = () => {
 
       {widgets.length === 0 ? (
         <div className="h-[calc(100vh-12rem)] w-full">
-          <motion.div
-            className="h-full w-full border-1 border-dashed border-accent rounded-lg flex flex-col items-center justify-center gap-4"
-            whileHover={{ scale: 1.01 }}
-            transition={{ type: "spring", stiffness: 400, damping: 10 }}
-          >
+          <motion.div className="w-full h-full flex flex-col items-center justify-center gap-4">
             <LayoutDashboard className="w-12 h-12 text-accent" />
             <p className="text-gray-500">No widgets added yet</p>
           </motion.div>
         </div>
       ) : (
-        <DndContext
-          onDragEnd={handleDragEnd}
-          collisionDetection={closestCenter}
-        >
-          <SortableContext
-            items={widgets.map((w) => w.id)}
-            strategy={rectSortingStrategy}
-          >
-            <div className="grid grid-cols-2 gap-4">
-              {widgets.map((widget) => (
-                <SortableWidget key={widget.id} {...widget} />
-              ))}
-            </div>
-          </SortableContext>
-        </DndContext>
+        <div className="h-[calc(100vh-12rem)] w-full">
+          <WidgetGrid
+            items={widgets}
+            isDraggable={isEditing}
+            isResizable={isEditing}
+            onLayoutChange={handleLayoutChange}
+            renderItem={renderWidget}
+          />
+        </div>
       )}
 
       <WidgetDialog
         open={widgetDialogOpen}
         onOpenChange={setWidgetDialogOpen}
+      />
+
+      <DashboardDialog
+        open={dashboardDialogOpen}
+        onOpenChange={setDashboardDialogOpen}
+        dashboards={dashboards}
+        selectedDashboard={selectedDashboard}
+        onSelect={handleDashboardSelect}
+        onCreateNew={handleCreateNewDashboard}
       />
     </div>
   );

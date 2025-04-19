@@ -14,7 +14,7 @@ import { cn } from "@/shared/lib/utils";
 import React, { useState } from "react";
 import { WIDGET_CATEGORIES } from "./widget-categories";
 import { Layout, Plus } from "lucide-react";
-import { useWidgets } from "../../context/widget-context";
+import { useWidgets, WidgetType } from "../../context/widget-context";
 
 interface WidgetDialogProps {
   open: boolean;
@@ -26,7 +26,7 @@ export const WidgetDialog: React.FC<WidgetDialogProps> = ({
   onOpenChange,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const { addWidget } = useWidgets();
+  const { addWidget, widgets } = useWidgets();
 
   const handleAddWidget = (widget: {
     id: string;
@@ -36,11 +36,11 @@ export const WidgetDialog: React.FC<WidgetDialogProps> = ({
     category: string;
   }) => {
     addWidget({
-      id: `${widget.id}-${Date.now()}`,
-      name: widget.name,
-      icon: widget.icon,
-      type: widget.type || widget.id,
-      category: widget.category || selectedCategory,
+      ...widget,
+      x: (widgets.length % 2) * 6,
+      y: Math.floor(widgets.length / 2),
+      w: 6,
+      h: 4,
     });
     onOpenChange(false);
   };
