@@ -1,7 +1,14 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { format, getHours, getMinutes, set } from "date-fns";
+import {
+  format,
+  getHours,
+  getMinutes,
+  set,
+  isBefore,
+  addHours,
+} from "date-fns";
 
 import { useDisclosure } from "@/app/dashboard/timeline/hooks";
 import {
@@ -13,13 +20,6 @@ import {
   FormMessage,
 } from "@/shared/components/ui/form";
 import { Input } from "@/shared/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/components/ui/select";
 import {
   Dialog,
   DialogClose,
@@ -34,18 +34,103 @@ import { Button } from "@/shared/components/ui/button";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { eventSchema, TEventFormData } from "@/app/dashboard/timeline/schemas";
 import { useCalendar } from "@/app/dashboard/timeline/contexts/calendar-context";
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { IEvent } from "@/app/dashboard/timeline/interfaces";
-import { COLORS } from "@/app/dashboard/timeline/constants";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DateTimePicker } from "@/shared/components/ui/date-time-picker";
+import { cn } from "@/shared/lib/utils";
 
 interface IProps {
   children: ReactNode;
   startDate?: Date;
   startTime?: { hour: number; minute: number };
   event?: IEvent;
+}
+
+// Color mapping for background and border styles
+const colorStyles: Record<
+  string,
+  { bg: string; border: string; text: string }
+> = {
+  blue: {
+    bg: "bg-blue-100 dark:bg-blue-900/30",
+    border: "border-blue-500",
+    text: "text-blue-600 dark:text-blue-400",
+  },
+  green: {
+    bg: "bg-green-100 dark:bg-green-900/30",
+    border: "border-green-500",
+    text: "text-green-600 dark:text-green-400",
+  },
+  red: {
+    bg: "bg-red-100 dark:bg-red-900/30",
+    border: "border-red-500",
+    text: "text-red-600 dark:text-red-400",
+  },
+  yellow: {
+    bg: "bg-yellow-100 dark:bg-yellow-900/30",
+    border: "border-yellow-500",
+    text: "text-yellow-600 dark:text-yellow-400",
+  },
+  purple: {
+    bg: "bg-purple-100 dark:bg-purple-900/30",
+    border: "border-purple-500",
+    text: "text-purple-600 dark:text-purple-400",
+  },
+  orange: {
+    bg: "bg-orange-100 dark:bg-orange-900/30",
+    border: "border-orange-500",
+    text: "text-orange-600 dark:text-orange-400",
+  },
+};
+
+// Color dot style mapping
+const colorDotStyles: Record<string, string> = {
+  blue: "#3b82f6",
+  green: "#22c55e",
+  red: "#ef4444",
+  yellow: "#eab308",
+  purple: "#a855f7",
+  orange: "#f97316",
+};
+
+// Color button component
+interface ColorButtonProps {
+  color: string;
+  fieldValue: string;
+  onChange: (value: string) => void;
+  isInvalid?: boolean;
+}
+
+function ColorButton({
+  color,
+  fieldValue,
+  onChange,
+  isInvalid,
+}: ColorButtonProps) {
+  const isSelected = fieldValue === color;
+  const styles = colorStyles[color];
+
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      className={cn(
+        "gap-1.5 py-1 px-2 border capitalize h-10 w-full justify-center",
+        isSelected && `${styles.bg} ${styles.border} ${styles.text}`,
+        !isSelected && "hover:bg-muted",
+        isInvalid && "border-red-500",
+      )}
+      onClick={() => onChange(color)}
+    >
+      <div
+        className="size-3 rounded-full mr-1.5"
+        style={{ backgroundColor: colorDotStyles[color] }}
+      />
+      {color}
+    </Button>
+  );
 }
 
 export function AddEditEventDialog({
@@ -94,8 +179,32 @@ export function AddEditEventDialog({
         },
   });
 
+  // Watch for changes to startDate to adjust endDate if needed
+  const currentStartDate = form.watch("startDate");
+  const currentEndDate = form.watch("endDate");
+
+  useEffect(() => {
+    // If end date is before start date, automatically set it to 1 hour after start
+    if (
+      currentEndDate &&
+      currentStartDate &&
+      isBefore(currentEndDate, currentStartDate)
+    ) {
+      form.setValue("endDate", addHours(new Date(currentStartDate), 1));
+    }
+  }, [currentStartDate, currentEndDate, form]);
+
   const onSubmit = (values: TEventFormData) => {
     try {
+      // Additional validation to ensure end date is after start date
+      if (isBefore(values.endDate, values.startDate)) {
+        form.setError("endDate", {
+          type: "manual",
+          message: "End date must be after start date",
+        });
+        return;
+      }
+
       const formattedEvent: IEvent = {
         ...values,
         startDate: format(values.startDate, "yyyy-MM-dd'T'HH:mm:ss"),
@@ -171,54 +280,6 @@ export function AddEditEventDialog({
 
             <FormField
               control={form.control}
-              name="startDate"
-              render={({ field }) => (
-                <DateTimePicker form={form} field={field} />
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="endDate"
-              render={({ field }) => (
-                <DateTimePicker form={form} field={field} />
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="color"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormLabel className="required">Variant</FormLabel>
-                  <FormControl>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger
-                        className={`w-full ${fieldState.invalid ? "border-red-500" : ""}`}
-                      >
-                        <SelectValue placeholder="Select a variant" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {COLORS.map((color) => (
-                          <SelectItem value={color} key={color}>
-                            <div className="flex items-center gap-2">
-                              <div
-                                className={`size-3.5 rounded-full bg-${color}-600 dark:bg-${color}-700`}
-                              />
-                              {color}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name="description"
               render={({ field, fieldState }) => (
                 <FormItem>
@@ -229,6 +290,80 @@ export function AddEditEventDialog({
                       placeholder="Enter a description"
                       className={fieldState.invalid ? "border-red-500" : ""}
                     />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="startDate"
+              render={({ field }) => (
+                <DateTimePicker form={form} field={field} />
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="endDate"
+              render={({ field }) => (
+                <DateTimePicker
+                  form={form}
+                  field={field}
+                  minDate={form.getValues("startDate")}
+                />
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="color"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <FormLabel className="required">Variant</FormLabel>
+                  <FormControl>
+                    <div className="grid grid-cols-3 gap-2 mx-auto w-full max-w-md">
+                      {/* First row */}
+                      <ColorButton
+                        color="blue"
+                        fieldValue={field.value}
+                        onChange={field.onChange}
+                        isInvalid={fieldState.invalid}
+                      />
+                      <ColorButton
+                        color="green"
+                        fieldValue={field.value}
+                        onChange={field.onChange}
+                        isInvalid={fieldState.invalid}
+                      />
+                      <ColorButton
+                        color="red"
+                        fieldValue={field.value}
+                        onChange={field.onChange}
+                        isInvalid={fieldState.invalid}
+                      />
+
+                      {/* Second row */}
+                      <ColorButton
+                        color="yellow"
+                        fieldValue={field.value}
+                        onChange={field.onChange}
+                        isInvalid={fieldState.invalid}
+                      />
+                      <ColorButton
+                        color="orange"
+                        fieldValue={field.value}
+                        onChange={field.onChange}
+                        isInvalid={fieldState.invalid}
+                      />
+                      <ColorButton
+                        color="purple"
+                        fieldValue={field.value}
+                        onChange={field.onChange}
+                        isInvalid={fieldState.invalid}
+                      />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
